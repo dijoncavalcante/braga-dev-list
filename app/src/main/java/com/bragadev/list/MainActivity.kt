@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             BragadevlistTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Android",
+                        name = "braga dev",
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -42,6 +42,6 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     BragadevlistTheme {
-        Greeting("Android")
+        Greeting("braga dev")
     }
 }
