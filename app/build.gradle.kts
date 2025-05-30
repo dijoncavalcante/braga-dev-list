@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.io.gitlab.arturbosch.detekt)
 }
 
 android {
@@ -28,15 +29,40 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
     }
+}
+
+detekt {
+    toolVersion = "1.23.8" // Use a mesma versão do plugin
+    source.setFrom(files(project.projectDir.toString() + "/src/main/kotlin", project.projectDir.toString() + "/src/test/kotlin", project.projectDir.toString() + "/src/androidTest/kotlin")) // Garante que todos os source sets sejam incluídos
+    config.setFrom(files("$projectDir/detekt-config.yml")) // Caminho para seu arquivo de configuração
+    buildUponDefaultConfig = true // Usa a configuração padrão como base e sobrescreve com seu arquivo
+//     reports { // Descomente e configure se quiser relatórios específicos
+////         xml {
+////             required.set(true)
+////             outputLocation.set(file("build/reports/detekt/detekt.xml"))
+////         }
+////         html {
+////             required.set(true)
+////             outputLocation.set(file("build/reports/detekt/detekt.html"))
+////         }
+////         txt {
+////             required.set(true)
+////             outputLocation.set(file("build/reports/detekt/detekt.txt"))
+////         }
+////         sarif {
+////             required.set(true)
+////             outputLocation.set(file("build/reports/detekt/detekt.sarif"))
+////         }
+////     }
 }
 
 dependencies {
