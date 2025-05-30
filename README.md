@@ -99,6 +99,8 @@ Principais Mudanças e Considerações para Jetpack Compose:
 
 4.MainActivity.kt:
 
+
+
 •Geralmente se torna mais simples. Sua responsabilidade principal é configurar o tema da aplicação e hospedar o NavHost (ou o Composable da tela inicial se a navegação for simples).
 
 5.res/layout/: Esta pasta se torna menos utilizada, pois a UI é definida programaticamente com Composables. No entanto, você ainda pode precisar dela para layouts específicos de Views tradicionais (se estiver misturando Compose com Views) ou para recursos como layouts de widgets de app.
@@ -107,3 +109,9 @@ Principais Mudanças e Considerações para Jetpack Compose:
 •A estrutura dessas camadas permanece idêntica à abordagem tradicional. Jetpack Compose é uma ferramenta de UI, e Clean Architecture se concentra na separação de preocupações em um nível mais fundamental (lógica de negócios, acesso a dados).
 •core/domain/repository/: Definir interfaces para seus repositórios aqui é uma prática chave da Clean Architecture, permitindo que a camada de domínio dependa de abstrações, não de implementações concretas.
 •core/data/mapper/: Mapeadores são importantes para converter entre modelos de dados (DTOs da API, Entidades do Room) e os modelos de domínio puros que sua camada de domínio e View
+
+
+
+./gradlew detekt
+
+./gradlew ktlintFormat

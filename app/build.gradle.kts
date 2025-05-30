@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.io.gitlab.arturbosch.detekt)
+    alias(libs.plugins.ktlint)
 }
 
 android {
@@ -23,20 +25,67 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
     }
+}
+
+detekt {
+    toolVersion = "1.23.8" // Use a mesma versão do plugin
+    source.setFrom(
+        files(
+            project.projectDir.toString() + "/src/main/kotlin",
+            project.projectDir.toString() + "/src/test/kotlin",
+            project.projectDir.toString() + "/src/androidTest/kotlin",
+        ),
+    ) // Garante que todos os source sets sejam incluídos
+    config.setFrom(files("$projectDir/detekt-config.yml")) // Caminho para seu arquivo de configuração
+    buildUponDefaultConfig = true // Usa a configuração padrão como base e sobrescreve com seu arquivo
+//     reports { // Descomente e configure se quiser relatórios específicos
+// //         xml {
+// //             required.set(true)
+// //             outputLocation.set(file("build/reports/detekt/detekt.xml"))
+// //         }
+// //         html {
+// //             required.set(true)
+// //             outputLocation.set(file("build/reports/detekt/detekt.html"))
+// //         }
+// //         txt {
+// //             required.set(true)
+// //             outputLocation.set(file("build/reports/detekt/detekt.txt"))
+// //         }
+// //         sarif {
+// //             required.set(true)
+// //             outputLocation.set(file("build/reports/detekt/detekt.sarif"))
+// //         }
+// //     }
+}
+
+ktlint {
+    version.set("1.3.1") // Versão do Ktlint Core. Verifique a compatibilidade com o plugin em https://github.com/JLLeitschuh/ktlint-gradle
+    verbose.set(true)
+    android.set(true) // Aplica o estilo padrão do Android Kotlin Style Guide
+    outputToConsole.set(true)
+    // Se você quiser que o build falhe se houver problemas de formatação não corrigidos:
+    // ignoreFailures.set(false) // O padrão é false para a tarefa 'ktlintCheck'
+    // enableExperimentalRules.set(true) // Se quiser usar regras experimentais do Ktlint
+
+    // Filtros para incluir/excluir arquivos (opcional, mas útil)
+    // filter {
+    //     exclude("**/generated/**")
+    //     include("**/kotlin/**")
+    // }
 }
 
 dependencies {
