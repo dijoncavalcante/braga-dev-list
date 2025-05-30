@@ -11,13 +11,12 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.bragadev.list.navigation.Screen
 
-
 @Composable
 fun HomeScreen(navController: NavController) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text("Home Screen")
         Button(onClick = {
