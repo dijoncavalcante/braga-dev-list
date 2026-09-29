@@ -22,6 +22,7 @@
     <string name="list_detail_retry_button">Tentar novamente</string>
     <string name="list_detail_item_name_label">Nome do item</string>
     <string name="list_detail_item_quantity_label">Quantidade</string>
+    <string name="list_detail_item_price_label">Valor (R$)</string>
     <string name="list_detail_dialog_save">Adicionar</string>
     <string name="list_detail_dialog_cancel">Cancelar</string>
     <string name="list_detail_error_empty_item_name">Informe um nome para o item</string>

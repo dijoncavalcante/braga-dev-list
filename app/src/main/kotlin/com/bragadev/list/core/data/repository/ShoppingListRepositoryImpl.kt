@@ -44,13 +44,19 @@ class ShoppingListRepositoryImpl(
         }
     }
 
-    override suspend fun addItem(listId: Long, name: String, quantity: Int): AppResult<ShoppingListItem> =
+    override suspend fun addItem(
+        listId: Long,
+        name: String,
+        quantity: Int,
+        priceInCents: Long,
+    ): AppResult<ShoppingListItem> =
         runCatchingToResult {
             withContext(ioDispatcher) {
                 val entity = ShoppingListItemEntity(
                     listId = listId,
                     name = name,
                     quantity = quantity,
+                    priceInCents = priceInCents,
                     isChecked = false,
                     createdAt = System.currentTimeMillis(),
                 )

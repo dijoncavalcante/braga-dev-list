@@ -18,7 +18,12 @@ interface ShoppingListRepository {
 
     suspend fun createList(name: String): AppResult<ShoppingList>
 
-    suspend fun addItem(listId: Long, name: String, quantity: Int): AppResult<ShoppingListItem>
+    suspend fun addItem(
+        listId: Long,
+        name: String,
+        quantity: Int,
+        priceInCents: Long,
+    ): AppResult<ShoppingListItem>
 
     suspend fun setItemChecked(itemId: Long, isChecked: Boolean): AppResult<Unit>
 }

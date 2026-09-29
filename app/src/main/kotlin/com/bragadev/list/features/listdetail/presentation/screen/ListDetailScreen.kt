@@ -21,6 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bragadev.list.R
 import com.bragadev.list.core.domain.model.ShoppingListItem
+import com.bragadev.list.core.util.extensions.toBrlCurrency
 import com.bragadev.list.features.listdetail.presentation.component.AddItemDialog
 import com.bragadev.list.features.listdetail.presentation.state.ListDetailUiState
 import com.bragadev.list.features.listdetail.presentation.viewmodel.ListDetailViewModel
@@ -68,7 +70,7 @@ private fun ListDetailContent(
     onBackClick: () -> Unit,
     onAddItemClick: () -> Unit,
     onDismissAddItemDialog: () -> Unit,
-    onAddItemConfirm: (String, Int) -> Unit,
+    onAddItemConfirm: (String, Int, Long) -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
     onRetryClick: () -> Unit,
 ) {
@@ -186,7 +188,15 @@ private fun ShoppingListItemRow(item: ShoppingListItem, onCheckedChange: (Boolea
             Text(
                 text = "${item.name} (${item.quantity})",
                 textDecoration = if (item.isChecked) TextDecoration.LineThrough else TextDecoration.None,
+                modifier = Modifier.weight(1f),
             )
+            if (item.priceInCents > 0) {
+                Text(
+                    text = item.priceInCents.toBrlCurrency(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    textDecoration = if (item.isChecked) TextDecoration.LineThrough else TextDecoration.None,
+                )
+            }
         }
     }
 }
@@ -200,7 +210,7 @@ private fun ListDetailEmptyPreview() {
             onBackClick = {},
             onAddItemClick = {},
             onDismissAddItemDialog = {},
-            onAddItemConfirm = { _, _ -> },
+            onAddItemConfirm = { _, _, _ -> },
             onItemCheckedChange = { _, _ -> },
             onRetryClick = {},
         )

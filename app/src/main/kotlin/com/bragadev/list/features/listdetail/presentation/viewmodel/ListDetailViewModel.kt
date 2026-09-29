@@ -49,9 +49,9 @@ class ListDetailViewModel(
         _uiState.update { it.copy(isAddItemDialogVisible = false) }
     }
 
-    fun onAddItemConfirm(name: String, quantity: Int) {
+    fun onAddItemConfirm(name: String, quantity: Int, priceInCents: Long) {
         viewModelScope.launch {
-            when (addListItemUseCase(listId, name, quantity)) {
+            when (addListItemUseCase(listId, name, quantity, priceInCents)) {
                 is AppResult.Success -> _uiState.update { it.copy(isAddItemDialogVisible = false) }
                 is AppResult.Error -> Unit // dialog stays open; inline field validation is a follow-up iteration
             }
