@@ -1,13 +1,25 @@
 package com.bragadev.list.features.listdetail.presentation.component
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -21,12 +33,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import com.bragadev.list.R
 import com.bragadev.list.core.util.extensions.currencyInputToCents
+import com.bragadev.list.core.util.extensions.toBrDateString
 import com.bragadev.list.core.util.extensions.toBrlCurrency
 import com.bragadev.list.ui.theme.BragadevlistTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddItemDialog(
-    onConfirm: (name: String, quantity: Int, priceInCents: Long) -> Unit,
+    onConfirm: (name: String, quantity: Int, priceInCents: Long, dueDateMillis: Long?) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
@@ -34,6 +48,16 @@ fun AddItemDialog(
     var showNameError by remember { mutableStateOf(false) }
     var priceInCents by remember { mutableLongStateOf(0L) }
     val priceText = priceInCents.toBrlCurrency()
+    var dueDateMillis by remember { mutableStateOf<Long?>(null) }
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    // The due date field is read-only: tapping anywhere on it opens the date picker.
+    val dueDateInteractionSource = remember { MutableInteractionSource() }
+    LaunchedEffect(dueDateInteractionSource) {
+        dueDateInteractionSource.interactions.collect { interaction ->
+            if (interaction is PressInteraction.Release) showDatePicker = true
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -63,6 +87,33 @@ fun AddItemDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 OutlinedTextField(
+                    value = dueDateMillis?.toBrDateString().orEmpty(),
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text(stringResource(R.string.list_detail_item_due_date_label)) },
+                    placeholder = { Text(stringResource(R.string.list_detail_item_due_date_placeholder)) },
+                    trailingIcon = {
+                        if (dueDateMillis == null) {
+                            IconButton(onClick = { showDatePicker = true }) {
+                                Icon(
+                                    imageVector = Icons.Filled.DateRange,
+                                    contentDescription = stringResource(R.string.list_detail_item_due_date_pick),
+                                )
+                            }
+                        } else {
+                            IconButton(onClick = { dueDateMillis = null }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Clear,
+                                    contentDescription = stringResource(R.string.list_detail_item_due_date_clear),
+                                )
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    interactionSource = dueDateInteractionSource,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
                     // Cursor is pinned to the end: digits fill in from the cents, like a cash register.
                     value = TextFieldValue(text = priceText, selection = TextRange(priceText.length)),
                     onValueChange = { value -> priceInCents = value.text.currencyInputToCents() },
@@ -83,6 +134,7 @@ fun AddItemDialog(
                     name.trim(),
                     quantityText.toIntOrNull()?.coerceAtLeast(1) ?: 1,
                     priceInCents,
+                    dueDateMillis,
                 )
             }) {
                 Text(stringResource(R.string.list_detail_dialog_save))
@@ -94,12 +146,34 @@ fun AddItemDialog(
             }
         },
     )
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = dueDateMillis)
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    dueDateMillis = datePickerState.selectedDateMillis
+                    showDatePicker = false
+                }) {
+                    Text(stringResource(R.string.list_detail_date_picker_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text(stringResource(R.string.list_detail_dialog_cancel))
+                }
+            },
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun AddItemDialogPreview() {
     BragadevlistTheme {
-        AddItemDialog(onConfirm = { _, _, _ -> }, onDismiss = {})
+        AddItemDialog(onConfirm = { _, _, _, _ -> }, onDismiss = {})
     }
 }

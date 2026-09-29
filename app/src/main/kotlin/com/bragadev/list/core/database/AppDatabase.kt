@@ -7,7 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [ShoppingListEntity::class, ShoppingListItemEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -22,5 +22,14 @@ abstract class AppDatabase : RoomDatabase() {
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE shopping_list_items ADD COLUMN priceInCents INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+/**
+ * v2 -> v3: adds the optional item due date. Existing items get null (no due date).
+ */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE shopping_list_items ADD COLUMN dueDateMillis INTEGER")
     }
 }

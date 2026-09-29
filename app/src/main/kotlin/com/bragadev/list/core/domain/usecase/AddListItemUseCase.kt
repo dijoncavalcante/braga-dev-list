@@ -13,6 +13,7 @@ class AddListItemUseCase(
         name: String,
         quantity: Int,
         priceInCents: Long = 0,
+        dueDateMillis: Long? = null,
     ): AppResult<ShoppingListItem> {
         val trimmedName = name.trim()
         if (trimmedName.isEmpty()) {
@@ -23,6 +24,7 @@ class AddListItemUseCase(
             name = trimmedName,
             quantity = quantity.coerceAtLeast(1),
             priceInCents = priceInCents.coerceAtLeast(0),
+            dueDateMillis = dueDateMillis,
         )
     }
 }

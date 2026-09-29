@@ -39,6 +39,7 @@ class ShoppingListMapperTest {
             name = "Arroz",
             quantity = 2,
             priceInCents = 1_250,
+            dueDateMillis = 1_791_590_400_000,
             isChecked = true,
             createdAt = 3_000,
         )
@@ -50,6 +51,7 @@ class ShoppingListMapperTest {
         assertEquals("Arroz", domain.name)
         assertEquals(2, domain.quantity)
         assertEquals(1_250, domain.priceInCents)
+        assertEquals(1_791_590_400_000, domain.dueDateMillis)
         assertEquals(true, domain.isChecked)
     }
 }
