@@ -1,6 +1,7 @@
 package com.bragadev.list
 
 import com.bragadev.list.core.common.result.AppResult
+import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.usecase.DeleteListItemsUseCase
@@ -76,21 +77,24 @@ class ListDetailViewModelMenuTest {
     fun `items follow the list alphabetical preference`() {
         assertEquals(listOf("Pão", "arroz", "Café"), viewModel.uiState.value.items.map { it.name })
 
-        listFlow.value = listFlow.value!!.copy(sortAlphabetically = true)
+        listFlow.value = listFlow.value!!.copy(sortOrder = ItemSortOrder.ALPHABETICAL)
 
         assertEquals(listOf("arroz", "Café", "Pão"), viewModel.uiState.value.items.map { it.name })
     }
 
     @Test
-    fun `toggles save the opposite of the current preference`() {
-        coEvery { setListPreferencesUseCase.setSortAlphabetically(any(), any()) } returns AppResult.Success(Unit)
+    fun `sort choice and toggles are saved`() {
+        coEvery { setListPreferencesUseCase.setSortOrder(any(), any()) } returns AppResult.Success(Unit)
         coEvery { setListPreferencesUseCase.setShowPrices(any(), any()) } returns AppResult.Success(Unit)
+        coEvery { setListPreferencesUseCase.setGroupByFortnight(any(), any()) } returns AppResult.Success(Unit)
 
-        viewModel.onSortAlphabeticallyToggle()
+        viewModel.onSortOrderSelected(ItemSortOrder.DUE_DAY)
         viewModel.onShowPricesToggle()
+        viewModel.onGroupByFortnightToggle()
 
-        coVerify(exactly = 1) { setListPreferencesUseCase.setSortAlphabetically(1, true) }
+        coVerify(exactly = 1) { setListPreferencesUseCase.setSortOrder(1, ItemSortOrder.DUE_DAY) }
         coVerify(exactly = 1) { setListPreferencesUseCase.setShowPrices(1, false) }
+        coVerify(exactly = 1) { setListPreferencesUseCase.setGroupByFortnight(1, true) }
     }
 
     @Test
@@ -148,6 +152,13 @@ class ListDetailViewModelMenuTest {
 
         viewModel.onShareHandled()
         assertNull(viewModel.uiState.value.pendingShareText)
+    }
+
+    @Test
+    fun `selecting the order that is already active does not save again`() {
+        viewModel.onSortOrderSelected(ItemSortOrder.ADDED)
+
+        coVerify(exactly = 0) { setListPreferencesUseCase.setSortOrder(any(), any()) }
     }
 
     private fun item(id: Long, name: String) = ShoppingListItem(

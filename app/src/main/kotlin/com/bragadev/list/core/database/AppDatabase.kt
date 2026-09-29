@@ -7,7 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [ShoppingListEntity::class, ShoppingListItemEntity::class],
-    version = 5,
+    version = 7,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -86,5 +86,58 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE shopping_lists ADD COLUMN sortAlphabetically INTEGER NOT NULL DEFAULT 0")
         db.execSQL("ALTER TABLE shopping_lists ADD COLUMN showPrices INTEGER NOT NULL DEFAULT 1")
+    }
+}
+
+/** v5 -> v6: "Mostrar por quinzena" preference, off for every existing list. */
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE shopping_lists ADD COLUMN groupByFortnight INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+/**
+ * v6 -> v7: the "Ordem alfabética" on/off is replaced by a single "Ordenar por" choice
+ * (0 = ordem de adição, 1 = ordem alfabética, 2 = vencimento), so two orders can never
+ * be on at the same time. Lists that were A→Z stay A→Z; the others keep the order added.
+ *
+ * SQLite on older Android versions (minSdk 24) has no DROP/RENAME COLUMN, so the table
+ * is recreated and the rows copied with the same ids. Room only turns foreign keys on after
+ * migrations run; still, if they are on, dropping the old table would cascade-delete the
+ * items, so they are backed up first and restored afterwards.
+ */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        val foreignKeysOn = db.query("PRAGMA foreign_keys").use { it.moveToFirst() && it.getInt(0) == 1 }
+        if (foreignKeysOn) {
+            db.execSQL("CREATE TEMP TABLE `items_backup` AS SELECT * FROM `shopping_list_items`")
+        }
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `shopping_lists_new` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `name` TEXT NOT NULL,
+                `createdAt` INTEGER NOT NULL,
+                `sortOrder` INTEGER NOT NULL DEFAULT 0,
+                `showPrices` INTEGER NOT NULL DEFAULT 1,
+                `groupByFortnight` INTEGER NOT NULL DEFAULT 0
+            )
+            """.trimIndent(),
+        )
+        db.execSQL(
+            """
+            INSERT INTO `shopping_lists_new` (`id`, `name`, `createdAt`, `sortOrder`, `showPrices`, `groupByFortnight`)
+            SELECT `id`, `name`, `createdAt`,
+                CASE WHEN `sortAlphabetically` = 1 THEN 1 ELSE 0 END,
+                `showPrices`, `groupByFortnight`
+            FROM `shopping_lists`
+            """.trimIndent(),
+        )
+        db.execSQL("DROP TABLE `shopping_lists`")
+        db.execSQL("ALTER TABLE `shopping_lists_new` RENAME TO `shopping_lists`")
+        if (foreignKeysOn) {
+            db.execSQL("INSERT OR IGNORE INTO `shopping_list_items` SELECT * FROM `items_backup`")
+            db.execSQL("DROP TABLE `items_backup`")
+        }
     }
 }

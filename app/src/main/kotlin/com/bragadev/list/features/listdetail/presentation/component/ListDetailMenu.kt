@@ -1,15 +1,16 @@
 package com.bragadev.list.features.listdetail.presentation.component
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.AttachMoney
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CheckBox
 import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.outlined.SortByAlpha
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -17,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,26 +26,32 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.bragadev.list.R
+import com.bragadev.list.core.domain.model.ItemSortOrder
 
 /**
  * Three dots of the list screen toolbar.
  *
- * Toggles ("Ordem alfabética", "Mostrar valor") keep the menu open so the user sees the
- * switch flip; actions close it. Actions that would do nothing are disabled (e.g.
+ * "Ordenar por" is a single choice (radio buttons), so two orders can never be active at
+ * once. It and the toggles ("Mostrar valor", "Mostrar por quinzena") keep the menu open so
+ * the user sees the change; actions close it. Actions that would do nothing are disabled (e.g.
  * "Marcar todos" when everything is already checked).
  */
 @Composable
 fun ListDetailMenu(
-    sortAlphabetically: Boolean,
+    sortOrder: ItemSortOrder,
     showPrices: Boolean,
+    groupByFortnight: Boolean,
     hasItems: Boolean,
     hasCheckedItems: Boolean,
     hasUncheckedItems: Boolean,
-    onSortAlphabeticallyToggle: () -> Unit,
+    onSortOrderSelected: (ItemSortOrder) -> Unit,
     onShowPricesToggle: () -> Unit,
+    onGroupByFortnightToggle: () -> Unit,
     onUncheckAllClick: () -> Unit,
     onCheckAllClick: () -> Unit,
     onDeleteItemsClick: () -> Unit,
@@ -60,17 +68,39 @@ fun ListDetailMenu(
             )
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            ToggleItem(
-                icon = Icons.Outlined.SortByAlpha,
-                label = stringResource(R.string.list_detail_menu_sort_alphabetically),
-                checked = sortAlphabetically,
-                onToggle = onSortAlphabeticallyToggle,
+            Text(
+                text = stringResource(R.string.list_detail_menu_sort_by),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
+            SortOrderItem(
+                label = stringResource(R.string.list_detail_menu_sort_added),
+                selected = sortOrder == ItemSortOrder.ADDED,
+                onClick = { onSortOrderSelected(ItemSortOrder.ADDED) },
+            )
+            SortOrderItem(
+                label = stringResource(R.string.list_detail_menu_sort_alphabetically),
+                selected = sortOrder == ItemSortOrder.ALPHABETICAL,
+                onClick = { onSortOrderSelected(ItemSortOrder.ALPHABETICAL) },
+            )
+            SortOrderItem(
+                label = stringResource(R.string.list_detail_menu_sort_due_day),
+                selected = sortOrder == ItemSortOrder.DUE_DAY,
+                onClick = { onSortOrderSelected(ItemSortOrder.DUE_DAY) },
+            )
+            HorizontalDivider()
             ToggleItem(
                 icon = Icons.Outlined.AttachMoney,
                 label = stringResource(R.string.list_detail_menu_show_prices),
                 checked = showPrices,
                 onToggle = onShowPricesToggle,
+            )
+            ToggleItem(
+                icon = Icons.Outlined.CalendarMonth,
+                label = stringResource(R.string.list_detail_menu_group_by_fortnight),
+                checked = groupByFortnight,
+                onToggle = onGroupByFortnightToggle,
             )
             HorizontalDivider()
             ActionItem(
@@ -105,6 +135,16 @@ fun ListDetailMenu(
             )
         }
     }
+}
+
+@Composable
+private fun SortOrderItem(label: String, selected: Boolean, onClick: () -> Unit) {
+    DropdownMenuItem(
+        text = { Text(label) },
+        // The whole row selects; the radio button only mirrors the state.
+        leadingIcon = { RadioButton(selected = selected, onClick = null) },
+        onClick = onClick,
+    )
 }
 
 @Composable

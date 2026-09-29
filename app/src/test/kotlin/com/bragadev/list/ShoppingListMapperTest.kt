@@ -4,6 +4,7 @@ import com.bragadev.list.core.data.mapper.toDomain
 import com.bragadev.list.core.database.ShoppingListEntity
 import com.bragadev.list.core.database.ShoppingListItemEntity
 import com.bragadev.list.core.database.ShoppingListWithItemCount
+import com.bragadev.list.core.domain.model.ItemSortOrder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -15,8 +16,9 @@ class ShoppingListMapperTest {
             id = 1,
             name = "Compras",
             createdAt = 1_000,
-            sortAlphabetically = true,
+            sortOrder = 2,
             showPrices = false,
+            groupByFortnight = true,
             itemCount = 4,
         )
 
@@ -26,8 +28,9 @@ class ShoppingListMapperTest {
         assertEquals("Compras", domain.name)
         assertEquals(1_000, domain.createdAt)
         assertEquals(4, domain.itemCount)
-        assertEquals(true, domain.sortAlphabetically)
+        assertEquals(ItemSortOrder.DUE_DAY, domain.sortOrder)
         assertEquals(false, domain.showPrices)
+        assertEquals(true, domain.groupByFortnight)
     }
 
     @Test

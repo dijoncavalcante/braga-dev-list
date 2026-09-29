@@ -20,7 +20,7 @@ import com.bragadev.list.core.util.extensions.toBrlCurrency
  * ```
  *
  * The total (unit price × quantity) is only added when at least one item has a price.
- * The list's own preferences are respected: items follow its order ("Ordem alfabética")
+ * The list's own preferences are respected: items follow its "Ordenar por" choice
  * and prices/total are left out when "Mostrar valor" is off.
  */
 class GetListShareTextUseCase(
@@ -31,7 +31,7 @@ class GetListShareTextUseCase(
             is AppResult.Success -> AppResult.Success(
                 buildShareText(
                     listName = list.name,
-                    items = result.data.sortedForDisplay(list.sortAlphabetically),
+                    items = result.data.sortedForDisplay(list.sortOrder),
                     showPrices = list.showPrices,
                 ),
             )

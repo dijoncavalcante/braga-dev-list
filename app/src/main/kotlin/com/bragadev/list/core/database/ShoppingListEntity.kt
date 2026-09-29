@@ -9,8 +9,10 @@ data class ShoppingListEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val createdAt: Long,
-    /** "Ordem alfabética" toggle of the list screen menu. */
-    @ColumnInfo(defaultValue = "0") val sortAlphabetically: Boolean = false,
+    /** "Ordenar por" choice of the list screen menu, as [com.bragadev.list.core.domain.model.ItemSortOrder.code]. */
+    @ColumnInfo(defaultValue = "0") val sortOrder: Int = 0,
     /** "Mostrar valor" toggle of the list screen menu. */
     @ColumnInfo(defaultValue = "1") val showPrices: Boolean = true,
+    /** "Mostrar por quinzena" toggle of the list screen menu. */
+    @ColumnInfo(defaultValue = "0") val groupByFortnight: Boolean = false,
 )

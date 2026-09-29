@@ -7,6 +7,7 @@ import com.bragadev.list.core.database.ShoppingListDao
 import com.bragadev.list.core.database.ShoppingListItemDao
 import com.bragadev.list.core.database.ShoppingListItemEntity
 import com.bragadev.list.core.database.ShoppingListEntity
+import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.repository.ShoppingListRepository
@@ -51,14 +52,18 @@ class ShoppingListRepositoryImpl(
         }
     }
 
-    override suspend fun setSortAlphabetically(listId: Long, sortAlphabetically: Boolean): AppResult<Unit> =
-        runCatchingToResult {
-            withContext(ioDispatcher) { listDao.setSortAlphabetically(listId, sortAlphabetically) }
-        }
+    override suspend fun setSortOrder(listId: Long, sortOrder: ItemSortOrder): AppResult<Unit> = runCatchingToResult {
+        withContext(ioDispatcher) { listDao.setSortOrder(listId, sortOrder.code) }
+    }
 
     override suspend fun setShowPrices(listId: Long, showPrices: Boolean): AppResult<Unit> = runCatchingToResult {
         withContext(ioDispatcher) { listDao.setShowPrices(listId, showPrices) }
     }
+
+    override suspend fun setGroupByFortnight(listId: Long, groupByFortnight: Boolean): AppResult<Unit> =
+        runCatchingToResult {
+            withContext(ioDispatcher) { listDao.setGroupByFortnight(listId, groupByFortnight) }
+        }
 
     override suspend fun setAllItemsChecked(listId: Long, isChecked: Boolean): AppResult<Unit> = runCatchingToResult {
         withContext(ioDispatcher) { itemDao.setAllChecked(listId, isChecked) }
@@ -84,8 +89,9 @@ class ShoppingListRepositoryImpl(
                 val copy = ShoppingListEntity(
                     name = newName,
                     createdAt = createdAt,
-                    sortAlphabetically = source?.sortAlphabetically ?: false,
+                    sortOrder = source?.sortOrder ?: ItemSortOrder.ADDED.code,
                     showPrices = source?.showPrices ?: true,
+                    groupByFortnight = source?.groupByFortnight ?: false,
                 )
                 val newListId = listDao.duplicate(sourceListId = listId, copy = copy)
                 copy.copy(id = newListId).toDomain()

@@ -2,6 +2,7 @@ package com.bragadev.list
 
 import com.bragadev.list.core.common.result.AppError
 import com.bragadev.list.core.common.result.AppResult
+import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.repository.ShoppingListRepository
@@ -101,7 +102,7 @@ class ListOptionsUseCasesTest {
         )
 
         val result = GetListShareTextUseCase(repository)(
-            list.copy(sortAlphabetically = true, showPrices = false),
+            list.copy(sortOrder = ItemSortOrder.ALPHABETICAL, showPrices = false),
         )
 
         val expected = """

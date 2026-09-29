@@ -3,6 +3,7 @@ package com.bragadev.list.core.data.mapper
 import com.bragadev.list.core.database.ShoppingListEntity
 import com.bragadev.list.core.database.ShoppingListItemEntity
 import com.bragadev.list.core.database.ShoppingListWithItemCount
+import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 
@@ -11,8 +12,9 @@ fun ShoppingListWithItemCount.toDomain(): ShoppingList = ShoppingList(
     name = name,
     createdAt = createdAt,
     itemCount = itemCount,
-    sortAlphabetically = sortAlphabetically,
+    sortOrder = ItemSortOrder.fromCode(sortOrder),
     showPrices = showPrices,
+    groupByFortnight = groupByFortnight,
 )
 
 fun ShoppingListEntity.toDomain(itemCount: Int = 0): ShoppingList = ShoppingList(
@@ -20,8 +22,9 @@ fun ShoppingListEntity.toDomain(itemCount: Int = 0): ShoppingList = ShoppingList
     name = name,
     createdAt = createdAt,
     itemCount = itemCount,
-    sortAlphabetically = sortAlphabetically,
+    sortOrder = ItemSortOrder.fromCode(sortOrder),
     showPrices = showPrices,
+    groupByFortnight = groupByFortnight,
 )
 
 fun ShoppingListItemEntity.toDomain(): ShoppingListItem = ShoppingListItem(

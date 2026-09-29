@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bragadev.list.core.common.result.AppError
 import com.bragadev.list.core.common.result.AppResult
+import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.model.sortedForDisplay
 import com.bragadev.list.core.domain.usecase.AddListItemUseCase
@@ -114,10 +115,12 @@ class ListDetailViewModel(
 
     // region Toolbar menu (three dots)
 
-    fun onSortAlphabeticallyToggle() {
+    /** "Ordenar por": only one order is active at a time. */
+    fun onSortOrderSelected(sortOrder: ItemSortOrder) {
         val list = _uiState.value.list ?: return
+        if (list.sortOrder == sortOrder) return
         viewModelScope.launch {
-            setListPreferencesUseCase.setSortAlphabetically(list.id, !list.sortAlphabetically)
+            setListPreferencesUseCase.setSortOrder(list.id, sortOrder)
         }
     }
 
@@ -125,6 +128,13 @@ class ListDetailViewModel(
         val list = _uiState.value.list ?: return
         viewModelScope.launch {
             setListPreferencesUseCase.setShowPrices(list.id, !list.showPrices)
+        }
+    }
+
+    fun onGroupByFortnightToggle() {
+        val list = _uiState.value.list ?: return
+        viewModelScope.launch {
+            setListPreferencesUseCase.setGroupByFortnight(list.id, !list.groupByFortnight)
         }
     }
 
@@ -199,7 +209,7 @@ class ListDetailViewModel(
         observeJob = combine(
             getShoppingListUseCase(listId),
             getListItemsUseCase(listId),
-        ) { list, items -> list to items.sortedForDisplay(list?.sortAlphabetically ?: false) }
+        ) { list, items -> list to items.sortedForDisplay(list?.sortOrder ?: ItemSortOrder.ADDED) }
             .onEach { (list, items) ->
                 _uiState.update { it.copy(isLoading = false, list = list, items = items, error = null) }
             }

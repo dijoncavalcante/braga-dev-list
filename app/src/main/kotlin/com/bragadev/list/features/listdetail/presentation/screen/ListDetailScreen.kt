@@ -1,5 +1,6 @@
 package com.bragadev.list.features.listdetail.presentation.screen
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -37,6 +39,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bragadev.list.R
+import com.bragadev.list.core.domain.model.FortnightGroups
+import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ListSummary
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
@@ -83,8 +87,9 @@ fun ListDetailScreen(
         onItemCheckedChange = viewModel::onItemCheckedChange,
         onRetryClick = viewModel::retry,
         menuActions = ListDetailMenuActions(
-            onSortAlphabeticallyToggle = viewModel::onSortAlphabeticallyToggle,
+            onSortOrderSelected = viewModel::onSortOrderSelected,
             onShowPricesToggle = viewModel::onShowPricesToggle,
+            onGroupByFortnightToggle = viewModel::onGroupByFortnightToggle,
             onUncheckAllClick = viewModel::onUncheckAllClick,
             onCheckAllClick = viewModel::onCheckAllClick,
             onDeleteItemsClick = viewModel::onDeleteItemsClick,
@@ -118,8 +123,9 @@ fun ListDetailScreen(
 
 /** Callbacks of the toolbar three-dots menu, grouped to keep [ListDetailContent] readable. */
 private data class ListDetailMenuActions(
-    val onSortAlphabeticallyToggle: () -> Unit = {},
+    val onSortOrderSelected: (ItemSortOrder) -> Unit = {},
     val onShowPricesToggle: () -> Unit = {},
+    val onGroupByFortnightToggle: () -> Unit = {},
     val onUncheckAllClick: () -> Unit = {},
     val onCheckAllClick: () -> Unit = {},
     val onDeleteItemsClick: () -> Unit = {},
@@ -158,13 +164,15 @@ private fun ListDetailContent(
                 actions = {
                     val summary = uiState.summary
                     ListDetailMenu(
-                        sortAlphabetically = uiState.sortAlphabetically,
+                        sortOrder = uiState.sortOrder,
                         showPrices = uiState.showPrices,
+                        groupByFortnight = uiState.groupByFortnight,
                         hasItems = summary.total.count > 0,
                         hasCheckedItems = summary.checked.count > 0,
                         hasUncheckedItems = summary.unchecked.count > 0,
-                        onSortAlphabeticallyToggle = menuActions.onSortAlphabeticallyToggle,
+                        onSortOrderSelected = menuActions.onSortOrderSelected,
                         onShowPricesToggle = menuActions.onShowPricesToggle,
+                        onGroupByFortnightToggle = menuActions.onGroupByFortnightToggle,
                         onUncheckAllClick = menuActions.onUncheckAllClick,
                         onCheckAllClick = menuActions.onCheckAllClick,
                         onDeleteItemsClick = menuActions.onDeleteItemsClick,
@@ -189,6 +197,7 @@ private fun ListDetailContent(
             else -> ItemsState(
                 padding = padding,
                 items = uiState.items,
+                fortnightGroups = if (uiState.groupByFortnight) uiState.fortnightGroups else null,
                 summary = uiState.summary,
                 showPrices = uiState.showPrices,
                 onItemClick = onItemClick,
@@ -259,6 +268,7 @@ private fun ErrorState(padding: PaddingValues, onRetryClick: () -> Unit) {
 private fun ItemsState(
     padding: PaddingValues,
     items: List<ShoppingListItem>,
+    fortnightGroups: FortnightGroups?,
     summary: ListSummary,
     showPrices: Boolean,
     onItemClick: (ShoppingListItem) -> Unit,
@@ -271,7 +281,7 @@ private fun ItemsState(
         // Extra bottom space so the "Adicionar item" button never covers the totals.
         contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
     ) {
-        items(items = items, key = { it.id }) { item ->
+        val itemRow: @Composable (ShoppingListItem) -> Unit = { item ->
             ShoppingListItemRow(
                 item = item,
                 showPrice = showPrices,
@@ -279,6 +289,38 @@ private fun ItemsState(
                 onCheckedChange = { checked -> onItemCheckedChange(item.id, checked) },
             )
         }
+
+        if (fortnightGroups == null) {
+            // Complete view: every item in a single list.
+            items(items = items, key = { it.id }) { item -> itemRow(item) }
+        } else {
+            // "Mostrar por quinzena": one list per fortnight, split by due day.
+            fortnightSection(
+                key = "first_fortnight",
+                titleRes = R.string.list_detail_first_fortnight,
+                subtitleRes = R.string.list_detail_first_fortnight_days,
+                items = fortnightGroups.firstFortnight,
+                itemRow = itemRow,
+            )
+            fortnightSection(
+                key = "second_fortnight",
+                titleRes = R.string.list_detail_second_fortnight,
+                subtitleRes = R.string.list_detail_second_fortnight_days,
+                items = fortnightGroups.secondFortnight,
+                itemRow = itemRow,
+            )
+            if (fortnightGroups.withoutDueDay.isNotEmpty()) {
+                fortnightSection(
+                    key = "without_due_day",
+                    titleRes = R.string.list_detail_without_due_day,
+                    subtitleRes = null,
+                    items = fortnightGroups.withoutDueDay,
+                    itemRow = itemRow,
+                )
+            }
+        }
+
+        // Totals stay the same in both views: always for the whole list.
         item(key = "summary") {
             ListSummaryFooter(summary = summary, showAmounts = showPrices)
         }
@@ -308,7 +350,8 @@ private fun ShoppingListItemRow(
             Checkbox(checked = item.isChecked, onCheckedChange = onCheckedChange)
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${item.name} (${item.quantity})",
+                    // Quantity only when it adds information: "Arroz (2)", but just "Luz" for 1.
+                    text = if (item.quantity > 1) "${item.name} (${item.quantity})" else item.name,
                     textDecoration = if (item.isChecked) TextDecoration.LineThrough else TextDecoration.None,
                 )
                 item.dueDay?.let { dueDay ->
@@ -350,6 +393,56 @@ private fun ListDetailEmptyPreview() {
             onItemCheckedChange = { _, _ -> },
             onRetryClick = {},
             menuActions = ListDetailMenuActions(),
+        )
+    }
+}
+
+/**
+ * One section of the "Mostrar por quinzena" view: a header (title, due days covered and
+ * how many of its items are checked) followed by its items, or a short message when empty.
+ */
+private fun LazyListScope.fortnightSection(
+    key: String,
+    @StringRes titleRes: Int,
+    @StringRes subtitleRes: Int?,
+    items: List<ShoppingListItem>,
+    itemRow: @Composable (ShoppingListItem) -> Unit,
+) {
+    item(key = "header_$key") {
+        FortnightHeader(
+            title = stringResource(titleRes),
+            days = subtitleRes?.let { stringResource(it) },
+            checkedCount = items.count { it.isChecked },
+            totalCount = items.size,
+        )
+    }
+    if (items.isEmpty()) {
+        item(key = "empty_$key") {
+            Text(
+                text = stringResource(R.string.list_detail_fortnight_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
+    } else {
+        items(items = items, key = { it.id }) { item -> itemRow(item) }
+    }
+}
+
+@Composable
+private fun FortnightHeader(title: String, days: String?, checkedCount: Int, totalCount: Int) {
+    Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        val progress = stringResource(R.string.list_detail_fortnight_checked, checkedCount, totalCount)
+        Text(
+            text = if (days != null) "$days · $progress" else progress,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

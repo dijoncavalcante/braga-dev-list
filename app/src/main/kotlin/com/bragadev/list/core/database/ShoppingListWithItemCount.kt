@@ -8,7 +8,8 @@ data class ShoppingListWithItemCount(
     val id: Long,
     val name: String,
     val createdAt: Long,
-    val sortAlphabetically: Boolean,
+    val sortOrder: Int,
     val showPrices: Boolean,
+    val groupByFortnight: Boolean,
     val itemCount: Int,
 )

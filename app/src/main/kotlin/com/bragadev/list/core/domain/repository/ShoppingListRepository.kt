@@ -1,6 +1,7 @@
 package com.bragadev.list.core.domain.repository
 
 import com.bragadev.list.core.common.result.AppResult
+import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import kotlinx.coroutines.flow.Flow
@@ -20,9 +21,11 @@ interface ShoppingListRepository {
 
     suspend fun renameList(listId: Long, name: String): AppResult<Unit>
 
-    suspend fun setSortAlphabetically(listId: Long, sortAlphabetically: Boolean): AppResult<Unit>
+    suspend fun setSortOrder(listId: Long, sortOrder: ItemSortOrder): AppResult<Unit>
 
     suspend fun setShowPrices(listId: Long, showPrices: Boolean): AppResult<Unit>
+
+    suspend fun setGroupByFortnight(listId: Long, groupByFortnight: Boolean): AppResult<Unit>
 
     /** Checks or unchecks every item of the list at once. */
     suspend fun setAllItemsChecked(listId: Long, isChecked: Boolean): AppResult<Unit>
