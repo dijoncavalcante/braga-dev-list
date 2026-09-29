@@ -1,8 +1,10 @@
 package com.bragadev.list
 
+import com.bragadev.list.core.common.result.AppError
 import com.bragadev.list.core.common.result.AppResult
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.usecase.AddListItemUseCase
+import com.bragadev.list.core.domain.usecase.DeleteListItemUseCase
 import com.bragadev.list.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListUseCase
 import com.bragadev.list.core.domain.usecase.SetItemCheckedUseCase
@@ -42,6 +44,7 @@ class ListDetailViewModelEditTest {
     private val getShoppingListUseCase: GetShoppingListUseCase = mockk()
     private val getListItemsUseCase: GetListItemsUseCase = mockk()
     private val updateListItemUseCase: UpdateListItemUseCase = mockk()
+    private val deleteListItemUseCase: DeleteListItemUseCase = mockk()
 
     private lateinit var viewModel: ListDetailViewModel
 
@@ -57,6 +60,7 @@ class ListDetailViewModelEditTest {
             addListItemUseCase = mockk<AddListItemUseCase>(),
             setItemCheckedUseCase = mockk<SetItemCheckedUseCase>(),
             updateListItemUseCase = updateListItemUseCase,
+            deleteListItemUseCase = deleteListItemUseCase,
         )
     }
 
@@ -91,5 +95,33 @@ class ListDetailViewModelEditTest {
 
         coVerify(exactly = 1) { updateListItemUseCase(7, "Arroz integral", 2, 1_590, null) }
         assertNull(viewModel.uiState.value.editingItem)
+    }
+
+    @Test
+    fun `confirming the deletion removes the open item and closes the dialog`() = runTest {
+        coEvery { deleteListItemUseCase(any()) } returns AppResult.Success(Unit)
+        viewModel.onItemClick(item)
+
+        viewModel.onDeleteItemConfirm()
+
+        coVerify(exactly = 1) { deleteListItemUseCase(7) }
+        assertNull(viewModel.uiState.value.editingItem)
+    }
+
+    @Test
+    fun `failed deletion keeps the dialog open`() = runTest {
+        coEvery { deleteListItemUseCase(any()) } returns AppResult.Error(AppError.Database)
+        viewModel.onItemClick(item)
+
+        viewModel.onDeleteItemConfirm()
+
+        assertEquals(item, viewModel.uiState.value.editingItem)
+    }
+
+    @Test
+    fun `deleting without an open item does nothing`() {
+        viewModel.onDeleteItemConfirm()
+
+        coVerify(exactly = 0) { deleteListItemUseCase(any()) }
     }
 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bragadev.list.core.common.result.AppResult
 import com.bragadev.list.core.domain.usecase.AddListItemUseCase
+import com.bragadev.list.core.domain.usecase.DeleteListItemUseCase
 import com.bragadev.list.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListUseCase
 import com.bragadev.list.core.domain.model.ShoppingListItem
@@ -28,6 +29,7 @@ class ListDetailViewModel(
     private val addListItemUseCase: AddListItemUseCase,
     private val setItemCheckedUseCase: SetItemCheckedUseCase,
     private val updateListItemUseCase: UpdateListItemUseCase,
+    private val deleteListItemUseCase: DeleteListItemUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ListDetailUiState())
@@ -77,6 +79,17 @@ class ListDetailViewModel(
             when (updateListItemUseCase(item.id, name, quantity, priceInCents, dueDateMillis)) {
                 is AppResult.Success -> _uiState.update { it.copy(editingItem = null) }
                 is AppResult.Error -> Unit // dialog stays open with the user's edits
+            }
+        }
+    }
+
+    /** Called after the user confirms the deletion of the item open in the edit dialog. */
+    fun onDeleteItemConfirm() {
+        val item = _uiState.value.editingItem ?: return
+        viewModelScope.launch {
+            when (deleteListItemUseCase(item.id)) {
+                is AppResult.Success -> _uiState.update { it.copy(editingItem = null) }
+                is AppResult.Error -> Unit // dialog stays open; the item is still in the list
             }
         }
     }

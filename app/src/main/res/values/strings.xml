@@ -33,6 +33,10 @@
     <string name="list_detail_dialog_cancel">Cancelar</string>
     <string name="list_detail_edit_item_title">Editar item</string>
     <string name="list_detail_dialog_save_changes">Salvar</string>
+    <string name="list_detail_delete_item">Excluir item</string>
+    <string name="list_detail_delete_item_title">Excluir item?</string>
+    <string name="list_detail_delete_item_message">\"%1$s\" será removido da lista. Essa ação não pode ser desfeita.</string>
+    <string name="list_detail_delete_item_confirm">Excluir</string>
     <string name="list_detail_error_empty_item_name">Informe um nome para o item</string>
 
     <string name="action_back">Voltar</string>

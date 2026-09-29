@@ -34,5 +34,7 @@ interface ShoppingListRepository {
         dueDateMillis: Long?,
     ): AppResult<Unit>
 
+    suspend fun deleteItem(itemId: Long): AppResult<Unit>
+
     suspend fun setItemChecked(itemId: Long, isChecked: Boolean): AppResult<Unit>
 }

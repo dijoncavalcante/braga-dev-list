@@ -79,6 +79,12 @@ class ShoppingListRepositoryImpl(
         }
     }
 
+    override suspend fun deleteItem(itemId: Long): AppResult<Unit> = runCatchingToResult {
+        withContext(ioDispatcher) {
+            itemDao.deleteById(itemId)
+        }
+    }
+
     override suspend fun setItemChecked(itemId: Long, isChecked: Boolean): AppResult<Unit> = runCatchingToResult {
         withContext(ioDispatcher) {
             itemDao.setChecked(itemId, isChecked)

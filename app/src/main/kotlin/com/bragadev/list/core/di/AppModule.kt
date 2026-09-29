@@ -4,6 +4,7 @@ import com.bragadev.list.core.data.repository.ShoppingListRepositoryImpl
 import com.bragadev.list.core.domain.repository.ShoppingListRepository
 import com.bragadev.list.core.domain.usecase.AddListItemUseCase
 import com.bragadev.list.core.domain.usecase.CreateShoppingListUseCase
+import com.bragadev.list.core.domain.usecase.DeleteListItemUseCase
 import com.bragadev.list.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListsUseCase
@@ -35,4 +36,5 @@ val appModule = module {
     factory { AddListItemUseCase(repository = get()) }
     factory { SetItemCheckedUseCase(repository = get()) }
     factory { UpdateListItemUseCase(repository = get()) }
+    factory { DeleteListItemUseCase(repository = get()) }
 }

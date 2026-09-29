@@ -62,6 +62,7 @@ fun ListDetailScreen(
         onItemClick = viewModel::onItemClick,
         onDismissEditItemDialog = viewModel::onDismissEditItemDialog,
         onEditItemConfirm = viewModel::onEditItemConfirm,
+        onDeleteItemConfirm = viewModel::onDeleteItemConfirm,
         onItemCheckedChange = viewModel::onItemCheckedChange,
         onRetryClick = viewModel::retry,
     )
@@ -78,6 +79,7 @@ private fun ListDetailContent(
     onItemClick: (ShoppingListItem) -> Unit,
     onDismissEditItemDialog: () -> Unit,
     onEditItemConfirm: (String, Int, Long, Long?) -> Unit,
+    onDeleteItemConfirm: () -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
     onRetryClick: () -> Unit,
 ) {
@@ -119,6 +121,7 @@ private fun ListDetailContent(
                 initialItem = item,
                 onConfirm = onEditItemConfirm,
                 onDismiss = onDismissEditItemDialog,
+                onDelete = onDeleteItemConfirm,
             )
         }
     }
@@ -248,6 +251,7 @@ private fun ListDetailEmptyPreview() {
             onItemClick = {},
             onDismissEditItemDialog = {},
             onEditItemConfirm = { _, _, _, _ -> },
+            onDeleteItemConfirm = {},
             onItemCheckedChange = { _, _ -> },
             onRetryClick = {},
         )

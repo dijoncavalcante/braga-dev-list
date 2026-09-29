@@ -3,20 +3,24 @@ package com.bragadev.list.features.listdetail.presentation.component
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +29,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -44,6 +49,9 @@ import com.bragadev.list.ui.theme.BragadevlistTheme
  * When [initialItem] is given the fields start with its values. Edits live only in this
  * dialog's local state: they reach [onConfirm] when the user taps save, and are simply
  * dropped when the dialog is cancelled/dismissed.
+ *
+ * When [onDelete] is given (edit mode) a trash button is shown in the title; it asks for
+ * confirmation before calling [onDelete], since deleting cannot be undone.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +59,7 @@ fun AddItemDialog(
     initialItem: ShoppingListItem? = null,
     onConfirm: (name: String, quantity: Int, priceInCents: Long, dueDateMillis: Long?) -> Unit,
     onDismiss: () -> Unit,
+    onDelete: (() -> Unit)? = null,
 ) {
     val isEditing = initialItem != null
     var name by remember(initialItem) { mutableStateOf(initialItem?.name.orEmpty()) }
@@ -60,6 +69,7 @@ fun AddItemDialog(
     val priceText = priceInCents.toBrlCurrency()
     var dueDateMillis by remember(initialItem) { mutableStateOf(initialItem?.dueDateMillis) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     // The due date field is read-only: tapping anywhere on it opens the date picker.
     val dueDateInteractionSource = remember { MutableInteractionSource() }
@@ -72,11 +82,23 @@ fun AddItemDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Text(
-                stringResource(
-                    if (isEditing) R.string.list_detail_edit_item_title else R.string.list_detail_add_item_button,
-                ),
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(
+                        if (isEditing) R.string.list_detail_edit_item_title else R.string.list_detail_add_item_button,
+                    ),
+                    modifier = Modifier.weight(1f),
+                )
+                if (onDelete != null) {
+                    IconButton(onClick = { showDeleteConfirmation = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = stringResource(R.string.list_detail_delete_item),
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+            }
         },
         text = {
             Column {
@@ -167,6 +189,32 @@ fun AddItemDialog(
         },
     )
 
+    if (showDeleteConfirmation && onDelete != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text(stringResource(R.string.list_detail_delete_item_title)) },
+            text = {
+                Text(stringResource(R.string.list_detail_delete_item_message, initialItem?.name.orEmpty()))
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirmation = false
+                        onDelete()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) {
+                    Text(stringResource(R.string.list_detail_delete_item_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text(stringResource(R.string.list_detail_dialog_cancel))
+                }
+            },
+        )
+    }
+
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(initialSelectedDateMillis = dueDateMillis)
         DatePickerDialog(
@@ -215,6 +263,7 @@ private fun EditItemDialogPreview() {
             ),
             onConfirm = { _, _, _, _ -> },
             onDismiss = {},
+            onDelete = {},
         )
     }
 }
