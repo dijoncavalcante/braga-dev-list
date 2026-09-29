@@ -35,9 +35,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bragadev.list.R
+import com.bragadev.list.core.domain.model.ListSummary
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.util.extensions.toBrlCurrency
 import com.bragadev.list.features.listdetail.presentation.component.AddItemDialog
+import com.bragadev.list.features.listdetail.presentation.component.ListSummaryFooter
 import com.bragadev.list.features.listdetail.presentation.state.ListDetailUiState
 import com.bragadev.list.features.listdetail.presentation.viewmodel.ListDetailViewModel
 import com.bragadev.list.ui.theme.BragadevlistTheme
@@ -108,7 +110,7 @@ private fun ListDetailContent(
             uiState.isLoading -> LoadingState(padding)
             uiState.error != null -> ErrorState(padding, onRetryClick)
             uiState.isEmpty -> EmptyState(padding)
-            else -> ItemsState(padding, uiState.items, onItemClick, onItemCheckedChange)
+            else -> ItemsState(padding, uiState.items, uiState.summary, onItemClick, onItemCheckedChange)
         }
 
         if (uiState.isAddItemDialogVisible) {
@@ -174,6 +176,7 @@ private fun ErrorState(padding: PaddingValues, onRetryClick: () -> Unit) {
 private fun ItemsState(
     padding: PaddingValues,
     items: List<ShoppingListItem>,
+    summary: ListSummary,
     onItemClick: (ShoppingListItem) -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
 ) {
@@ -181,7 +184,8 @@ private fun ItemsState(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding),
-        contentPadding = PaddingValues(16.dp),
+        // Extra bottom space so the "Adicionar item" button never covers the totals.
+        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
     ) {
         items(items = items, key = { it.id }) { item ->
             ShoppingListItemRow(
@@ -189,6 +193,9 @@ private fun ItemsState(
                 onClick = { onItemClick(item) },
                 onCheckedChange = { checked -> onItemCheckedChange(item.id, checked) },
             )
+        }
+        item(key = "summary") {
+            ListSummaryFooter(summary = summary)
         }
     }
 }
