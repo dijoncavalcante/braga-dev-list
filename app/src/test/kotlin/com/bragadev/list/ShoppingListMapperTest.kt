@@ -11,7 +11,14 @@ class ShoppingListMapperTest {
 
     @Test
     fun `ShoppingListWithItemCount maps every field into the domain model`() {
-        val projection = ShoppingListWithItemCount(id = 1, name = "Compras", createdAt = 1_000, itemCount = 4)
+        val projection = ShoppingListWithItemCount(
+            id = 1,
+            name = "Compras",
+            createdAt = 1_000,
+            sortAlphabetically = true,
+            showPrices = false,
+            itemCount = 4,
+        )
 
         val domain = projection.toDomain()
 
@@ -19,6 +26,8 @@ class ShoppingListMapperTest {
         assertEquals("Compras", domain.name)
         assertEquals(1_000, domain.createdAt)
         assertEquals(4, domain.itemCount)
+        assertEquals(true, domain.sortAlphabetically)
+        assertEquals(false, domain.showPrices)
     }
 
     @Test

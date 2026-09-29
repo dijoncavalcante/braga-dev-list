@@ -38,6 +38,16 @@
     <string name="list_detail_item_due_day_format">Vence dia %1$d</string>
     <string name="list_detail_dialog_save">Adicionar</string>
     <string name="list_detail_dialog_cancel">Cancelar</string>
+    <string name="list_detail_menu_description">Opções da lista</string>
+    <string name="list_detail_menu_sort_alphabetically">Ordem alfabética</string>
+    <string name="list_detail_menu_show_prices">Mostrar valor</string>
+    <string name="list_detail_menu_uncheck_all">Desmarcar todos os itens</string>
+    <string name="list_detail_menu_check_all">Marcar todos os itens</string>
+    <string name="list_detail_menu_delete_items">Excluir itens</string>
+    <string name="list_detail_delete_items_title">Excluir itens</string>
+    <string name="list_detail_delete_items_message">Quais itens você quer excluir? Essa ação não pode ser desfeita.</string>
+    <string name="list_detail_delete_items_checked">Excluir marcados (%1$d)</string>
+    <string name="list_detail_delete_items_all">Excluir todos (%1$d)</string>
     <string name="list_detail_summary_unchecked">Não marcados (%1$d)</string>
     <string name="list_detail_summary_checked">Marcados (%1$d)</string>
     <string name="list_detail_summary_total">Total (%1$d)</string>

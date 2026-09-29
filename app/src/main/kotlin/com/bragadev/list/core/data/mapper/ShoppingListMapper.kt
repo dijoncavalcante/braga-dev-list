@@ -11,6 +11,8 @@ fun ShoppingListWithItemCount.toDomain(): ShoppingList = ShoppingList(
     name = name,
     createdAt = createdAt,
     itemCount = itemCount,
+    sortAlphabetically = sortAlphabetically,
+    showPrices = showPrices,
 )
 
 fun ShoppingListEntity.toDomain(itemCount: Int = 0): ShoppingList = ShoppingList(
@@ -18,6 +20,8 @@ fun ShoppingListEntity.toDomain(itemCount: Int = 0): ShoppingList = ShoppingList
     name = name,
     createdAt = createdAt,
     itemCount = itemCount,
+    sortAlphabetically = sortAlphabetically,
+    showPrices = showPrices,
 )
 
 fun ShoppingListItemEntity.toDomain(): ShoppingListItem = ShoppingListItem(

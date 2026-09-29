@@ -20,6 +20,16 @@ interface ShoppingListRepository {
 
     suspend fun renameList(listId: Long, name: String): AppResult<Unit>
 
+    suspend fun setSortAlphabetically(listId: Long, sortAlphabetically: Boolean): AppResult<Unit>
+
+    suspend fun setShowPrices(listId: Long, showPrices: Boolean): AppResult<Unit>
+
+    /** Checks or unchecks every item of the list at once. */
+    suspend fun setAllItemsChecked(listId: Long, isChecked: Boolean): AppResult<Unit>
+
+    /** Deletes the checked items of the list, or all of them when [onlyChecked] is false. */
+    suspend fun deleteItems(listId: Long, onlyChecked: Boolean): AppResult<Unit>
+
     /** Deletes the list and all of its items. */
     suspend fun deleteList(listId: Long): AppResult<Unit>
 

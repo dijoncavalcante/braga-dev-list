@@ -2,13 +2,20 @@ package com.bragadev.list.features.listdetail.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.bragadev.list.core.common.result.AppError
 import com.bragadev.list.core.common.result.AppResult
+import com.bragadev.list.core.domain.model.ShoppingListItem
+import com.bragadev.list.core.domain.model.sortedForDisplay
 import com.bragadev.list.core.domain.usecase.AddListItemUseCase
 import com.bragadev.list.core.domain.usecase.DeleteListItemUseCase
+import com.bragadev.list.core.domain.usecase.DeleteListItemsUseCase
 import com.bragadev.list.core.domain.usecase.GetListItemsUseCase
+import com.bragadev.list.core.domain.usecase.GetListShareTextUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListUseCase
-import com.bragadev.list.core.domain.model.ShoppingListItem
+import com.bragadev.list.core.domain.usecase.RenameShoppingListUseCase
+import com.bragadev.list.core.domain.usecase.SetAllItemsCheckedUseCase
 import com.bragadev.list.core.domain.usecase.SetItemCheckedUseCase
+import com.bragadev.list.core.domain.usecase.SetListPreferencesUseCase
 import com.bragadev.list.core.domain.usecase.UpdateListItemUseCase
 import com.bragadev.list.features.listdetail.presentation.state.ListDetailUiState
 import kotlinx.coroutines.Job
@@ -30,6 +37,11 @@ class ListDetailViewModel(
     private val setItemCheckedUseCase: SetItemCheckedUseCase,
     private val updateListItemUseCase: UpdateListItemUseCase,
     private val deleteListItemUseCase: DeleteListItemUseCase,
+    private val renameShoppingListUseCase: RenameShoppingListUseCase,
+    private val getListShareTextUseCase: GetListShareTextUseCase,
+    private val setListPreferencesUseCase: SetListPreferencesUseCase,
+    private val setAllItemsCheckedUseCase: SetAllItemsCheckedUseCase,
+    private val deleteListItemsUseCase: DeleteListItemsUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ListDetailUiState())
@@ -100,14 +112,96 @@ class ListDetailViewModel(
         }
     }
 
+    // region Toolbar menu (three dots)
+
+    fun onSortAlphabeticallyToggle() {
+        val list = _uiState.value.list ?: return
+        viewModelScope.launch {
+            setListPreferencesUseCase.setSortAlphabetically(list.id, !list.sortAlphabetically)
+        }
+    }
+
+    fun onShowPricesToggle() {
+        val list = _uiState.value.list ?: return
+        viewModelScope.launch {
+            setListPreferencesUseCase.setShowPrices(list.id, !list.showPrices)
+        }
+    }
+
+    fun onCheckAllClick() {
+        viewModelScope.launch { setAllItemsCheckedUseCase(listId, isChecked = true) }
+    }
+
+    fun onUncheckAllClick() {
+        viewModelScope.launch { setAllItemsCheckedUseCase(listId, isChecked = false) }
+    }
+
+    fun onDeleteItemsClick() {
+        _uiState.update { it.copy(isDeleteItemsDialogVisible = true) }
+    }
+
+    /** [onlyChecked] = "Excluir marcados"; otherwise "Excluir todos". */
+    fun onDeleteItemsConfirm(onlyChecked: Boolean) {
+        viewModelScope.launch {
+            when (deleteListItemsUseCase(listId, onlyChecked)) {
+                is AppResult.Success -> _uiState.update { it.copy(isDeleteItemsDialogVisible = false) }
+                is AppResult.Error -> Unit // dialog stays open; nothing was deleted
+            }
+        }
+    }
+
+    fun onDismissDeleteItems() {
+        _uiState.update { it.copy(isDeleteItemsDialogVisible = false) }
+    }
+
+    fun onRenameListClick() {
+        _uiState.update { it.copy(isRenameDialogVisible = true, showRenameError = false) }
+    }
+
+    fun onRenameNameChanged() {
+        _uiState.update { it.copy(showRenameError = false) }
+    }
+
+    fun onRenameConfirm(newName: String) {
+        viewModelScope.launch {
+            when (val result = renameShoppingListUseCase(listId, newName)) {
+                is AppResult.Success -> _uiState.update { it.copy(isRenameDialogVisible = false) }
+                is AppResult.Error -> if (result.error is AppError.Validation) {
+                    _uiState.update { it.copy(showRenameError = true) }
+                }
+            }
+        }
+    }
+
+    fun onDismissRename() {
+        _uiState.update { it.copy(isRenameDialogVisible = false, showRenameError = false) }
+    }
+
+    fun onShareClick() {
+        val list = _uiState.value.list ?: return
+        viewModelScope.launch {
+            val result = getListShareTextUseCase(list)
+            if (result is AppResult.Success) {
+                _uiState.update { it.copy(pendingShareText = result.data) }
+            }
+        }
+    }
+
+    /** The screen opened the share sheet; clear the one-off event. */
+    fun onShareHandled() {
+        _uiState.update { it.copy(pendingShareText = null) }
+    }
+
+    // endregion
+
     private fun observeListDetail() {
         observeJob?.cancel()
         observeJob = combine(
             getShoppingListUseCase(listId),
             getListItemsUseCase(listId),
-        ) { list, items -> (list?.name.orEmpty()) to items }
-            .onEach { (name, items) ->
-                _uiState.update { it.copy(isLoading = false, listName = name, items = items, error = null) }
+        ) { list, items -> list to items.sortedForDisplay(list?.sortAlphabetically ?: false) }
+            .onEach { (list, items) ->
+                _uiState.update { it.copy(isLoading = false, list = list, items = items, error = null) }
             }
             .catch { _uiState.update { it.copy(isLoading = false, error = "list_detail_load_failed") } }
             .launchIn(viewModelScope)

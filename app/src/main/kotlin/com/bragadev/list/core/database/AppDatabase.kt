@@ -7,7 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [ShoppingListEntity::class, ShoppingListItemEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -75,5 +75,16 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
         db.execSQL("DROP TABLE `shopping_list_items`")
         db.execSQL("ALTER TABLE `shopping_list_items_new` RENAME TO `shopping_list_items`")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_shopping_list_items_listId` ON `shopping_list_items` (`listId`)")
+    }
+}
+
+/**
+ * v4 -> v5: per-list display preferences of the list screen menu ("Ordem alfabética"
+ * off and "Mostrar valor" on for every existing list).
+ */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE shopping_lists ADD COLUMN sortAlphabetically INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE shopping_lists ADD COLUMN showPrices INTEGER NOT NULL DEFAULT 1")
     }
 }

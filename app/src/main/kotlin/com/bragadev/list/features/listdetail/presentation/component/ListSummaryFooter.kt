@@ -26,9 +26,10 @@ import com.bragadev.list.ui.theme.BragadevlistTheme
 /**
  * Totals at the end of the list: how many items are unchecked, checked and in total,
  * with how much each group adds up to (unit price × quantity).
+ * With [showAmounts] off ("Mostrar valor" disabled) only the counts are shown.
  */
 @Composable
-fun ListSummaryFooter(summary: ListSummary, modifier: Modifier = Modifier) {
+fun ListSummaryFooter(summary: ListSummary, modifier: Modifier = Modifier, showAmounts: Boolean = true) {
     OutlinedCard(
         colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         modifier = modifier
@@ -42,15 +43,18 @@ fun ListSummaryFooter(summary: ListSummary, modifier: Modifier = Modifier) {
             SummaryRow(
                 label = stringResource(R.string.list_detail_summary_unchecked, summary.unchecked.count),
                 total = summary.unchecked,
+                showAmount = showAmounts,
             )
             SummaryRow(
                 label = stringResource(R.string.list_detail_summary_checked, summary.checked.count),
                 total = summary.checked,
+                showAmount = showAmounts,
             )
             HorizontalDivider()
             SummaryRow(
                 label = stringResource(R.string.list_detail_summary_total, summary.total.count),
                 total = summary.total,
+                showAmount = showAmounts,
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
             )
         }
@@ -61,6 +65,7 @@ fun ListSummaryFooter(summary: ListSummary, modifier: Modifier = Modifier) {
 private fun SummaryRow(
     label: String,
     total: ItemsTotal,
+    showAmount: Boolean,
     style: TextStyle = MaterialTheme.typography.bodyMedium,
 ) {
     Row(
@@ -68,7 +73,9 @@ private fun SummaryRow(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(text = label, style = style)
-        Text(text = total.amountInCents.toBrlCurrency(), style = style)
+        if (showAmount) {
+            Text(text = total.amountInCents.toBrlCurrency(), style = style)
+        }
     }
 }
 

@@ -11,7 +11,9 @@ interface ShoppingListDao {
 
     @Query(
         """
-        SELECT l.id AS id, l.name AS name, l.createdAt AS createdAt, COUNT(i.id) AS itemCount
+        SELECT l.id AS id, l.name AS name, l.createdAt AS createdAt,
+            l.sortAlphabetically AS sortAlphabetically, l.showPrices AS showPrices,
+            COUNT(i.id) AS itemCount
         FROM shopping_lists l
         LEFT JOIN shopping_list_items i ON i.listId = l.id
         GROUP BY l.id
@@ -28,6 +30,15 @@ interface ShoppingListDao {
 
     @Query("UPDATE shopping_lists SET name = :name WHERE id = :listId")
     suspend fun rename(listId: Long, name: String)
+
+    @Query("SELECT * FROM shopping_lists WHERE id = :listId")
+    suspend fun getById(listId: Long): ShoppingListEntity?
+
+    @Query("UPDATE shopping_lists SET sortAlphabetically = :sortAlphabetically WHERE id = :listId")
+    suspend fun setSortAlphabetically(listId: Long, sortAlphabetically: Boolean)
+
+    @Query("UPDATE shopping_lists SET showPrices = :showPrices WHERE id = :listId")
+    suspend fun setShowPrices(listId: Long, showPrices: Boolean)
 
     /** Items are removed together with the list (ON DELETE CASCADE). */
     @Query("DELETE FROM shopping_lists WHERE id = :listId")

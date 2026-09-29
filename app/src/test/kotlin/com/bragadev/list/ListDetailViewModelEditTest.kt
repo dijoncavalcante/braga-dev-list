@@ -61,6 +61,11 @@ class ListDetailViewModelEditTest {
             setItemCheckedUseCase = mockk<SetItemCheckedUseCase>(),
             updateListItemUseCase = updateListItemUseCase,
             deleteListItemUseCase = deleteListItemUseCase,
+            renameShoppingListUseCase = mockk(),
+            getListShareTextUseCase = mockk(),
+            setListPreferencesUseCase = mockk(),
+            setAllItemsCheckedUseCase = mockk(),
+            deleteListItemsUseCase = mockk(),
         )
     }
 

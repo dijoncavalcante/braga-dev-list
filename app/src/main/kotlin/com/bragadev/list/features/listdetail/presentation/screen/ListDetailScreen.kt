@@ -26,9 +26,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,9 +38,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bragadev.list.R
 import com.bragadev.list.core.domain.model.ListSummary
+import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
+import com.bragadev.list.core.util.extensions.shareText
 import com.bragadev.list.core.util.extensions.toBrlCurrency
+import com.bragadev.list.features.home.presentation.component.RenameListDialog
 import com.bragadev.list.features.listdetail.presentation.component.AddItemDialog
+import com.bragadev.list.features.listdetail.presentation.component.DeleteItemsDialog
+import com.bragadev.list.features.listdetail.presentation.component.ListDetailMenu
 import com.bragadev.list.features.listdetail.presentation.component.ListSummaryFooter
 import com.bragadev.list.features.listdetail.presentation.state.ListDetailUiState
 import com.bragadev.list.features.listdetail.presentation.viewmodel.ListDetailViewModel
@@ -53,6 +60,15 @@ fun ListDetailScreen(
     viewModel: ListDetailViewModel = koinViewModel(parameters = { parametersOf(listId) }),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    // "Compartilhar": hand the list text to the Android share sheet.
+    val shareChooserTitle = stringResource(R.string.home_option_share)
+    LaunchedEffect(uiState.pendingShareText) {
+        val text = uiState.pendingShareText ?: return@LaunchedEffect
+        context.shareText(text, shareChooserTitle)
+        viewModel.onShareHandled()
+    }
 
     ListDetailContent(
         uiState = uiState,
@@ -66,8 +82,50 @@ fun ListDetailScreen(
         onDeleteItemConfirm = viewModel::onDeleteItemConfirm,
         onItemCheckedChange = viewModel::onItemCheckedChange,
         onRetryClick = viewModel::retry,
+        menuActions = ListDetailMenuActions(
+            onSortAlphabeticallyToggle = viewModel::onSortAlphabeticallyToggle,
+            onShowPricesToggle = viewModel::onShowPricesToggle,
+            onUncheckAllClick = viewModel::onUncheckAllClick,
+            onCheckAllClick = viewModel::onCheckAllClick,
+            onDeleteItemsClick = viewModel::onDeleteItemsClick,
+            onRenameListClick = viewModel::onRenameListClick,
+            onShareClick = viewModel::onShareClick,
+        ),
     )
+
+    if (uiState.isRenameDialogVisible) {
+        uiState.list?.let { list ->
+            RenameListDialog(
+                list = list,
+                showError = uiState.showRenameError,
+                onNameChanged = viewModel::onRenameNameChanged,
+                onConfirm = viewModel::onRenameConfirm,
+                onDismiss = viewModel::onDismissRename,
+            )
+        }
+    }
+
+    if (uiState.isDeleteItemsDialogVisible) {
+        DeleteItemsDialog(
+            checkedCount = uiState.summary.checked.count,
+            totalCount = uiState.summary.total.count,
+            onDeleteChecked = { viewModel.onDeleteItemsConfirm(onlyChecked = true) },
+            onDeleteAll = { viewModel.onDeleteItemsConfirm(onlyChecked = false) },
+            onDismiss = viewModel::onDismissDeleteItems,
+        )
+    }
 }
+
+/** Callbacks of the toolbar three-dots menu, grouped to keep [ListDetailContent] readable. */
+private data class ListDetailMenuActions(
+    val onSortAlphabeticallyToggle: () -> Unit = {},
+    val onShowPricesToggle: () -> Unit = {},
+    val onUncheckAllClick: () -> Unit = {},
+    val onCheckAllClick: () -> Unit = {},
+    val onDeleteItemsClick: () -> Unit = {},
+    val onRenameListClick: () -> Unit = {},
+    val onShareClick: () -> Unit = {},
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,6 +141,7 @@ private fun ListDetailContent(
     onDeleteItemConfirm: () -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
     onRetryClick: () -> Unit,
+    menuActions: ListDetailMenuActions,
 ) {
     Scaffold(
         topBar = {
@@ -95,6 +154,23 @@ private fun ListDetailContent(
                             contentDescription = stringResource(R.string.action_back),
                         )
                     }
+                },
+                actions = {
+                    val summary = uiState.summary
+                    ListDetailMenu(
+                        sortAlphabetically = uiState.sortAlphabetically,
+                        showPrices = uiState.showPrices,
+                        hasItems = summary.total.count > 0,
+                        hasCheckedItems = summary.checked.count > 0,
+                        hasUncheckedItems = summary.unchecked.count > 0,
+                        onSortAlphabeticallyToggle = menuActions.onSortAlphabeticallyToggle,
+                        onShowPricesToggle = menuActions.onShowPricesToggle,
+                        onUncheckAllClick = menuActions.onUncheckAllClick,
+                        onCheckAllClick = menuActions.onCheckAllClick,
+                        onDeleteItemsClick = menuActions.onDeleteItemsClick,
+                        onRenameListClick = menuActions.onRenameListClick,
+                        onShareClick = menuActions.onShareClick,
+                    )
                 },
             )
         },
@@ -110,7 +186,14 @@ private fun ListDetailContent(
             uiState.isLoading -> LoadingState(padding)
             uiState.error != null -> ErrorState(padding, onRetryClick)
             uiState.isEmpty -> EmptyState(padding)
-            else -> ItemsState(padding, uiState.items, uiState.summary, onItemClick, onItemCheckedChange)
+            else -> ItemsState(
+                padding = padding,
+                items = uiState.items,
+                summary = uiState.summary,
+                showPrices = uiState.showPrices,
+                onItemClick = onItemClick,
+                onItemCheckedChange = onItemCheckedChange,
+            )
         }
 
         if (uiState.isAddItemDialogVisible) {
@@ -177,6 +260,7 @@ private fun ItemsState(
     padding: PaddingValues,
     items: List<ShoppingListItem>,
     summary: ListSummary,
+    showPrices: Boolean,
     onItemClick: (ShoppingListItem) -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
 ) {
@@ -190,12 +274,13 @@ private fun ItemsState(
         items(items = items, key = { it.id }) { item ->
             ShoppingListItemRow(
                 item = item,
+                showPrice = showPrices,
                 onClick = { onItemClick(item) },
                 onCheckedChange = { checked -> onItemCheckedChange(item.id, checked) },
             )
         }
         item(key = "summary") {
-            ListSummaryFooter(summary = summary)
+            ListSummaryFooter(summary = summary, showAmounts = showPrices)
         }
     }
 }
@@ -203,6 +288,7 @@ private fun ItemsState(
 @Composable
 private fun ShoppingListItemRow(
     item: ShoppingListItem,
+    showPrice: Boolean,
     onClick: () -> Unit,
     onCheckedChange: (Boolean) -> Unit,
 ) {
@@ -233,7 +319,7 @@ private fun ShoppingListItemRow(
                     )
                 }
             }
-            if (item.priceInCents > 0) {
+            if (showPrice && item.priceInCents > 0) {
                 Text(
                     text = item.priceInCents.toBrlCurrency(),
                     style = MaterialTheme.typography.bodyMedium,
@@ -249,7 +335,10 @@ private fun ShoppingListItemRow(
 private fun ListDetailEmptyPreview() {
     BragadevlistTheme {
         ListDetailContent(
-            uiState = ListDetailUiState(isLoading = false, listName = "Compras do mês"),
+            uiState = ListDetailUiState(
+                isLoading = false,
+                list = ShoppingList(id = 1, name = "Compras do mês", createdAt = 0),
+            ),
             onBackClick = {},
             onAddItemClick = {},
             onDismissAddItemDialog = {},
@@ -260,6 +349,7 @@ private fun ListDetailEmptyPreview() {
             onDeleteItemConfirm = {},
             onItemCheckedChange = { _, _ -> },
             onRetryClick = {},
+            menuActions = ListDetailMenuActions(),
         )
     }
 }

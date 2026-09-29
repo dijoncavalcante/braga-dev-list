@@ -51,6 +51,25 @@ class ShoppingListRepositoryImpl(
         }
     }
 
+    override suspend fun setSortAlphabetically(listId: Long, sortAlphabetically: Boolean): AppResult<Unit> =
+        runCatchingToResult {
+            withContext(ioDispatcher) { listDao.setSortAlphabetically(listId, sortAlphabetically) }
+        }
+
+    override suspend fun setShowPrices(listId: Long, showPrices: Boolean): AppResult<Unit> = runCatchingToResult {
+        withContext(ioDispatcher) { listDao.setShowPrices(listId, showPrices) }
+    }
+
+    override suspend fun setAllItemsChecked(listId: Long, isChecked: Boolean): AppResult<Unit> = runCatchingToResult {
+        withContext(ioDispatcher) { itemDao.setAllChecked(listId, isChecked) }
+    }
+
+    override suspend fun deleteItems(listId: Long, onlyChecked: Boolean): AppResult<Unit> = runCatchingToResult {
+        withContext(ioDispatcher) {
+            if (onlyChecked) itemDao.deleteCheckedByListId(listId) else itemDao.deleteAllByListId(listId)
+        }
+    }
+
     override suspend fun deleteList(listId: Long): AppResult<Unit> = runCatchingToResult {
         withContext(ioDispatcher) {
             listDao.deleteById(listId)
@@ -61,11 +80,15 @@ class ShoppingListRepositoryImpl(
         runCatchingToResult {
             withContext(ioDispatcher) {
                 val createdAt = System.currentTimeMillis()
-                val newListId = listDao.duplicate(
-                    sourceListId = listId,
-                    copy = ShoppingListEntity(name = newName, createdAt = createdAt),
+                val source = listDao.getById(listId)
+                val copy = ShoppingListEntity(
+                    name = newName,
+                    createdAt = createdAt,
+                    sortAlphabetically = source?.sortAlphabetically ?: false,
+                    showPrices = source?.showPrices ?: true,
                 )
-                ShoppingList(id = newListId, name = newName, createdAt = createdAt)
+                val newListId = listDao.duplicate(sourceListId = listId, copy = copy)
+                copy.copy(id = newListId).toDomain()
             }
         }
 

@@ -2,7 +2,6 @@ package com.bragadev.list.features.home.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -37,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bragadev.list.R
 import com.bragadev.list.core.domain.model.ShoppingList
+import com.bragadev.list.core.util.extensions.shareText
 import com.bragadev.list.features.home.presentation.component.DeleteListDialog
 import com.bragadev.list.features.home.presentation.component.ListOptionsSheet
 import com.bragadev.list.features.home.presentation.component.RenameListDialog
@@ -63,11 +63,7 @@ fun HomeScreen(
     val shareChooserTitle = stringResource(R.string.home_option_share)
     LaunchedEffect(uiState.pendingShareText) {
         val text = uiState.pendingShareText ?: return@LaunchedEffect
-        val sendIntent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, text)
-        }
-        context.startActivity(Intent.createChooser(sendIntent, shareChooserTitle))
+        context.shareText(text, shareChooserTitle)
         viewModel.onShareHandled()
     }
 

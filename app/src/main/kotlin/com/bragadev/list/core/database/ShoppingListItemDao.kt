@@ -33,6 +33,15 @@ interface ShoppingListItemDao {
     @Query("DELETE FROM shopping_list_items WHERE id = :itemId")
     suspend fun deleteById(itemId: Long)
 
+    @Query("UPDATE shopping_list_items SET isChecked = :isChecked WHERE listId = :listId")
+    suspend fun setAllChecked(listId: Long, isChecked: Boolean)
+
+    @Query("DELETE FROM shopping_list_items WHERE listId = :listId AND isChecked = 1")
+    suspend fun deleteCheckedByListId(listId: Long)
+
+    @Query("DELETE FROM shopping_list_items WHERE listId = :listId")
+    suspend fun deleteAllByListId(listId: Long)
+
     @Query("UPDATE shopping_list_items SET isChecked = :isChecked WHERE id = :itemId")
     suspend fun setChecked(itemId: Long, isChecked: Boolean)
 }

@@ -26,6 +26,11 @@ val viewModelModule = module {
             setItemCheckedUseCase = get(),
             updateListItemUseCase = get(),
             deleteListItemUseCase = get(),
+            renameShoppingListUseCase = get(),
+            getListShareTextUseCase = get(),
+            setListPreferencesUseCase = get(),
+            setAllItemsCheckedUseCase = get(),
+            deleteListItemsUseCase = get(),
         )
     }
 }

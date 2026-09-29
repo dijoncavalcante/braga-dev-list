@@ -5,6 +5,7 @@ import com.bragadev.list.core.domain.repository.ShoppingListRepository
 import com.bragadev.list.core.domain.usecase.AddListItemUseCase
 import com.bragadev.list.core.domain.usecase.CreateShoppingListUseCase
 import com.bragadev.list.core.domain.usecase.DeleteListItemUseCase
+import com.bragadev.list.core.domain.usecase.DeleteListItemsUseCase
 import com.bragadev.list.core.domain.usecase.DeleteShoppingListUseCase
 import com.bragadev.list.core.domain.usecase.DuplicateShoppingListUseCase
 import com.bragadev.list.core.domain.usecase.GetListShareTextUseCase
@@ -12,7 +13,9 @@ import com.bragadev.list.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListsUseCase
 import com.bragadev.list.core.domain.usecase.RenameShoppingListUseCase
+import com.bragadev.list.core.domain.usecase.SetAllItemsCheckedUseCase
 import com.bragadev.list.core.domain.usecase.SetItemCheckedUseCase
+import com.bragadev.list.core.domain.usecase.SetListPreferencesUseCase
 import com.bragadev.list.core.domain.usecase.UpdateListItemUseCase
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.qualifier.named
@@ -45,4 +48,7 @@ val appModule = module {
     factory { DeleteShoppingListUseCase(repository = get()) }
     factory { DuplicateShoppingListUseCase(repository = get()) }
     factory { GetListShareTextUseCase(repository = get()) }
+    factory { SetListPreferencesUseCase(repository = get()) }
+    factory { SetAllItemsCheckedUseCase(repository = get()) }
+    factory { DeleteListItemsUseCase(repository = get()) }
 }

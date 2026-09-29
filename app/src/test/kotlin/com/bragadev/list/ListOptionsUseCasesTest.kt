@@ -91,6 +91,28 @@ class ListOptionsUseCasesTest {
         assertEquals(AppResult.Success("Contas de casa"), result)
     }
 
+    @Test
+    fun `share text follows the list order and hides prices when Mostrar valor is off`() = runTest {
+        coEvery { repository.getItems(3) } returns AppResult.Success(
+            listOf(
+                item(id = 1, name = "Luz", quantity = 1, priceInCents = 18_990, dueDay = 10),
+                item(id = 2, name = "Água", quantity = 1, priceInCents = 5_000),
+            ),
+        )
+
+        val result = GetListShareTextUseCase(repository)(
+            list.copy(sortAlphabetically = true, showPrices = false),
+        )
+
+        val expected = """
+            Contas de casa
+
+            ☐ Água (1)
+            ☐ Luz (1) - vence dia 10
+        """.trimIndent()
+        assertEquals(AppResult.Success(expected), result)
+    }
+
     private fun item(
         id: Long,
         name: String,
