@@ -7,6 +7,14 @@
     <string name="home_create_list_button">Criar lista</string>
     <string name="home_error_message">Não foi possível carregar suas listas.</string>
     <string name="home_retry_button">Tentar novamente</string>
+    <string name="home_list_options">Opções da lista %1$s</string>
+    <string name="home_option_rename">Renomear</string>
+    <string name="home_option_share">Compartilhar</string>
+    <string name="home_option_copy">Copiar</string>
+    <string name="home_option_delete">Excluir</string>
+    <string name="home_rename_title">Renomear lista</string>
+    <string name="home_delete_title">Excluir lista?</string>
+    <string name="home_delete_message">A lista \"%1$s\" e todos os itens dela serão excluídos. Essa ação não pode ser desfeita.</string>
 
     <string name="create_list_title">Nova lista</string>
     <string name="create_list_name_label">Nome da lista</string>

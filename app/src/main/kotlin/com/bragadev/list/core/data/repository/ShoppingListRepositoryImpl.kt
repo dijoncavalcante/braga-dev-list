@@ -12,6 +12,7 @@ import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.repository.ShoppingListRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
@@ -41,6 +42,36 @@ class ShoppingListRepositoryImpl(
             val createdAt = System.currentTimeMillis()
             val id = listDao.insert(ShoppingListEntity(name = name, createdAt = createdAt))
             ShoppingList(id = id, name = name, createdAt = createdAt, itemCount = 0)
+        }
+    }
+
+    override suspend fun renameList(listId: Long, name: String): AppResult<Unit> = runCatchingToResult {
+        withContext(ioDispatcher) {
+            listDao.rename(listId, name)
+        }
+    }
+
+    override suspend fun deleteList(listId: Long): AppResult<Unit> = runCatchingToResult {
+        withContext(ioDispatcher) {
+            listDao.deleteById(listId)
+        }
+    }
+
+    override suspend fun duplicateList(listId: Long, newName: String): AppResult<ShoppingList> =
+        runCatchingToResult {
+            withContext(ioDispatcher) {
+                val createdAt = System.currentTimeMillis()
+                val newListId = listDao.duplicate(
+                    sourceListId = listId,
+                    copy = ShoppingListEntity(name = newName, createdAt = createdAt),
+                )
+                ShoppingList(id = newListId, name = newName, createdAt = createdAt)
+            }
+        }
+
+    override suspend fun getItems(listId: Long): AppResult<List<ShoppingListItem>> = runCatchingToResult {
+        withContext(ioDispatcher) {
+            itemDao.observeByListId(listId).first().map { it.toDomain() }
         }
     }
 

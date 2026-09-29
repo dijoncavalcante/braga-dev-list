@@ -2,8 +2,10 @@ package com.bragadev.list.features.home.presentation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,25 +13,33 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bragadev.list.R
 import com.bragadev.list.core.domain.model.ShoppingList
+import com.bragadev.list.features.home.presentation.component.DeleteListDialog
+import com.bragadev.list.features.home.presentation.component.ListOptionsSheet
+import com.bragadev.list.features.home.presentation.component.RenameListDialog
 import com.bragadev.list.features.home.presentation.state.HomeUiState
 import com.bragadev.list.features.home.presentation.viewmodel.HomeViewModel
 import com.bragadev.list.ui.theme.BragadevlistTheme
@@ -47,13 +57,56 @@ fun HomeScreen(
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    // "Compartilhar": hand the list text to the Android share sheet (WhatsApp, e-mail...).
+    val shareChooserTitle = stringResource(R.string.home_option_share)
+    LaunchedEffect(uiState.pendingShareText) {
+        val text = uiState.pendingShareText ?: return@LaunchedEffect
+        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        context.startActivity(Intent.createChooser(sendIntent, shareChooserTitle))
+        viewModel.onShareHandled()
+    }
 
     HomeContent(
         uiState = uiState,
         onCreateListClick = onCreateListClick,
         onListClick = onListClick,
         onRetryClick = viewModel::retry,
+        onListMenuClick = viewModel::onListMenuClick,
     )
+
+    uiState.menuList?.let { list ->
+        ListOptionsSheet(
+            list = list,
+            onRenameClick = viewModel::onRenameClick,
+            onShareClick = viewModel::onShareClick,
+            onCopyClick = viewModel::onCopyClick,
+            onDeleteClick = viewModel::onDeleteClick,
+            onDismiss = viewModel::onDismissListMenu,
+        )
+    }
+
+    uiState.renamingList?.let { list ->
+        RenameListDialog(
+            list = list,
+            showError = uiState.showRenameError,
+            onNameChanged = viewModel::onRenameNameChanged,
+            onConfirm = viewModel::onRenameConfirm,
+            onDismiss = viewModel::onDismissRename,
+        )
+    }
+
+    uiState.deletingList?.let { list ->
+        DeleteListDialog(
+            list = list,
+            onConfirm = viewModel::onDeleteConfirm,
+            onDismiss = viewModel::onDismissDelete,
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,6 +116,7 @@ private fun HomeContent(
     onCreateListClick: () -> Unit,
     onListClick: (Long) -> Unit,
     onRetryClick: () -> Unit,
+    onListMenuClick: (ShoppingList) -> Unit,
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.home_title)) }) },
@@ -78,7 +132,7 @@ private fun HomeContent(
             uiState.isLoading -> LoadingState(padding)
             uiState.error != null -> ErrorState(padding, onRetryClick)
             uiState.isEmpty -> EmptyState(padding)
-            else -> ListsState(padding, uiState.lists, onListClick)
+            else -> ListsState(padding, uiState.lists, onListClick, onListMenuClick)
         }
     }
 }
@@ -132,6 +186,7 @@ private fun ListsState(
     padding: PaddingValues,
     lists: List<ShoppingList>,
     onListClick: (Long) -> Unit,
+    onListMenuClick: (ShoppingList) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier
@@ -140,22 +195,46 @@ private fun ListsState(
         contentPadding = PaddingValues(16.dp),
     ) {
         items(items = lists, key = { it.id }) { list ->
-            ShoppingListRow(list = list, onClick = { onListClick(list.id) })
+            ShoppingListRow(
+                list = list,
+                onClick = { onListClick(list.id) },
+                onMenuClick = { onListMenuClick(list) },
+            )
         }
     }
 }
 
 @Composable
-private fun ShoppingListRow(list: ShoppingList, onClick: () -> Unit) {
+private fun ShoppingListRow(list: ShoppingList, onClick: () -> Unit, onMenuClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp, horizontal = 16.dp),
         onClick = onClick,
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = list.name)
-            Text(text = "${list.itemCount} itens")
+        Row(
+            modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 8.dp),
+            ) {
+                Text(text = list.name)
+                Text(
+                    text = "${list.itemCount} itens",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            // Three dots: opens Renomear / Compartilhar / Copiar / Excluir.
+            IconButton(onClick = onMenuClick) {
+                Icon(
+                    imageVector = Icons.Filled.MoreVert,
+                    contentDescription = stringResource(R.string.home_list_options, list.name),
+                )
+            }
         }
     }
 }
@@ -169,6 +248,7 @@ private fun HomeEmptyPreview() {
             onCreateListClick = {},
             onListClick = {},
             onRetryClick = {},
+            onListMenuClick = {},
         )
     }
 }
@@ -188,6 +268,7 @@ private fun HomeWithListsPreview() {
             onCreateListClick = {},
             onListClick = {},
             onRetryClick = {},
+            onListMenuClick = {},
         )
     }
 }

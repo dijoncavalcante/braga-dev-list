@@ -7,7 +7,15 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val viewModelModule = module {
-    viewModel { HomeViewModel(getShoppingListsUseCase = get()) }
+    viewModel {
+        HomeViewModel(
+            getShoppingListsUseCase = get(),
+            renameShoppingListUseCase = get(),
+            deleteShoppingListUseCase = get(),
+            duplicateShoppingListUseCase = get(),
+            getListShareTextUseCase = get(),
+        )
+    }
     viewModel { CreateNewListViewModel(createShoppingListUseCase = get()) }
     viewModel { (listId: Long) ->
         ListDetailViewModel(

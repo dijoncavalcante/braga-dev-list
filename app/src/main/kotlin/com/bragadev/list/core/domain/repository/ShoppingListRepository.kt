@@ -18,6 +18,17 @@ interface ShoppingListRepository {
 
     suspend fun createList(name: String): AppResult<ShoppingList>
 
+    suspend fun renameList(listId: Long, name: String): AppResult<Unit>
+
+    /** Deletes the list and all of its items. */
+    suspend fun deleteList(listId: Long): AppResult<Unit>
+
+    /** Creates a new list named [newName] with a copy of every item of [listId] (unchecked). */
+    suspend fun duplicateList(listId: Long, newName: String): AppResult<ShoppingList>
+
+    /** Current items of the list, read once (e.g. to share them). */
+    suspend fun getItems(listId: Long): AppResult<List<ShoppingListItem>>
+
     suspend fun addItem(
         listId: Long,
         name: String,

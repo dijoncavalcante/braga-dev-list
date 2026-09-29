@@ -39,7 +39,13 @@ class HomeViewModelTest {
         val getShoppingListsUseCase: GetShoppingListsUseCase = mockk()
         every { getShoppingListsUseCase() } returns flowOf(emptyList())
 
-        val viewModel = HomeViewModel(getShoppingListsUseCase)
+        val viewModel = HomeViewModel(
+            getShoppingListsUseCase = getShoppingListsUseCase,
+            renameShoppingListUseCase = mockk(),
+            deleteShoppingListUseCase = mockk(),
+            duplicateShoppingListUseCase = mockk(),
+            getListShareTextUseCase = mockk(),
+        )
 
         viewModel.uiState.test {
             assertTrue(awaitItem().isLoading)
@@ -55,7 +61,13 @@ class HomeViewModelTest {
         val getShoppingListsUseCase: GetShoppingListsUseCase = mockk()
         every { getShoppingListsUseCase() } returns flowOf(lists)
 
-        val viewModel = HomeViewModel(getShoppingListsUseCase)
+        val viewModel = HomeViewModel(
+            getShoppingListsUseCase = getShoppingListsUseCase,
+            renameShoppingListUseCase = mockk(),
+            deleteShoppingListUseCase = mockk(),
+            duplicateShoppingListUseCase = mockk(),
+            getListShareTextUseCase = mockk(),
+        )
 
         viewModel.uiState.test {
             assertTrue(awaitItem().isLoading)

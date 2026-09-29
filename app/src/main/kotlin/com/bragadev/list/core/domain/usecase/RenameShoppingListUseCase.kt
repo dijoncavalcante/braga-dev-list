@@ -2,20 +2,17 @@ package com.bragadev.list.core.domain.usecase
 
 import com.bragadev.list.core.common.result.AppError
 import com.bragadev.list.core.common.result.AppResult
-import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.repository.ShoppingListRepository
 
-/** Max length of a list name, shared by create and rename. */
-const val MAX_LIST_NAME_LENGTH = 60
-
-class CreateShoppingListUseCase(
+/** Same name rules as [CreateShoppingListUseCase]: required and up to [MAX_LIST_NAME_LENGTH] chars. */
+class RenameShoppingListUseCase(
     private val repository: ShoppingListRepository,
 ) {
-    suspend operator fun invoke(name: String): AppResult<ShoppingList> {
+    suspend operator fun invoke(listId: Long, name: String): AppResult<Unit> {
         val trimmedName = name.trim()
         if (trimmedName.isEmpty() || trimmedName.length > MAX_LIST_NAME_LENGTH) {
             return AppResult.Error(AppError.Validation(reason = "invalid_list_name"))
         }
-        return repository.createList(trimmedName)
+        return repository.renameList(listId, trimmedName)
     }
 }
