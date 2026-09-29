@@ -16,6 +16,7 @@ val viewModelModule = module {
             getListItemsUseCase = get(),
             addListItemUseCase = get(),
             setItemCheckedUseCase = get(),
+            updateListItemUseCase = get(),
         )
     }
 }

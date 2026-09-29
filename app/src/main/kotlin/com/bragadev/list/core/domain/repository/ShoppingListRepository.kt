@@ -26,5 +26,13 @@ interface ShoppingListRepository {
         dueDateMillis: Long?,
     ): AppResult<ShoppingListItem>
 
+    suspend fun updateItem(
+        itemId: Long,
+        name: String,
+        quantity: Int,
+        priceInCents: Long,
+        dueDateMillis: Long?,
+    ): AppResult<Unit>
+
     suspend fun setItemChecked(itemId: Long, isChecked: Boolean): AppResult<Unit>
 }

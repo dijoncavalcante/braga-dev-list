@@ -8,6 +8,8 @@ data class ListDetailUiState(
     val items: List<ShoppingListItem> = emptyList(),
     val error: String? = null,
     val isAddItemDialogVisible: Boolean = false,
+    /** Item being edited in the dialog; null = edit dialog closed. */
+    val editingItem: ShoppingListItem? = null,
 ) {
     val isEmpty: Boolean get() = !isLoading && error == null && items.isEmpty()
 }

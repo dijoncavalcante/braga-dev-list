@@ -67,6 +67,18 @@ class ShoppingListRepositoryImpl(
             }
         }
 
+    override suspend fun updateItem(
+        itemId: Long,
+        name: String,
+        quantity: Int,
+        priceInCents: Long,
+        dueDateMillis: Long?,
+    ): AppResult<Unit> = runCatchingToResult {
+        withContext(ioDispatcher) {
+            itemDao.updateDetails(itemId, name, quantity, priceInCents, dueDateMillis)
+        }
+    }
+
     override suspend fun setItemChecked(itemId: Long, isChecked: Boolean): AppResult<Unit> = runCatchingToResult {
         withContext(ioDispatcher) {
             itemDao.setChecked(itemId, isChecked)

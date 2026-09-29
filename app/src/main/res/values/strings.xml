@@ -31,6 +31,8 @@
     <string name="list_detail_date_picker_confirm">OK</string>
     <string name="list_detail_dialog_save">Adicionar</string>
     <string name="list_detail_dialog_cancel">Cancelar</string>
+    <string name="list_detail_edit_item_title">Editar item</string>
+    <string name="list_detail_dialog_save_changes">Salvar</string>
     <string name="list_detail_error_empty_item_name">Informe um nome para o item</string>
 
     <string name="action_back">Voltar</string>

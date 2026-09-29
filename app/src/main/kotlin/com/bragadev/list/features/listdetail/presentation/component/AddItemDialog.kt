@@ -32,23 +32,33 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import com.bragadev.list.R
+import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.util.extensions.currencyInputToCents
 import com.bragadev.list.core.util.extensions.toBrDateString
 import com.bragadev.list.core.util.extensions.toBrlCurrency
 import com.bragadev.list.ui.theme.BragadevlistTheme
 
+/**
+ * Item form used both to add and to edit an item.
+ *
+ * When [initialItem] is given the fields start with its values. Edits live only in this
+ * dialog's local state: they reach [onConfirm] when the user taps save, and are simply
+ * dropped when the dialog is cancelled/dismissed.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddItemDialog(
+    initialItem: ShoppingListItem? = null,
     onConfirm: (name: String, quantity: Int, priceInCents: Long, dueDateMillis: Long?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var name by remember { mutableStateOf("") }
-    var quantityText by remember { mutableStateOf("1") }
-    var showNameError by remember { mutableStateOf(false) }
-    var priceInCents by remember { mutableLongStateOf(0L) }
+    val isEditing = initialItem != null
+    var name by remember(initialItem) { mutableStateOf(initialItem?.name.orEmpty()) }
+    var quantityText by remember(initialItem) { mutableStateOf((initialItem?.quantity ?: 1).toString()) }
+    var showNameError by remember(initialItem) { mutableStateOf(false) }
+    var priceInCents by remember(initialItem) { mutableLongStateOf(initialItem?.priceInCents ?: 0L) }
     val priceText = priceInCents.toBrlCurrency()
-    var dueDateMillis by remember { mutableStateOf<Long?>(null) }
+    var dueDateMillis by remember(initialItem) { mutableStateOf(initialItem?.dueDateMillis) }
     var showDatePicker by remember { mutableStateOf(false) }
 
     // The due date field is read-only: tapping anywhere on it opens the date picker.
@@ -61,7 +71,13 @@ fun AddItemDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.list_detail_add_item_button)) },
+        title = {
+            Text(
+                stringResource(
+                    if (isEditing) R.string.list_detail_edit_item_title else R.string.list_detail_add_item_button,
+                ),
+            )
+        },
         text = {
             Column {
                 OutlinedTextField(
@@ -82,6 +98,15 @@ fun AddItemDialog(
                     value = quantityText,
                     onValueChange = { value -> quantityText = value.filter { char -> char.isDigit() } },
                     label = { Text(stringResource(R.string.list_detail_item_quantity_label)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                OutlinedTextField(
+                    // Cursor is pinned to the end: digits fill in from the cents, like a cash register.
+                    value = TextFieldValue(text = priceText, selection = TextRange(priceText.length)),
+                    onValueChange = { value -> priceInCents = value.text.currencyInputToCents() },
+                    label = { Text(stringResource(R.string.list_detail_item_price_label)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
@@ -113,15 +138,6 @@ fun AddItemDialog(
                     interactionSource = dueDateInteractionSource,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                OutlinedTextField(
-                    // Cursor is pinned to the end: digits fill in from the cents, like a cash register.
-                    value = TextFieldValue(text = priceText, selection = TextRange(priceText.length)),
-                    onValueChange = { value -> priceInCents = value.text.currencyInputToCents() },
-                    label = { Text(stringResource(R.string.list_detail_item_price_label)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                )
             }
         },
         confirmButton = {
@@ -137,7 +153,11 @@ fun AddItemDialog(
                     dueDateMillis,
                 )
             }) {
-                Text(stringResource(R.string.list_detail_dialog_save))
+                Text(
+                    stringResource(
+                        if (isEditing) R.string.list_detail_dialog_save_changes else R.string.list_detail_dialog_save,
+                    ),
+                )
             }
         },
         dismissButton = {
@@ -175,5 +195,26 @@ fun AddItemDialog(
 private fun AddItemDialogPreview() {
     BragadevlistTheme {
         AddItemDialog(onConfirm = { _, _, _, _ -> }, onDismiss = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun EditItemDialogPreview() {
+    BragadevlistTheme {
+        AddItemDialog(
+            initialItem = ShoppingListItem(
+                id = 1,
+                listId = 1,
+                name = "Conta de luz",
+                quantity = 1,
+                priceInCents = 18_990,
+                dueDateMillis = 1_791_590_400_000,
+                isChecked = false,
+                createdAt = 0,
+            ),
+            onConfirm = { _, _, _, _ -> },
+            onDismiss = {},
+        )
     }
 }

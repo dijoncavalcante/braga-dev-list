@@ -59,6 +59,9 @@ fun ListDetailScreen(
         onAddItemClick = viewModel::onAddItemClick,
         onDismissAddItemDialog = viewModel::onDismissAddItemDialog,
         onAddItemConfirm = viewModel::onAddItemConfirm,
+        onItemClick = viewModel::onItemClick,
+        onDismissEditItemDialog = viewModel::onDismissEditItemDialog,
+        onEditItemConfirm = viewModel::onEditItemConfirm,
         onItemCheckedChange = viewModel::onItemCheckedChange,
         onRetryClick = viewModel::retry,
     )
@@ -72,6 +75,9 @@ private fun ListDetailContent(
     onAddItemClick: () -> Unit,
     onDismissAddItemDialog: () -> Unit,
     onAddItemConfirm: (String, Int, Long, Long?) -> Unit,
+    onItemClick: (ShoppingListItem) -> Unit,
+    onDismissEditItemDialog: () -> Unit,
+    onEditItemConfirm: (String, Int, Long, Long?) -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
     onRetryClick: () -> Unit,
 ) {
@@ -101,11 +107,19 @@ private fun ListDetailContent(
             uiState.isLoading -> LoadingState(padding)
             uiState.error != null -> ErrorState(padding, onRetryClick)
             uiState.isEmpty -> EmptyState(padding)
-            else -> ItemsState(padding, uiState.items, onItemCheckedChange)
+            else -> ItemsState(padding, uiState.items, onItemClick, onItemCheckedChange)
         }
 
         if (uiState.isAddItemDialogVisible) {
             AddItemDialog(onConfirm = onAddItemConfirm, onDismiss = onDismissAddItemDialog)
+        }
+
+        uiState.editingItem?.let { item ->
+            AddItemDialog(
+                initialItem = item,
+                onConfirm = onEditItemConfirm,
+                onDismiss = onDismissEditItemDialog,
+            )
         }
     }
 }
@@ -158,6 +172,7 @@ private fun ErrorState(padding: PaddingValues, onRetryClick: () -> Unit) {
 private fun ItemsState(
     padding: PaddingValues,
     items: List<ShoppingListItem>,
+    onItemClick: (ShoppingListItem) -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
 ) {
     LazyColumn(
@@ -167,14 +182,24 @@ private fun ItemsState(
         contentPadding = PaddingValues(16.dp),
     ) {
         items(items = items, key = { it.id }) { item ->
-            ShoppingListItemRow(item = item, onCheckedChange = { checked -> onItemCheckedChange(item.id, checked) })
+            ShoppingListItemRow(
+                item = item,
+                onClick = { onItemClick(item) },
+                onCheckedChange = { checked -> onItemCheckedChange(item.id, checked) },
+            )
         }
     }
 }
 
 @Composable
-private fun ShoppingListItemRow(item: ShoppingListItem, onCheckedChange: (Boolean) -> Unit) {
+private fun ShoppingListItemRow(
+    item: ShoppingListItem,
+    onClick: () -> Unit,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    // Tapping the card opens the edit dialog; the checkbox keeps toggling on its own.
     Card(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp, horizontal = 16.dp),
@@ -220,6 +245,9 @@ private fun ListDetailEmptyPreview() {
             onAddItemClick = {},
             onDismissAddItemDialog = {},
             onAddItemConfirm = { _, _, _, _ -> },
+            onItemClick = {},
+            onDismissEditItemDialog = {},
+            onEditItemConfirm = { _, _, _, _ -> },
             onItemCheckedChange = { _, _ -> },
             onRetryClick = {},
         )

@@ -8,6 +8,7 @@ import com.bragadev.list.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListsUseCase
 import com.bragadev.list.core.domain.usecase.SetItemCheckedUseCase
+import com.bragadev.list.core.domain.usecase.UpdateListItemUseCase
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -33,4 +34,5 @@ val appModule = module {
     factory { CreateShoppingListUseCase(repository = get()) }
     factory { AddListItemUseCase(repository = get()) }
     factory { SetItemCheckedUseCase(repository = get()) }
+    factory { UpdateListItemUseCase(repository = get()) }
 }

@@ -6,7 +6,9 @@ import com.bragadev.list.core.common.result.AppResult
 import com.bragadev.list.core.domain.usecase.AddListItemUseCase
 import com.bragadev.list.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListUseCase
+import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.usecase.SetItemCheckedUseCase
+import com.bragadev.list.core.domain.usecase.UpdateListItemUseCase
 import com.bragadev.list.features.listdetail.presentation.state.ListDetailUiState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +27,7 @@ class ListDetailViewModel(
     private val getListItemsUseCase: GetListItemsUseCase,
     private val addListItemUseCase: AddListItemUseCase,
     private val setItemCheckedUseCase: SetItemCheckedUseCase,
+    private val updateListItemUseCase: UpdateListItemUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ListDetailUiState())
@@ -54,6 +57,26 @@ class ListDetailViewModel(
             when (addListItemUseCase(listId, name, quantity, priceInCents, dueDateMillis)) {
                 is AppResult.Success -> _uiState.update { it.copy(isAddItemDialogVisible = false) }
                 is AppResult.Error -> Unit // dialog stays open; inline field validation is a follow-up iteration
+            }
+        }
+    }
+
+    fun onItemClick(item: ShoppingListItem) {
+        _uiState.update { it.copy(editingItem = item) }
+    }
+
+    /** Cancel: nothing was persisted while editing, so closing the dialog discards the changes. */
+    fun onDismissEditItemDialog() {
+        _uiState.update { it.copy(editingItem = null) }
+    }
+
+    /** Save: only now are the edited values written to the database. */
+    fun onEditItemConfirm(name: String, quantity: Int, priceInCents: Long, dueDateMillis: Long?) {
+        val item = _uiState.value.editingItem ?: return
+        viewModelScope.launch {
+            when (updateListItemUseCase(item.id, name, quantity, priceInCents, dueDateMillis)) {
+                is AppResult.Success -> _uiState.update { it.copy(editingItem = null) }
+                is AppResult.Error -> Unit // dialog stays open with the user's edits
             }
         }
     }

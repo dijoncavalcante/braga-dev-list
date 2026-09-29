@@ -14,6 +14,22 @@ interface ShoppingListItemDao {
     @Insert
     suspend fun insert(item: ShoppingListItemEntity): Long
 
+    /** Updates only the editable fields; isChecked and createdAt are preserved. */
+    @Query(
+        """
+        UPDATE shopping_list_items
+        SET name = :name, quantity = :quantity, priceInCents = :priceInCents, dueDateMillis = :dueDateMillis
+        WHERE id = :itemId
+        """,
+    )
+    suspend fun updateDetails(
+        itemId: Long,
+        name: String,
+        quantity: Int,
+        priceInCents: Long,
+        dueDateMillis: Long?,
+    )
+
     @Query("UPDATE shopping_list_items SET isChecked = :isChecked WHERE id = :itemId")
     suspend fun setChecked(itemId: Long, isChecked: Boolean)
 }
