@@ -26,7 +26,7 @@ fun ShoppingListItemEntity.toDomain(): ShoppingListItem = ShoppingListItem(
     name = name,
     quantity = quantity,
     priceInCents = priceInCents,
-    dueDateMillis = dueDateMillis,
+    dueDay = dueDay,
     isChecked = isChecked,
     createdAt = createdAt,
 )

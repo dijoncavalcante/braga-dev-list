@@ -24,11 +24,10 @@
     <string name="list_detail_item_quantity_label">Quantidade</string>
     <string name="list_detail_item_price_label">Valor (R$)</string>
     <string name="list_detail_item_due_date_label">Vencimento</string>
-    <string name="list_detail_item_due_date_placeholder">dd/mm/aaaa</string>
-    <string name="list_detail_item_due_date_pick">Escolher data de vencimento</string>
-    <string name="list_detail_item_due_date_clear">Remover data de vencimento</string>
-    <string name="list_detail_item_due_date_format">Vence em %1$s</string>
-    <string name="list_detail_date_picker_confirm">OK</string>
+    <string name="list_detail_item_due_day_placeholder">Selecione o dia</string>
+    <string name="list_detail_item_due_day_option">Dia %1$d</string>
+    <string name="list_detail_item_due_date_clear">Remover dia de vencimento</string>
+    <string name="list_detail_item_due_day_format">Vence dia %1$d</string>
     <string name="list_detail_dialog_save">Adicionar</string>
     <string name="list_detail_dialog_cancel">Cancelar</string>
     <string name="list_detail_edit_item_title">Editar item</string>

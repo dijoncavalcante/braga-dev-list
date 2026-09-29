@@ -23,7 +23,7 @@ interface ShoppingListRepository {
         name: String,
         quantity: Int,
         priceInCents: Long,
-        dueDateMillis: Long?,
+        dueDay: Int?,
     ): AppResult<ShoppingListItem>
 
     suspend fun updateItem(
@@ -31,7 +31,7 @@ interface ShoppingListRepository {
         name: String,
         quantity: Int,
         priceInCents: Long,
-        dueDateMillis: Long?,
+        dueDay: Int?,
     ): AppResult<Unit>
 
     suspend fun deleteItem(itemId: Long): AppResult<Unit>

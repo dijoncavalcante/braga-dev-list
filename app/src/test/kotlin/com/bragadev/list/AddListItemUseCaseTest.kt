@@ -35,16 +35,16 @@ class AddListItemUseCaseTest {
             name = "Arroz",
             quantity = 2,
             priceInCents = 1_250,
-            dueDateMillis = DUE_DATE,
+            dueDay = DUE_DAY,
             isChecked = false,
             createdAt = 0,
         )
-        coEvery { repository.addItem(1, "Arroz", 2, 1_250, DUE_DATE) } returns AppResult.Success(saved)
+        coEvery { repository.addItem(1, "Arroz", 2, 1_250, DUE_DAY) } returns AppResult.Success(saved)
 
-        val result = useCase(listId = 1, name = " Arroz ", quantity = 2, priceInCents = 1_250, dueDateMillis = DUE_DATE)
+        val result = useCase(listId = 1, name = " Arroz ", quantity = 2, priceInCents = 1_250, dueDay = DUE_DAY)
 
         assertEquals(AppResult.Success(saved), result)
-        coVerify(exactly = 1) { repository.addItem(1, "Arroz", 2, 1_250, DUE_DATE) }
+        coVerify(exactly = 1) { repository.addItem(1, "Arroz", 2, 1_250, DUE_DAY) }
     }
 
     @Test
@@ -56,8 +56,16 @@ class AddListItemUseCaseTest {
         coVerify(exactly = 1) { repository.addItem(1, "Feijão", 1, 0, null) }
     }
 
+    @Test
+    fun `due day outside 1 to 31 returns validation error without touching the repository`() = runTest {
+        val result = useCase(listId = 1, name = "Luz", quantity = 1, priceInCents = 0, dueDay = 32)
+
+        assertTrue(result is AppResult.Error)
+        assertTrue((result as AppResult.Error).error is AppError.Validation)
+        coVerify(exactly = 0) { repository.addItem(any(), any(), any(), any(), any()) }
+    }
+
     private companion object {
-        /** 10/10/2026 00:00 UTC */
-        const val DUE_DATE = 1_791_590_400_000L
+        const val DUE_DAY = 10
     }
 }

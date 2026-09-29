@@ -18,7 +18,7 @@ interface ShoppingListItemDao {
     @Query(
         """
         UPDATE shopping_list_items
-        SET name = :name, quantity = :quantity, priceInCents = :priceInCents, dueDateMillis = :dueDateMillis
+        SET name = :name, quantity = :quantity, priceInCents = :priceInCents, dueDay = :dueDay
         WHERE id = :itemId
         """,
     )
@@ -27,7 +27,7 @@ interface ShoppingListItemDao {
         name: String,
         quantity: Int,
         priceInCents: Long,
-        dueDateMillis: Long?,
+        dueDay: Int?,
     )
 
     @Query("DELETE FROM shopping_list_items WHERE id = :itemId")

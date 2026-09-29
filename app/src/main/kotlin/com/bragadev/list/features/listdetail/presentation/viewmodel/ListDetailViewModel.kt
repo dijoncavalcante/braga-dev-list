@@ -54,9 +54,9 @@ class ListDetailViewModel(
         _uiState.update { it.copy(isAddItemDialogVisible = false) }
     }
 
-    fun onAddItemConfirm(name: String, quantity: Int, priceInCents: Long, dueDateMillis: Long?) {
+    fun onAddItemConfirm(name: String, quantity: Int, priceInCents: Long, dueDay: Int?) {
         viewModelScope.launch {
-            when (addListItemUseCase(listId, name, quantity, priceInCents, dueDateMillis)) {
+            when (addListItemUseCase(listId, name, quantity, priceInCents, dueDay)) {
                 is AppResult.Success -> _uiState.update { it.copy(isAddItemDialogVisible = false) }
                 is AppResult.Error -> Unit // dialog stays open; inline field validation is a follow-up iteration
             }
@@ -73,10 +73,10 @@ class ListDetailViewModel(
     }
 
     /** Save: only now are the edited values written to the database. */
-    fun onEditItemConfirm(name: String, quantity: Int, priceInCents: Long, dueDateMillis: Long?) {
+    fun onEditItemConfirm(name: String, quantity: Int, priceInCents: Long, dueDay: Int?) {
         val item = _uiState.value.editingItem ?: return
         viewModelScope.launch {
-            when (updateListItemUseCase(item.id, name, quantity, priceInCents, dueDateMillis)) {
+            when (updateListItemUseCase(item.id, name, quantity, priceInCents, dueDay)) {
                 is AppResult.Success -> _uiState.update { it.copy(editingItem = null) }
                 is AppResult.Error -> Unit // dialog stays open with the user's edits
             }

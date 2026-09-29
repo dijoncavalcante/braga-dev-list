@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bragadev.list.R
 import com.bragadev.list.core.domain.model.ShoppingListItem
-import com.bragadev.list.core.util.extensions.toBrDateString
 import com.bragadev.list.core.util.extensions.toBrlCurrency
 import com.bragadev.list.features.listdetail.presentation.component.AddItemDialog
 import com.bragadev.list.features.listdetail.presentation.state.ListDetailUiState
@@ -75,10 +74,10 @@ private fun ListDetailContent(
     onBackClick: () -> Unit,
     onAddItemClick: () -> Unit,
     onDismissAddItemDialog: () -> Unit,
-    onAddItemConfirm: (String, Int, Long, Long?) -> Unit,
+    onAddItemConfirm: (String, Int, Long, Int?) -> Unit,
     onItemClick: (ShoppingListItem) -> Unit,
     onDismissEditItemDialog: () -> Unit,
-    onEditItemConfirm: (String, Int, Long, Long?) -> Unit,
+    onEditItemConfirm: (String, Int, Long, Int?) -> Unit,
     onDeleteItemConfirm: () -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
     onRetryClick: () -> Unit,
@@ -219,9 +218,9 @@ private fun ShoppingListItemRow(
                     text = "${item.name} (${item.quantity})",
                     textDecoration = if (item.isChecked) TextDecoration.LineThrough else TextDecoration.None,
                 )
-                item.dueDateMillis?.let { dueDate ->
+                item.dueDay?.let { dueDay ->
                     Text(
-                        text = stringResource(R.string.list_detail_item_due_date_format, dueDate.toBrDateString()),
+                        text = stringResource(R.string.list_detail_item_due_day_format, dueDay),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

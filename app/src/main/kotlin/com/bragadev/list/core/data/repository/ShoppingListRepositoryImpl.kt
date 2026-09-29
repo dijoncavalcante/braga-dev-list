@@ -49,7 +49,7 @@ class ShoppingListRepositoryImpl(
         name: String,
         quantity: Int,
         priceInCents: Long,
-        dueDateMillis: Long?,
+        dueDay: Int?,
     ): AppResult<ShoppingListItem> =
         runCatchingToResult {
             withContext(ioDispatcher) {
@@ -58,7 +58,7 @@ class ShoppingListRepositoryImpl(
                     name = name,
                     quantity = quantity,
                     priceInCents = priceInCents,
-                    dueDateMillis = dueDateMillis,
+                    dueDay = dueDay,
                     isChecked = false,
                     createdAt = System.currentTimeMillis(),
                 )
@@ -72,10 +72,10 @@ class ShoppingListRepositoryImpl(
         name: String,
         quantity: Int,
         priceInCents: Long,
-        dueDateMillis: Long?,
+        dueDay: Int?,
     ): AppResult<Unit> = runCatchingToResult {
         withContext(ioDispatcher) {
-            itemDao.updateDetails(itemId, name, quantity, priceInCents, dueDateMillis)
+            itemDao.updateDetails(itemId, name, quantity, priceInCents, dueDay)
         }
     }
 

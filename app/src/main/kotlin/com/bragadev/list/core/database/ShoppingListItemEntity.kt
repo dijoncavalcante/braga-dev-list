@@ -25,8 +25,8 @@ data class ShoppingListItemEntity(
     val quantity: Int,
     /** Unit price in cents (R$ 12,50 -> 1250) to avoid floating point rounding issues. */
     @ColumnInfo(defaultValue = "0") val priceInCents: Long = 0,
-    /** Due date as UTC midnight epoch millis (what the Material DatePicker returns); null = no due date. */
-    val dueDateMillis: Long? = null,
+    /** Day of the month the bill is due (1..31); null = no due day. */
+    val dueDay: Int? = null,
     val isChecked: Boolean,
     val createdAt: Long,
 )

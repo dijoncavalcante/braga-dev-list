@@ -36,7 +36,7 @@ class ListDetailViewModelEditTest {
         name = "Arroz",
         quantity = 1,
         priceInCents = 1_000,
-        dueDateMillis = null,
+        dueDay = null,
         isChecked = false,
         createdAt = 0,
     )
@@ -91,7 +91,7 @@ class ListDetailViewModelEditTest {
         coEvery { updateListItemUseCase(any(), any(), any(), any(), any()) } returns AppResult.Success(Unit)
         viewModel.onItemClick(item)
 
-        viewModel.onEditItemConfirm(name = "Arroz integral", quantity = 2, priceInCents = 1_590, dueDateMillis = null)
+        viewModel.onEditItemConfirm(name = "Arroz integral", quantity = 2, priceInCents = 1_590, dueDay = null)
 
         coVerify(exactly = 1) { updateListItemUseCase(7, "Arroz integral", 2, 1_590, null) }
         assertNull(viewModel.uiState.value.editingItem)
