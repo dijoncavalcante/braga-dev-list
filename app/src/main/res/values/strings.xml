@@ -1,3 +1,30 @@
 <resources>
     <string name="app_name">braga-dev-list</string>
+
+    <string name="home_title">Minhas Listas</string>
+    <string name="home_empty_title">Nenhuma lista criada</string>
+    <string name="home_empty_description">Crie sua primeira lista para começar a organizar suas compras ou contas.</string>
+    <string name="home_create_list_button">Criar lista</string>
+    <string name="home_error_message">Não foi possível carregar suas listas.</string>
+    <string name="home_retry_button">Tentar novamente</string>
+
+    <string name="create_list_title">Nova lista</string>
+    <string name="create_list_name_label">Nome da lista</string>
+    <string name="create_list_name_placeholder">Ex: Compras do mês</string>
+    <string name="create_list_save_button">Criar</string>
+    <string name="create_list_error_empty_name">Informe um nome para a lista</string>
+    <string name="create_list_generic_error">Não foi possível criar a lista. Tente novamente.</string>
+
+    <string name="list_detail_empty_title">Nenhum item nesta lista</string>
+    <string name="list_detail_empty_description">Toque no botão abaixo para adicionar o primeiro item.</string>
+    <string name="list_detail_add_item_button">Adicionar item</string>
+    <string name="list_detail_error_message">Não foi possível carregar os itens da lista.</string>
+    <string name="list_detail_retry_button">Tentar novamente</string>
+    <string name="list_detail_item_name_label">Nome do item</string>
+    <string name="list_detail_item_quantity_label">Quantidade</string>
+    <string name="list_detail_dialog_save">Adicionar</string>
+    <string name="list_detail_dialog_cancel">Cancelar</string>
+    <string name="list_detail_error_empty_item_name">Informe um nome para o item</string>
+
+    <string name="action_back">Voltar</string>
 </resources>

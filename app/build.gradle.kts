@@ -1,9 +1,13 @@
+import org.gradle.testing.jacoco.tasks.JacocoReport
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.io.gitlab.arturbosch.detekt)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.ksp)
+    id("jacoco")
 }
 
 android {
@@ -39,6 +43,11 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+        }
+    }
 }
 
 detekt {
@@ -52,24 +61,6 @@ detekt {
     ) // Garante que todos os source sets sejam incluídos
     config.setFrom(files("$projectDir/detekt-config.yml")) // Caminho para seu arquivo de configuração
     buildUponDefaultConfig = true // Usa a configuração padrão como base e sobrescreve com seu arquivo
-//     reports { // Descomente e configure se quiser relatórios específicos
-// //         xml {
-// //             required.set(true)
-// //             outputLocation.set(file("build/reports/detekt/detekt.xml"))
-// //         }
-// //         html {
-// //             required.set(true)
-// //             outputLocation.set(file("build/reports/detekt/detekt.html"))
-// //         }
-// //         txt {
-// //             required.set(true)
-// //             outputLocation.set(file("build/reports/detekt/detekt.txt"))
-// //         }
-// //         sarif {
-// //             required.set(true)
-// //             outputLocation.set(file("build/reports/detekt/detekt.sarif"))
-// //         }
-// //     }
 }
 
 ktlint {
@@ -77,21 +68,50 @@ ktlint {
     verbose.set(true)
     android.set(true) // Aplica o estilo padrão do Android Kotlin Style Guide
     outputToConsole.set(true)
-    // Se você quiser que o build falhe se houver problemas de formatação não corrigidos:
-    // ignoreFailures.set(false) // O padrão é false para a tarefa 'ktlintCheck'
-    // enableExperimentalRules.set(true) // Se quiser usar regras experimentais do Ktlint
+}
 
-    // Filtros para incluir/excluir arquivos (opcional, mas útil)
-    // filter {
-    //     exclude("**/generated/**")
-    //     include("**/kotlin/**")
-    // }
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+    val fileFilter = listOf(
+        "**/R.class",
+        "**/R\$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "android/**/*.*",
+        "**/*\$Lambda\$*.*",
+        "**/*\$inlined\$*.*",
+        "**/di/**",
+        "**/*Screen*.*",
+        "**/*Preview*.*",
+    )
+    val debugTree = fileTree("${layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
+        exclude(fileFilter)
+    }
+    val mainSrc = "${project.projectDir}/src/main/kotlin"
+    sourceDirectories.setFrom(files(mainSrc))
+    classDirectories.setFrom(files(debugTree))
+    executionData.setFrom(
+        fileTree(layout.buildDirectory.get()) {
+            include("outputs/unit_test_code_coverage/debugUnitTest/*.exec", "jacoco/testDebugUnitTest.exec")
+        },
+    )
 }
 
 dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(platform(libs.androidx.compose.bom))
@@ -99,7 +119,26 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
+
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+
     testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.turbine)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.koin.test)
+    testImplementation(libs.koin.test.junit4)
+    testImplementation(kotlin("test"))
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

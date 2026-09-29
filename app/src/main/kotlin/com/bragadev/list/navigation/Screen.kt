@@ -1,15 +1,17 @@
 package com.bragadev.list.navigation
 
-// Sealed class/object para definir as rotas como constantes
+/**
+ * Centralized, typed navigation routes. Screens are reached with simple
+ * arguments (an id) rather than passing complex objects across destinations.
+ */
+sealed class Screen(val route: String) {
+    data object Home : Screen(route = "home")
 
-sealed class Screen(
-    val route: String,
-) {
-    object Home : Screen("home_screen")
+    data object CreateNewList : Screen(route = "create_new_list")
 
-    object CreateItem : Screen("create_item_screen")
+    data object ListDetail : Screen(route = "list_detail/{listId}") {
+        const val ARG_LIST_ID = "listId"
 
-    object DetailItem : Screen("detail_item/{itemId}") {
-        fun createRoute(itemId: Int) = "detail_item/$itemId"
+        fun createRoute(listId: Long) = "list_detail/$listId"
     }
 }
