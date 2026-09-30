@@ -67,6 +67,9 @@
     <string name="list_detail_summary_unchecked">Não marcados (%1$d)</string>
     <string name="list_detail_summary_checked">Marcados (%1$d)</string>
     <string name="list_detail_summary_total">Total (%1$d)</string>
+    <string name="list_detail_summary_unchecked_label">Não marcados</string>
+    <string name="list_detail_summary_checked_label">Marcados</string>
+    <string name="list_detail_summary_total_label">Total</string>
     <string name="list_detail_edit_item_title">Editar item</string>
     <string name="list_detail_dialog_save_changes">Salvar</string>
     <string name="list_detail_delete_item">Excluir item</string>

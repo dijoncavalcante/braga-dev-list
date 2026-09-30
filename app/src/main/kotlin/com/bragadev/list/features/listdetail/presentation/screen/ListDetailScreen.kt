@@ -50,7 +50,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bragadev.list.R
 import com.bragadev.list.core.domain.model.FortnightGroups
 import com.bragadev.list.core.domain.model.ItemSortOrder
-import com.bragadev.list.core.domain.model.ListSummary
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.util.extensions.shareText
@@ -59,7 +58,7 @@ import com.bragadev.list.features.home.presentation.component.RenameListDialog
 import com.bragadev.list.features.listdetail.presentation.component.AddItemBottomSheet
 import com.bragadev.list.features.listdetail.presentation.component.DeleteItemsDialog
 import com.bragadev.list.features.listdetail.presentation.component.ListDetailMenu
-import com.bragadev.list.features.listdetail.presentation.component.ListSummaryFooter
+import com.bragadev.list.features.listdetail.presentation.component.ListSummaryBar
 import com.bragadev.list.features.listdetail.presentation.state.ListDetailUiState
 import com.bragadev.list.features.listdetail.presentation.viewmodel.ListDetailViewModel
 import com.bragadev.list.ui.components.EmptyStateContent
@@ -200,6 +199,13 @@ private fun ListDetailContent(
                 text = { Text(stringResource(R.string.list_detail_add_item_button)) },
             )
         },
+        // Totals pinned to the bottom so they stay visible however long the list is.
+        // They are always for the whole list, in both views.
+        bottomBar = {
+            if (uiState.items.isNotEmpty()) {
+                ListSummaryBar(summary = uiState.summary, showAmounts = uiState.showPrices)
+            }
+        },
     ) { padding ->
         when {
             uiState.isLoading -> LoadingState(padding)
@@ -209,7 +215,6 @@ private fun ListDetailContent(
                 padding = padding,
                 items = uiState.items,
                 fortnightGroups = if (uiState.groupByFortnight) uiState.fortnightGroups else null,
-                summary = uiState.summary,
                 showPrices = uiState.showPrices,
                 onItemClick = onItemClick,
                 onItemCheckedChange = onItemCheckedChange,
@@ -276,7 +281,6 @@ private fun ItemsState(
     padding: PaddingValues,
     items: List<ShoppingListItem>,
     fortnightGroups: FortnightGroups?,
-    summary: ListSummary,
     showPrices: Boolean,
     onItemClick: (ShoppingListItem) -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
@@ -291,8 +295,8 @@ private fun ItemsState(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding),
-        // Extra bottom space so the "Adicionar item" button never covers the totals.
-        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
+        // Extra bottom space so the "Adicionar item" button never covers the last item.
+        contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 88.dp),
     ) {
         val itemRow: ItemRow = { item, modifier ->
             ShoppingListItemRow(
@@ -368,13 +372,6 @@ private fun ItemsState(
                 sectionExpansion = sectionExpansion,
                 itemRow = itemRow,
             )
-        }
-
-        // Totals stay the same in both views: always for the whole list.
-        item(key = "summary") {
-            Box(modifier = Modifier.animateItem()) {
-                ListSummaryFooter(summary = summary, showAmounts = showPrices)
-            }
         }
     }
 }
