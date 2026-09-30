@@ -52,6 +52,11 @@
     <string name="list_detail_without_due_day">Sem vencimento</string>
     <string name="list_detail_fortnight_checked">%1$d de %2$d marcados</string>
     <string name="list_detail_fortnight_empty">Nenhum item nesta quinzena</string>
+    <string name="list_detail_section_unchecked">Não marcados (%1$d)</string>
+    <string name="list_detail_section_checked">Marcados (%1$d)</string>
+    <string name="list_detail_section_all_checked">Todos os itens foram marcados</string>
+    <string name="list_detail_section_expand">Expandir</string>
+    <string name="list_detail_section_collapse">Recolher</string>
     <string name="list_detail_menu_uncheck_all">Desmarcar todos os itens</string>
     <string name="list_detail_menu_check_all">Marcar todos os itens</string>
     <string name="list_detail_menu_delete_items">Excluir itens</string>

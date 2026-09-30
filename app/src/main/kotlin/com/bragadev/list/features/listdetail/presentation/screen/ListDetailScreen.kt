@@ -1,6 +1,8 @@
 package com.bragadev.list.features.listdetail.presentation.screen
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.PlaylistAdd
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -31,8 +34,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
@@ -273,6 +281,12 @@ private fun ItemsState(
     onItemClick: (ShoppingListItem) -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
 ) {
+    // Only the sections the user opened/closed are stored; the rest keep their default.
+    var toggledSections by rememberSaveable { mutableStateOf(emptySet<String>()) }
+    val sectionExpansion = SectionExpansion(toggledSections) { key ->
+        toggledSections = if (key in toggledSections) toggledSections - key else toggledSections + key
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -280,18 +294,45 @@ private fun ItemsState(
         // Extra bottom space so the "Adicionar item" button never covers the totals.
         contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp),
     ) {
-        val itemRow: @Composable (ShoppingListItem) -> Unit = { item ->
+        val itemRow: ItemRow = { item, modifier ->
             ShoppingListItemRow(
                 item = item,
                 showPrice = showPrices,
                 onClick = { onItemClick(item) },
                 onCheckedChange = { checked -> onItemCheckedChange(item.id, checked) },
+                modifier = modifier,
             )
         }
 
         if (fortnightGroups == null) {
-            // Complete view: every item in a single list.
-            items(items = items, key = { it.id }) { item -> itemRow(item) }
+            // Complete view: unchecked items first (open); checked ones move to a list below (closed).
+            val (unchecked, checked) = items.partition { !it.isChecked }
+            val uncheckedKey = "unchecked"
+            val isUncheckedExpanded = sectionExpansion.isExpanded(uncheckedKey, expandedByDefault = true)
+            item(key = "header_$uncheckedKey") {
+                SectionHeader(
+                    title = stringResource(R.string.list_detail_section_unchecked, unchecked.size),
+                    subtitle = null,
+                    isExpanded = isUncheckedExpanded,
+                    onToggle = { sectionExpansion.toggle(uncheckedKey) },
+                    modifier = Modifier.animateItem(),
+                )
+            }
+            if (isUncheckedExpanded) {
+                if (unchecked.isEmpty()) {
+                    item(key = "all_checked") {
+                        SectionMessage(R.string.list_detail_section_all_checked, Modifier.animateItem())
+                    }
+                } else {
+                    items(items = unchecked, key = { it.id }) { item -> itemRow(item, Modifier.animateItem()) }
+                }
+            }
+            checkedSection(
+                key = "checked",
+                items = checked,
+                sectionExpansion = sectionExpansion,
+                itemRow = itemRow,
+            )
         } else {
             // "Mostrar por quinzena": one list per fortnight, split by due day.
             fortnightSection(
@@ -299,6 +340,7 @@ private fun ItemsState(
                 titleRes = R.string.list_detail_first_fortnight,
                 subtitleRes = R.string.list_detail_first_fortnight_days,
                 items = fortnightGroups.firstFortnight,
+                sectionExpansion = sectionExpansion,
                 itemRow = itemRow,
             )
             fortnightSection(
@@ -306,6 +348,7 @@ private fun ItemsState(
                 titleRes = R.string.list_detail_second_fortnight,
                 subtitleRes = R.string.list_detail_second_fortnight_days,
                 items = fortnightGroups.secondFortnight,
+                sectionExpansion = sectionExpansion,
                 itemRow = itemRow,
             )
             if (fortnightGroups.withoutDueDay.isNotEmpty()) {
@@ -314,14 +357,24 @@ private fun ItemsState(
                     titleRes = R.string.list_detail_without_due_day,
                     subtitleRes = null,
                     items = fortnightGroups.withoutDueDay,
+                    sectionExpansion = sectionExpansion,
                     itemRow = itemRow,
                 )
             }
+            // Checked items of every fortnight leave their section and gather in one list at the end.
+            checkedSection(
+                key = "checked",
+                items = items.filter { it.isChecked },
+                sectionExpansion = sectionExpansion,
+                itemRow = itemRow,
+            )
         }
 
         // Totals stay the same in both views: always for the whole list.
         item(key = "summary") {
-            ListSummaryFooter(summary = summary, showAmounts = showPrices)
+            Box(modifier = Modifier.animateItem()) {
+                ListSummaryFooter(summary = summary, showAmounts = showPrices)
+            }
         }
     }
 }
@@ -332,11 +385,12 @@ private fun ShoppingListItemRow(
     showPrice: Boolean,
     onClick: () -> Unit,
     onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     // Tapping the card opens the edit dialog; the checkbox keeps toggling on its own.
     Card(
         onClick = onClick,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp, horizontal = 16.dp),
     ) {
@@ -396,52 +450,136 @@ private fun ListDetailEmptyPreview() {
     }
 }
 
+
+/** Draws one item row; the modifier carries the list's move/appear animation. */
+private typealias ItemRow = @Composable (item: ShoppingListItem, modifier: Modifier) -> Unit
+
 /**
- * One section of the "Mostrar por quinzena" view: a header (title, due days covered and
- * how many of its items are checked) followed by its items, or a short message when empty.
+ * Open/closed state of the collapsible sections. Lists of items to do start open and lists
+ * of checked items start closed; [toggled] holds the keys the user flipped from that default.
+ */
+private class SectionExpansion(
+    private val toggled: Set<String>,
+    private val onToggle: (key: String) -> Unit,
+) {
+    fun isExpanded(key: String, expandedByDefault: Boolean): Boolean = expandedByDefault != (key in toggled)
+
+    fun toggle(key: String) = onToggle(key)
+}
+
+/**
+ * One section of the "Mostrar por quinzena" view: a collapsible header (title, due days
+ * covered and how many of its items are checked) followed by its unchecked items only; the
+ * checked ones are shown in the single "Marcados" list at the end of the screen.
  */
 private fun LazyListScope.fortnightSection(
     key: String,
     @StringRes titleRes: Int,
     @StringRes subtitleRes: Int?,
     items: List<ShoppingListItem>,
-    itemRow: @Composable (ShoppingListItem) -> Unit,
+    sectionExpansion: SectionExpansion,
+    itemRow: ItemRow,
 ) {
+    val (unchecked, checked) = items.partition { !it.isChecked }
+    val isExpanded = sectionExpansion.isExpanded(key, expandedByDefault = true)
     item(key = "header_$key") {
-        FortnightHeader(
+        val days = subtitleRes?.let { stringResource(it) }
+        val progress = stringResource(R.string.list_detail_fortnight_checked, checked.size, items.size)
+        SectionHeader(
             title = stringResource(titleRes),
-            days = subtitleRes?.let { stringResource(it) },
-            checkedCount = items.count { it.isChecked },
-            totalCount = items.size,
+            subtitle = if (days != null) "$days · $progress" else progress,
+            isExpanded = isExpanded,
+            onToggle = { sectionExpansion.toggle(key) },
+            modifier = Modifier.animateItem(),
         )
     }
-    if (items.isEmpty()) {
-        item(key = "empty_$key") {
-            Text(
-                text = stringResource(R.string.list_detail_fortnight_empty),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
+    if (!isExpanded) return
+
+    when {
+        items.isEmpty() -> item(key = "empty_$key") {
+            SectionMessage(R.string.list_detail_fortnight_empty, Modifier.animateItem())
         }
-    } else {
-        items(items = items, key = { it.id }) { item -> itemRow(item) }
+        unchecked.isEmpty() -> item(key = "all_checked_$key") {
+            SectionMessage(R.string.list_detail_section_all_checked, Modifier.animateItem())
+        }
+        else -> items(items = unchecked, key = { it.id }) { item -> itemRow(item, Modifier.animateItem()) }
+    }
+}
+
+/** "Marcados (n)": the checked items, in a list that starts closed. Hidden when nothing is checked. */
+private fun LazyListScope.checkedSection(
+    key: String,
+    items: List<ShoppingListItem>,
+    sectionExpansion: SectionExpansion,
+    itemRow: ItemRow,
+) {
+    if (items.isEmpty()) return
+    val isExpanded = sectionExpansion.isExpanded(key, expandedByDefault = false)
+    item(key = "header_$key") {
+        SectionHeader(
+            title = stringResource(R.string.list_detail_section_checked, items.size),
+            subtitle = null,
+            isExpanded = isExpanded,
+            onToggle = { sectionExpansion.toggle(key) },
+            modifier = Modifier.animateItem(),
+        )
+    }
+    if (isExpanded) {
+        items(items = items, key = { it.id }) { item -> itemRow(item, Modifier.animateItem()) }
+    }
+}
+
+/** Tappable header of a collapsible section, with an arrow showing whether it is open. */
+@Composable
+private fun SectionHeader(
+    title: String,
+    subtitle: String?,
+    isExpanded: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val arrowRotation by animateFloatAsState(targetValue = if (isExpanded) 0f else -90f, label = "arrowRotation")
+    val stateDescription = stringResource(
+        if (isExpanded) R.string.list_detail_section_collapse else R.string.list_detail_section_expand,
+    )
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .clickable(onClickLabel = stateDescription, onClick = onToggle)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            subtitle?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        Icon(
+            imageVector = Icons.Filled.KeyboardArrowDown,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.rotate(arrowRotation),
+        )
     }
 }
 
 @Composable
-private fun FortnightHeader(title: String, days: String?, checkedCount: Int, totalCount: Int) {
-    Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 4.dp)) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        val progress = stringResource(R.string.list_detail_fortnight_checked, checkedCount, totalCount)
-        Text(
-            text = if (days != null) "$days · $progress" else progress,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+private fun SectionMessage(@StringRes textRes: Int, modifier: Modifier = Modifier) {
+    Text(
+        text = stringResource(textRes),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+    )
 }
