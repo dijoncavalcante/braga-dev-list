@@ -48,7 +48,7 @@ import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.util.extensions.shareText
 import com.bragadev.list.core.util.extensions.toBrlCurrency
 import com.bragadev.list.features.home.presentation.component.RenameListDialog
-import com.bragadev.list.features.listdetail.presentation.component.AddItemDialog
+import com.bragadev.list.features.listdetail.presentation.component.AddItemBottomSheet
 import com.bragadev.list.features.listdetail.presentation.component.DeleteItemsDialog
 import com.bragadev.list.features.listdetail.presentation.component.ListDetailMenu
 import com.bragadev.list.features.listdetail.presentation.component.ListSummaryFooter
@@ -209,11 +209,11 @@ private fun ListDetailContent(
         }
 
         if (uiState.isAddItemDialogVisible) {
-            AddItemDialog(onConfirm = onAddItemConfirm, onDismiss = onDismissAddItemDialog)
+            AddItemBottomSheet(onConfirm = onAddItemConfirm, onDismiss = onDismissAddItemDialog)
         }
 
         uiState.editingItem?.let { item ->
-            AddItemDialog(
+            AddItemBottomSheet(
                 initialItem = item,
                 onConfirm = onEditItemConfirm,
                 onDismiss = onDismissEditItemDialog,
