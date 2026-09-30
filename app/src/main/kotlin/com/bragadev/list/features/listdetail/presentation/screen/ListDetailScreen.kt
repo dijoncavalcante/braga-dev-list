@@ -34,6 +34,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -56,6 +57,7 @@ import com.bragadev.list.core.util.extensions.shareText
 import com.bragadev.list.core.util.extensions.toBrlCurrency
 import com.bragadev.list.features.home.presentation.component.RenameListDialog
 import com.bragadev.list.features.listdetail.presentation.component.AddItemBottomSheet
+import com.bragadev.list.features.listdetail.presentation.component.AllCheckedCelebration
 import com.bragadev.list.features.listdetail.presentation.component.DeleteItemsDialog
 import com.bragadev.list.features.listdetail.presentation.component.ListDetailMenu
 import com.bragadev.list.features.listdetail.presentation.component.ListSummaryBar
@@ -291,6 +293,16 @@ private fun ItemsState(
         toggledSections = if (key in toggledSections) toggledSections - key else toggledSections + key
     }
 
+    // Confetti only when the user checks the last item now, not when a finished list is opened.
+    val isAllChecked = items.all { it.isChecked }
+    var wasAllChecked by remember { mutableStateOf(isAllChecked) }
+    var playConfetti by remember { mutableStateOf(false) }
+    LaunchedEffect(isAllChecked) {
+        if (isAllChecked && !wasAllChecked) playConfetti = true
+        if (!isAllChecked) playConfetti = false
+        wasAllChecked = isAllChecked
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -308,9 +320,18 @@ private fun ItemsState(
             )
         }
 
-        if (fortnightGroups == null) {
+        if (isAllChecked) {
+            // Everything checked: in both views the lists of items to do give way to a celebration.
+            item(key = "all_checked_celebration") {
+                AllCheckedCelebration(
+                    playConfetti = playConfetti,
+                    onConfettiFinished = { playConfetti = false },
+                    modifier = Modifier.animateItem(),
+                )
+            }
+        } else if (fortnightGroups == null) {
             // Complete view: unchecked items first (open); checked ones move to a list below (closed).
-            val (unchecked, checked) = items.partition { !it.isChecked }
+            val unchecked = items.filterNot { it.isChecked }
             val uncheckedKey = "unchecked"
             val isUncheckedExpanded = sectionExpansion.isExpanded(uncheckedKey, expandedByDefault = true)
             item(key = "header_$uncheckedKey") {
@@ -323,20 +344,8 @@ private fun ItemsState(
                 )
             }
             if (isUncheckedExpanded) {
-                if (unchecked.isEmpty()) {
-                    item(key = "all_checked") {
-                        SectionMessage(R.string.list_detail_section_all_checked, Modifier.animateItem())
-                    }
-                } else {
-                    items(items = unchecked, key = { it.id }) { item -> itemRow(item, Modifier.animateItem()) }
-                }
+                items(items = unchecked, key = { it.id }) { item -> itemRow(item, Modifier.animateItem()) }
             }
-            checkedSection(
-                key = "checked",
-                items = checked,
-                sectionExpansion = sectionExpansion,
-                itemRow = itemRow,
-            )
         } else {
             // "Mostrar por quinzena": one list per fortnight, split by due day.
             fortnightSection(
@@ -365,14 +374,15 @@ private fun ItemsState(
                     itemRow = itemRow,
                 )
             }
-            // Checked items of every fortnight leave their section and gather in one list at the end.
-            checkedSection(
-                key = "checked",
-                items = items.filter { it.isChecked },
-                sectionExpansion = sectionExpansion,
-                itemRow = itemRow,
-            )
         }
+
+        // Checked items leave their list (or fortnight) and gather in one list at the end, closed by default.
+        checkedSection(
+            key = "checked",
+            items = items.filter { it.isChecked },
+            sectionExpansion = sectionExpansion,
+            itemRow = itemRow,
+        )
     }
 }
 
