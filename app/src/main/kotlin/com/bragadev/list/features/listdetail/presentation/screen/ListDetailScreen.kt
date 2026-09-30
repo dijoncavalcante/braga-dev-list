@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.PlaylistAdd
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -53,6 +54,8 @@ import com.bragadev.list.features.listdetail.presentation.component.ListDetailMe
 import com.bragadev.list.features.listdetail.presentation.component.ListSummaryFooter
 import com.bragadev.list.features.listdetail.presentation.state.ListDetailUiState
 import com.bragadev.list.features.listdetail.presentation.viewmodel.ListDetailViewModel
+import com.bragadev.list.ui.components.EmptyStateContent
+import com.bragadev.list.ui.components.EmptyStateIllustration
 import com.bragadev.list.ui.theme.BragadevlistTheme
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -234,16 +237,12 @@ private fun LoadingState(padding: PaddingValues) {
 
 @Composable
 private fun EmptyState(padding: PaddingValues) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+    EmptyStateContent(
+        title = stringResource(R.string.list_detail_empty_title),
+        description = stringResource(R.string.list_detail_empty_description),
+        padding = padding,
     ) {
-        Text(text = stringResource(R.string.list_detail_empty_title))
-        Text(text = stringResource(R.string.list_detail_empty_description))
+        EmptyStateIllustration(icon = Icons.AutoMirrored.Outlined.PlaylistAdd)
     }
 }
 

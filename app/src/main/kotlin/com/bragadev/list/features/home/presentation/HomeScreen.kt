@@ -38,10 +38,12 @@ import com.bragadev.list.R
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.util.extensions.shareText
 import com.bragadev.list.features.home.presentation.component.DeleteListDialog
+import com.bragadev.list.features.home.presentation.component.EmptyListsIllustration
 import com.bragadev.list.features.home.presentation.component.ListOptionsSheet
 import com.bragadev.list.features.home.presentation.component.RenameListDialog
 import com.bragadev.list.features.home.presentation.state.HomeUiState
 import com.bragadev.list.features.home.presentation.viewmodel.HomeViewModel
+import com.bragadev.list.ui.components.EmptyStateContent
 import com.bragadev.list.ui.theme.BragadevlistTheme
 import org.koin.androidx.compose.koinViewModel
 
@@ -147,16 +149,12 @@ private fun LoadingState(padding: PaddingValues) {
 
 @Composable
 private fun EmptyState(padding: PaddingValues) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding)
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+    EmptyStateContent(
+        title = stringResource(R.string.home_empty_title),
+        description = stringResource(R.string.home_empty_description),
+        padding = padding,
     ) {
-        Text(text = stringResource(R.string.home_empty_title))
-        Text(text = stringResource(R.string.home_empty_description))
+        EmptyListsIllustration()
     }
 }
 
