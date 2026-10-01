@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -56,10 +57,10 @@ import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.util.extensions.shareText
-import com.bragadev.list.core.util.extensions.toBrlCurrency
 import com.bragadev.list.features.home.presentation.component.RenameListDialog
 import com.bragadev.list.features.listdetail.presentation.component.AddItemBottomSheet
 import com.bragadev.list.features.listdetail.presentation.component.AllCheckedCelebration
+import com.bragadev.list.features.listdetail.presentation.component.AmountsVisibilityButton
 import com.bragadev.list.features.listdetail.presentation.component.DeleteItemsDialog
 import com.bragadev.list.features.listdetail.presentation.component.ExtraIncomeBottomSheet
 import com.bragadev.list.features.listdetail.presentation.component.FinancialCycleCard
@@ -67,6 +68,8 @@ import com.bragadev.list.features.listdetail.presentation.component.IncomeSettin
 import com.bragadev.list.features.listdetail.presentation.component.IncomeSetupCard
 import com.bragadev.list.features.listdetail.presentation.component.ListDetailMenu
 import com.bragadev.list.features.listdetail.presentation.component.ListSummaryBar
+import com.bragadev.list.features.listdetail.presentation.component.LocalAmountsHidden
+import com.bragadev.list.features.listdetail.presentation.component.toDisplayAmount
 import com.bragadev.list.features.listdetail.presentation.state.ListDetailUiState
 import com.bragadev.list.features.listdetail.presentation.viewmodel.ListDetailViewModel
 import com.bragadev.list.ui.components.EmptyStateContent
@@ -93,6 +96,19 @@ fun ListDetailScreen(
         viewModel.onShareHandled()
     }
 
+    // The toolbar eye masks every amount on the screen (cards, rows, totals, feedbacks).
+    CompositionLocalProvider(LocalAmountsHidden provides uiState.amountsHidden) {
+        ListDetailScreenContent(uiState, viewModel, onBackClick)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ListDetailScreenContent(
+    uiState: ListDetailUiState,
+    viewModel: ListDetailViewModel,
+    onBackClick: () -> Unit,
+) {
     ListDetailContent(
         uiState = uiState,
         onBackClick = onBackClick,
@@ -115,6 +131,7 @@ fun ListDetailScreen(
             onDeleteItemsClick = viewModel::onDeleteItemsClick,
             onRenameListClick = viewModel::onRenameListClick,
             onShareClick = viewModel::onShareClick,
+            onToggleAmountsVisibility = viewModel::onToggleAmountsVisibility,
         ),
     )
 
@@ -170,8 +187,9 @@ fun ListDetailScreen(
  */
 private data class CycleView(val overview: FinancialOverview?)
 
-/** Callbacks of the toolbar three-dots menu, grouped to keep [ListDetailContent] readable. */
+/** Callbacks of the toolbar (eye and three-dots menu), grouped to keep [ListDetailContent] readable. */
 private data class ListDetailMenuActions(
+    val onToggleAmountsVisibility: () -> Unit = {},
     val onSortOrderSelected: (ItemSortOrder) -> Unit = {},
     val onShowPricesToggle: () -> Unit = {},
     val onGroupByCycleSelected: (Boolean) -> Unit = {},
@@ -213,6 +231,10 @@ private fun ListDetailContent(
                 },
                 actions = {
                     val summary = uiState.summary
+                    AmountsVisibilityButton(
+                        amountsHidden = uiState.amountsHidden,
+                        onToggle = menuActions.onToggleAmountsVisibility,
+                    )
                     ListDetailMenu(
                         sortOrder = uiState.sortOrder,
                         showPrices = uiState.showPrices,
@@ -524,7 +546,7 @@ private fun ShoppingListItemRow(
             }
             if (showPrice && item.priceInCents > 0) {
                 Text(
-                    text = item.priceInCents.toBrlCurrency(),
+                    text = item.priceInCents.toDisplayAmount(),
                     style = MaterialTheme.typography.bodyMedium,
                     textDecoration = if (item.isChecked) TextDecoration.LineThrough else TextDecoration.None,
                 )

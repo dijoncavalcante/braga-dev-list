@@ -37,7 +37,6 @@ import com.bragadev.list.core.domain.model.IncomeSettings
 import com.bragadev.list.core.domain.model.PayDay
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.model.buildFinancialOverview
-import com.bragadev.list.core.util.extensions.toBrlCurrency
 import com.bragadev.list.ui.theme.BragadevlistTheme
 
 /** Percent → progress bar fraction. */
@@ -87,18 +86,18 @@ fun FinancialCycleCard(
             }
 
             IncomeRows(cycle = cycle, today = today)
-            AmountRow(label = stringResource(R.string.cycle_bills), text = "- ${cycle.billsInCents.toBrlCurrency()}")
+            AmountRow(label = stringResource(R.string.cycle_bills), text = "- ${cycle.billsInCents.toDisplayAmount()}")
             if (cycle.otherExpenses.isNotEmpty()) {
                 AmountRow(
                     label = stringResource(R.string.cycle_other_expenses),
-                    text = "- ${cycle.otherExpensesInCents.toBrlCurrency()}",
+                    text = "- ${cycle.otherExpensesInCents.toDisplayAmount()}",
                 )
             }
             HorizontalDivider()
             val isNegative = cycle.projectedBalanceInCents < 0
             AmountRow(
                 label = stringResource(R.string.cycle_balance),
-                text = cycle.projectedBalanceInCents.toBrlCurrency(),
+                text = cycle.projectedBalanceInCents.toDisplayAmount(),
                 color = if (isNegative) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                 isHighlighted = true,
             )
@@ -157,7 +156,7 @@ fun IncomeSetupCard(onSetupClick: () -> Unit, modifier: Modifier = Modifier) {
 private fun IncomeRows(cycle: FinancialCycle, today: CalendarDate) {
     AmountRow(
         label = stringResource(R.string.cycle_income_on, cycle.payment.date.toDayMonth()),
-        text = "+ ${cycle.payment.amountInCents.toBrlCurrency()}",
+        text = "+ ${cycle.payment.amountInCents.toDisplayAmount()}",
     )
     if (cycle.extraIncomes.isEmpty()) return
     cycle.extraIncomes.forEach { entry ->
@@ -167,13 +166,13 @@ private fun IncomeRows(cycle: FinancialCycle, today: CalendarDate) {
                 entry.income.name,
                 entry.date.toDayMonth(),
             ),
-            text = "+ ${entry.amountInCents.toBrlCurrency()}",
+            text = "+ ${entry.amountInCents.toDisplayAmount()}",
             color = MaterialTheme.colorScheme.tertiary,
         )
     }
     AmountRow(
         label = stringResource(R.string.cycle_total_income),
-        text = cycle.incomeInCents.toBrlCurrency(),
+        text = cycle.incomeInCents.toDisplayAmount(),
         isHighlighted = true,
     )
 }
@@ -227,14 +226,14 @@ private fun statusColor(status: CycleStatus): Color = when (status) {
 private fun insightText(insight: CycleInsight): String = when (insight) {
     is CycleInsight.Received -> stringResource(
         R.string.cycle_insight_received,
-        insight.payment.amountInCents.toBrlCurrency(),
+        insight.payment.amountInCents.toDisplayAmount(),
         insight.payment.date.toDayMonth(),
     )
     is CycleInsight.NextPayment -> pluralStringResource(
         R.plurals.cycle_insight_next_payment,
         insight.daysUntil.toInt(),
         insight.daysUntil.toInt(),
-        insight.payment.amountInCents.toBrlCurrency(),
+        insight.payment.amountInCents.toDisplayAmount(),
         insight.payment.date.toDayMonth(),
     )
     is CycleInsight.ExtraIncomeExpected -> {
@@ -242,7 +241,7 @@ private fun insightText(insight: CycleInsight): String = when (insight) {
         if (entry != null) {
             stringResource(
                 R.string.cycle_insight_extra_income_expected,
-                entry.amountInCents.toBrlCurrency(),
+                entry.amountInCents.toDisplayAmount(),
                 entry.income.name,
                 entry.date.toDayMonth(),
             )
@@ -250,7 +249,7 @@ private fun insightText(insight: CycleInsight): String = when (insight) {
             stringResource(
                 R.string.cycle_insight_extra_incomes_expected,
                 insight.entries.size,
-                insight.entries.sumOf { it.amountInCents }.toBrlCurrency(),
+                insight.entries.sumOf { it.amountInCents }.toDisplayAmount(),
             )
         }
     }
@@ -261,7 +260,7 @@ private fun insightText(insight: CycleInsight): String = when (insight) {
             stringResource(
                 R.string.cycle_insight_bill_before_extra,
                 bill.item.name,
-                bill.amountInCents.toBrlCurrency(),
+                bill.amountInCents.toDisplayAmount(),
                 bill.dueDate?.toDayMonth().orEmpty(),
                 extra.income.name,
                 extra.date.toDayMonth(),
@@ -270,7 +269,7 @@ private fun insightText(insight: CycleInsight): String = when (insight) {
             stringResource(
                 R.string.cycle_insight_bills_before_extra,
                 insight.bills.size,
-                insight.bills.sumOf { it.amountInCents }.toBrlCurrency(),
+                insight.bills.sumOf { it.amountInCents }.toDisplayAmount(),
                 extra.income.name,
                 extra.date.toDayMonth(),
             )
@@ -283,14 +282,14 @@ private fun insightText(insight: CycleInsight): String = when (insight) {
             stringResource(
                 R.string.cycle_insight_bill_due,
                 bill.item.name,
-                bill.amountInCents.toBrlCurrency(),
+                bill.amountInCents.toDisplayAmount(),
                 bill.dueDate?.toDayMonth().orEmpty(),
             )
         } else {
             stringResource(
                 R.string.cycle_insight_bills_due,
                 insight.bills.size,
-                insight.bills.sumOf { it.amountInCents }.toBrlCurrency(),
+                insight.bills.sumOf { it.amountInCents }.toDisplayAmount(),
             )
         }
     }
@@ -300,14 +299,14 @@ private fun insightText(insight: CycleInsight): String = when (insight) {
             stringResource(
                 R.string.cycle_insight_bill_overdue,
                 bill.item.name,
-                bill.amountInCents.toBrlCurrency(),
+                bill.amountInCents.toDisplayAmount(),
                 bill.dueDate?.toDayMonth().orEmpty(),
             )
         } else {
             stringResource(
                 R.string.cycle_insight_bills_overdue,
                 insight.bills.size,
-                insight.bills.sumOf { it.amountInCents }.toBrlCurrency(),
+                insight.bills.sumOf { it.amountInCents }.toDisplayAmount(),
             )
         }
     }
@@ -315,32 +314,32 @@ private fun insightText(insight: CycleInsight): String = when (insight) {
         R.string.cycle_insight_next_cycle_over,
         insight.cycle.startDate.toDayMonth(),
         insight.cycle.endDate.toDayMonth(),
-        insight.cycle.expensesInCents.toBrlCurrency(),
-        insight.cycle.incomeInCents.toBrlCurrency(),
+        insight.cycle.expensesInCents.toDisplayAmount(),
+        insight.cycle.incomeInCents.toDisplayAmount(),
     )
 }
 
 @Composable
 private fun balanceText(cycle: FinancialCycle): String {
-    val expenses = cycle.expensesInCents.toBrlCurrency()
-    val income = cycle.incomeInCents.toBrlCurrency()
+    val expenses = cycle.expensesInCents.toDisplayAmount()
+    val income = cycle.incomeInCents.toDisplayAmount()
     return when (cycle.status) {
         CycleStatus.HEALTHY -> stringResource(
             R.string.cycle_insight_balance_healthy,
             expenses,
-            cycle.projectedBalanceInCents.toBrlCurrency(),
+            cycle.projectedBalanceInCents.toDisplayAmount(),
         )
         CycleStatus.TIGHT -> stringResource(
             R.string.cycle_insight_balance_tight,
             expenses,
             income,
-            cycle.projectedBalanceInCents.toBrlCurrency(),
+            cycle.projectedBalanceInCents.toDisplayAmount(),
         )
         CycleStatus.OVER_BUDGET -> stringResource(
             R.string.cycle_insight_balance_over,
             expenses,
             income,
-            (-cycle.projectedBalanceInCents).toBrlCurrency(),
+            (-cycle.projectedBalanceInCents).toDisplayAmount(),
         )
     }
 }

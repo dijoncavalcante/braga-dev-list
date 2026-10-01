@@ -155,5 +155,8 @@
     <string name="cycle_insight_bills_overdue">❗ %1$d contas, somando %2$s, já venceram e ainda não foram marcadas.</string>
     <string name="cycle_insight_next_cycle_over">⚠️ No próximo ciclo (%1$s → %2$s) as despesas previstas (%3$s) superam as entradas de %4$s.</string>
 
+    <string name="amounts_hide">Ocultar valores</string>
+    <string name="amounts_show">Mostrar valores</string>
+
     <string name="action_back">Voltar</string>
 </resources>

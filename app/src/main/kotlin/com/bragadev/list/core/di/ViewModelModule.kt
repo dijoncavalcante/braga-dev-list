@@ -36,6 +36,8 @@ val viewModelModule = module {
             getExtraIncomesUseCase = get(),
             saveExtraIncomeUseCase = get(),
             deleteExtraIncomeUseCase = get(),
+            getAmountsHiddenUseCase = get(),
+            setAmountsHiddenUseCase = get(),
         )
     }
 }

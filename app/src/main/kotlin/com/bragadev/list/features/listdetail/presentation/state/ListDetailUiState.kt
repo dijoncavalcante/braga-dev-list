@@ -37,6 +37,11 @@ data class ListDetailUiState(
     val isExtraIncomeSheetVisible: Boolean = false,
     /** Extra income open in the sheet; null = adding a new one. */
     val editingExtraIncome: ExtraIncome? = null,
+    /**
+     * Eye of the toolbar, app-wide: amounts show as "R$ ••••". Independent from the list's
+     * "Mostrar valor", which decides whether item prices are shown at all.
+     */
+    val amountsHidden: Boolean = false,
 ) {
     val listName: String get() = list?.name.orEmpty()
 

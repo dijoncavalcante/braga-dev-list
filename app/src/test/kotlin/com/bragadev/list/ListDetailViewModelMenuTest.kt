@@ -5,12 +5,14 @@ import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.usecase.DeleteListItemsUseCase
+import com.bragadev.list.core.domain.usecase.GetAmountsHiddenUseCase
 import com.bragadev.list.core.domain.usecase.GetIncomeSettingsUseCase
 import com.bragadev.list.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.list.core.domain.usecase.GetListShareTextUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListUseCase
 import com.bragadev.list.core.domain.usecase.RenameShoppingListUseCase
 import com.bragadev.list.core.domain.usecase.SetAllItemsCheckedUseCase
+import com.bragadev.list.core.domain.usecase.SetAmountsHiddenUseCase
 import com.bragadev.list.core.domain.usecase.SetListPreferencesUseCase
 import com.bragadev.list.features.listdetail.presentation.viewmodel.ListDetailViewModel
 import io.mockk.coEvery
@@ -50,6 +52,10 @@ class ListDetailViewModelMenuTest {
         every { this@mockk.invoke() } returns flowOf(null)
     }
 
+    private val amountsHidden = MutableStateFlow(false)
+    private val getAmountsHiddenUseCase: GetAmountsHiddenUseCase = mockk { every { this@mockk.invoke() } returns amountsHidden }
+    private val setAmountsHiddenUseCase: SetAmountsHiddenUseCase = mockk(relaxed = true)
+
     private lateinit var viewModel: ListDetailViewModel
 
     @Before
@@ -75,6 +81,8 @@ class ListDetailViewModelMenuTest {
             getExtraIncomesUseCase = mockk { every { this@mockk.invoke() } returns flowOf(emptyList()) },
             saveExtraIncomeUseCase = mockk(),
             deleteExtraIncomeUseCase = mockk(),
+            getAmountsHiddenUseCase = getAmountsHiddenUseCase,
+            setAmountsHiddenUseCase = setAmountsHiddenUseCase,
         )
     }
 
@@ -105,6 +113,22 @@ class ListDetailViewModelMenuTest {
         coVerify(exactly = 1) { setListPreferencesUseCase.setSortOrder(1, ItemSortOrder.DUE_DAY) }
         coVerify(exactly = 1) { setListPreferencesUseCase.setShowPrices(1, false) }
         coVerify(exactly = 1) { setListPreferencesUseCase.setGroupByCycle(1, true) }
+    }
+
+    @Test
+    fun `eye follows the app-wide preference and saves the opposite of the current state`() {
+        assertFalse(viewModel.uiState.value.amountsHidden)
+
+        viewModel.onToggleAmountsVisibility()
+        coVerify(exactly = 1) { setAmountsHiddenUseCase(true) }
+
+        amountsHidden.value = true
+        assertTrue(viewModel.uiState.value.amountsHidden)
+        // "Mostrar valor" of the list is a separate preference and stays as it was.
+        assertTrue(viewModel.uiState.value.showPrices)
+
+        viewModel.onToggleAmountsVisibility()
+        coVerify(exactly = 1) { setAmountsHiddenUseCase(false) }
     }
 
     @Test

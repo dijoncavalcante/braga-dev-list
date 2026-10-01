@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.sp
 import com.bragadev.list.R
 import com.bragadev.list.core.domain.model.ItemsTotal
 import com.bragadev.list.core.domain.model.ListSummary
-import com.bragadev.list.core.util.extensions.toBrlCurrency
 import com.bragadev.list.ui.theme.BragadevlistTheme
 
 /**
@@ -115,7 +114,7 @@ private fun SummaryColumn(
             overflow = TextOverflow.Ellipsis,
         )
         ShrinkToFitText(
-            text = if (showAmount) total.amountInCents.toBrlCurrency() else total.count.toString(),
+            text = if (showAmount) total.amountInCents.toDisplayAmount() else total.count.toString(),
             style = if (isHighlighted) {
                 MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
             } else {

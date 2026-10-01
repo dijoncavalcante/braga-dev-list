@@ -5,9 +5,11 @@ import com.bragadev.list.core.common.result.AppResult
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.usecase.AddListItemUseCase
 import com.bragadev.list.core.domain.usecase.DeleteListItemUseCase
+import com.bragadev.list.core.domain.usecase.GetAmountsHiddenUseCase
 import com.bragadev.list.core.domain.usecase.GetIncomeSettingsUseCase
 import com.bragadev.list.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListUseCase
+import com.bragadev.list.core.domain.usecase.SetAmountsHiddenUseCase
 import com.bragadev.list.core.domain.usecase.SetItemCheckedUseCase
 import com.bragadev.list.core.domain.usecase.UpdateListItemUseCase
 import com.bragadev.list.features.listdetail.presentation.viewmodel.ListDetailViewModel
@@ -17,6 +19,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -51,6 +54,10 @@ class ListDetailViewModelEditTest {
         every { this@mockk.invoke() } returns flowOf(null)
     }
 
+    private val amountsHidden = MutableStateFlow(false)
+    private val getAmountsHiddenUseCase: GetAmountsHiddenUseCase = mockk { every { this@mockk.invoke() } returns amountsHidden }
+    private val setAmountsHiddenUseCase: SetAmountsHiddenUseCase = mockk(relaxed = true)
+
     private lateinit var viewModel: ListDetailViewModel
 
     @Before
@@ -76,6 +83,8 @@ class ListDetailViewModelEditTest {
             getExtraIncomesUseCase = mockk { every { this@mockk.invoke() } returns flowOf(emptyList()) },
             saveExtraIncomeUseCase = mockk(),
             deleteExtraIncomeUseCase = mockk(),
+            getAmountsHiddenUseCase = getAmountsHiddenUseCase,
+            setAmountsHiddenUseCase = setAmountsHiddenUseCase,
         )
     }
 

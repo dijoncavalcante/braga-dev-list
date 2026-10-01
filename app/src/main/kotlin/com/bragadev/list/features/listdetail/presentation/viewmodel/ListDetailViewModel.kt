@@ -17,6 +17,7 @@ import com.bragadev.list.core.domain.usecase.AddListItemUseCase
 import com.bragadev.list.core.domain.usecase.DeleteExtraIncomeUseCase
 import com.bragadev.list.core.domain.usecase.DeleteListItemUseCase
 import com.bragadev.list.core.domain.usecase.DeleteListItemsUseCase
+import com.bragadev.list.core.domain.usecase.GetAmountsHiddenUseCase
 import com.bragadev.list.core.domain.usecase.GetExtraIncomesUseCase
 import com.bragadev.list.core.domain.usecase.GetIncomeSettingsUseCase
 import com.bragadev.list.core.domain.usecase.GetListItemsUseCase
@@ -26,6 +27,7 @@ import com.bragadev.list.core.domain.usecase.RenameShoppingListUseCase
 import com.bragadev.list.core.domain.usecase.SaveExtraIncomeUseCase
 import com.bragadev.list.core.domain.usecase.SaveIncomeSettingsUseCase
 import com.bragadev.list.core.domain.usecase.SetAllItemsCheckedUseCase
+import com.bragadev.list.core.domain.usecase.SetAmountsHiddenUseCase
 import com.bragadev.list.core.domain.usecase.SetItemCheckedUseCase
 import com.bragadev.list.core.domain.usecase.SetListPreferencesUseCase
 import com.bragadev.list.core.domain.usecase.UpdateListItemUseCase
@@ -59,6 +61,8 @@ class ListDetailViewModel(
     private val getExtraIncomesUseCase: GetExtraIncomesUseCase,
     private val saveExtraIncomeUseCase: SaveExtraIncomeUseCase,
     private val deleteExtraIncomeUseCase: DeleteExtraIncomeUseCase,
+    private val getAmountsHiddenUseCase: GetAmountsHiddenUseCase,
+    private val setAmountsHiddenUseCase: SetAmountsHiddenUseCase,
     /** "Today" for the financial cycles; replaceable in tests. */
     private val currentDate: () -> CalendarDate = CalendarDate::today,
 ) : ViewModel() {
@@ -70,6 +74,16 @@ class ListDetailViewModel(
 
     init {
         observeListDetail()
+        // Kept apart from the list data: toggling the eye must not recalculate the cycles.
+        getAmountsHiddenUseCase()
+            .onEach { hidden -> _uiState.update { it.copy(amountsHidden = hidden) } }
+            .launchIn(viewModelScope)
+    }
+
+    /** Eye of the toolbar: hides or shows the amounts of every list (an app-wide preference). */
+    fun onToggleAmountsVisibility() {
+        val hidden = !_uiState.value.amountsHidden
+        viewModelScope.launch { setAmountsHiddenUseCase(hidden) }
     }
 
     fun retry() {
