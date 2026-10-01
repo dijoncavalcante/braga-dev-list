@@ -12,6 +12,6 @@ data class ShoppingList(
     val sortOrder: ItemSortOrder = ItemSortOrder.ADDED,
     /** Prices are shown in the items and in the totals. */
     val showPrices: Boolean = true,
-    /** Items are split into 1ª quinzena (due days 1–15) and 2ª quinzena (16–31). */
-    val groupByFortnight: Boolean = false,
+    /** Items are shown by financial cycle (pay day → day before the next pay day) instead of all together. */
+    val groupByCycle: Boolean = false,
 )

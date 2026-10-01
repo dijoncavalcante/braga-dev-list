@@ -1,15 +1,17 @@
 package com.bragadev.list.features.listdetail.presentation.state
 
-import com.bragadev.list.core.domain.model.FortnightGroups
+import com.bragadev.list.core.domain.model.CalendarDate
+import com.bragadev.list.core.domain.model.ExtraIncome
+import com.bragadev.list.core.domain.model.FinancialOverview
+import com.bragadev.list.core.domain.model.IncomeSettings
 import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ListSummary
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
-import com.bragadev.list.core.domain.model.groupByFortnight
 import com.bragadev.list.core.domain.model.toSummary
 
 data class ListDetailUiState(
-    /** The list itself, with its "Ordem alfabética" / "Mostrar valor" preferences. */
+    /** The list itself, with its "Ordenar por" / "Mostrar valor" / "Visualizar" preferences. */
     val list: ShoppingList? = null,
     val isLoading: Boolean = true,
     /** Items already in display order, following the list's "Ordenar por" choice. */
@@ -23,6 +25,18 @@ data class ListDetailUiState(
     val isDeleteItemsDialogVisible: Boolean = false,
     /** Text ready to be handed to the Android share sheet; consumed by the screen. */
     val pendingShareText: String? = null,
+    /** How the user receives their income; null until they set it up. Shared by every list. */
+    val incomeSettings: IncomeSettings? = null,
+    /** Day the cycles below were calculated for. */
+    val today: CalendarDate = CalendarDate.today(),
+    /** Current and next financial cycles of this list; null without [incomeSettings]. */
+    val financialOverview: FinancialOverview? = null,
+    val isIncomeSettingsVisible: Boolean = false,
+    /** Extra incomes ("Outras entradas"), shared by every list; optional. */
+    val extraIncomes: List<ExtraIncome> = emptyList(),
+    val isExtraIncomeSheetVisible: Boolean = false,
+    /** Extra income open in the sheet; null = adding a new one. */
+    val editingExtraIncome: ExtraIncome? = null,
 ) {
     val listName: String get() = list?.name.orEmpty()
 
@@ -30,10 +44,8 @@ data class ListDetailUiState(
 
     val showPrices: Boolean get() = list?.showPrices ?: true
 
-    val groupByFortnight: Boolean get() = list?.groupByFortnight ?: false
-
-    /** Items split into 1ª / 2ª quinzena, used when [groupByFortnight] is on. */
-    val fortnightGroups: FortnightGroups get() = items.groupByFortnight()
+    /** "Visualizar: Ciclos financeiros"; otherwise "Todos". */
+    val groupByCycle: Boolean get() = list?.groupByCycle ?: false
 
     val isEmpty: Boolean get() = !isLoading && error == null && items.isEmpty()
 

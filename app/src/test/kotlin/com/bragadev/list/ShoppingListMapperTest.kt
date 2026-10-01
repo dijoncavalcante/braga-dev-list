@@ -30,7 +30,7 @@ class ShoppingListMapperTest {
         assertEquals(4, domain.itemCount)
         assertEquals(ItemSortOrder.DUE_DAY, domain.sortOrder)
         assertEquals(false, domain.showPrices)
-        assertEquals(true, domain.groupByFortnight)
+        assertEquals(true, domain.groupByCycle)
     }
 
     @Test

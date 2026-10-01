@@ -41,8 +41,8 @@ interface ShoppingListDao {
     @Query("UPDATE shopping_lists SET showPrices = :showPrices WHERE id = :listId")
     suspend fun setShowPrices(listId: Long, showPrices: Boolean)
 
-    @Query("UPDATE shopping_lists SET groupByFortnight = :groupByFortnight WHERE id = :listId")
-    suspend fun setGroupByFortnight(listId: Long, groupByFortnight: Boolean)
+    @Query("UPDATE shopping_lists SET groupByFortnight = :groupByCycle WHERE id = :listId")
+    suspend fun setGroupByCycle(listId: Long, groupByCycle: Boolean)
 
     /** Items are removed together with the list (ON DELETE CASCADE). */
     @Query("DELETE FROM shopping_lists WHERE id = :listId")

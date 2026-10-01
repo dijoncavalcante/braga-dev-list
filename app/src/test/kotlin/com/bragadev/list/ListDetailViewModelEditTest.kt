@@ -5,6 +5,7 @@ import com.bragadev.list.core.common.result.AppResult
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.usecase.AddListItemUseCase
 import com.bragadev.list.core.domain.usecase.DeleteListItemUseCase
+import com.bragadev.list.core.domain.usecase.GetIncomeSettingsUseCase
 import com.bragadev.list.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListUseCase
 import com.bragadev.list.core.domain.usecase.SetItemCheckedUseCase
@@ -46,6 +47,10 @@ class ListDetailViewModelEditTest {
     private val updateListItemUseCase: UpdateListItemUseCase = mockk()
     private val deleteListItemUseCase: DeleteListItemUseCase = mockk()
 
+    private val getIncomeSettingsUseCase: GetIncomeSettingsUseCase = mockk {
+        every { this@mockk.invoke() } returns flowOf(null)
+    }
+
     private lateinit var viewModel: ListDetailViewModel
 
     @Before
@@ -66,6 +71,11 @@ class ListDetailViewModelEditTest {
             setListPreferencesUseCase = mockk(),
             setAllItemsCheckedUseCase = mockk(),
             deleteListItemsUseCase = mockk(),
+            getIncomeSettingsUseCase = getIncomeSettingsUseCase,
+            saveIncomeSettingsUseCase = mockk(),
+            getExtraIncomesUseCase = mockk { every { this@mockk.invoke() } returns flowOf(emptyList()) },
+            saveExtraIncomeUseCase = mockk(),
+            deleteExtraIncomeUseCase = mockk(),
         )
     }
 

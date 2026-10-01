@@ -2,7 +2,6 @@ package com.bragadev.list
 
 import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ShoppingListItem
-import com.bragadev.list.core.domain.model.groupByFortnight
 import com.bragadev.list.core.domain.model.sortedForDisplay
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -37,14 +36,6 @@ class ItemOrderingTest {
         val names = items.shuffled().sortedForDisplay(ItemSortOrder.DUE_DAY).map { it.name }
 
         assertEquals(listOf("Aluguel", "Água", "Luz", "Internet", "Açúcar", "arroz"), names)
-    }
-
-    @Test
-    fun `due day order inside each fortnight`() {
-        val groups = items.sortedForDisplay(ItemSortOrder.DUE_DAY).groupByFortnight()
-
-        assertEquals(listOf("Aluguel", "Água", "Luz"), groups.firstFortnight.map { it.name })
-        assertEquals(listOf("Internet"), groups.secondFortnight.map { it.name })
     }
 
     @Test

@@ -1,18 +1,25 @@
 package com.bragadev.list.core.di
 
+import com.bragadev.list.core.data.repository.IncomeRepositoryImpl
 import com.bragadev.list.core.data.repository.ShoppingListRepositoryImpl
+import com.bragadev.list.core.domain.repository.IncomeRepository
 import com.bragadev.list.core.domain.repository.ShoppingListRepository
 import com.bragadev.list.core.domain.usecase.AddListItemUseCase
 import com.bragadev.list.core.domain.usecase.CreateShoppingListUseCase
+import com.bragadev.list.core.domain.usecase.DeleteExtraIncomeUseCase
 import com.bragadev.list.core.domain.usecase.DeleteListItemUseCase
 import com.bragadev.list.core.domain.usecase.DeleteListItemsUseCase
 import com.bragadev.list.core.domain.usecase.DeleteShoppingListUseCase
 import com.bragadev.list.core.domain.usecase.DuplicateShoppingListUseCase
+import com.bragadev.list.core.domain.usecase.GetExtraIncomesUseCase
+import com.bragadev.list.core.domain.usecase.GetIncomeSettingsUseCase
 import com.bragadev.list.core.domain.usecase.GetListShareTextUseCase
 import com.bragadev.list.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListsUseCase
 import com.bragadev.list.core.domain.usecase.RenameShoppingListUseCase
+import com.bragadev.list.core.domain.usecase.SaveExtraIncomeUseCase
+import com.bragadev.list.core.domain.usecase.SaveIncomeSettingsUseCase
 import com.bragadev.list.core.domain.usecase.SetAllItemsCheckedUseCase
 import com.bragadev.list.core.domain.usecase.SetItemCheckedUseCase
 import com.bragadev.list.core.domain.usecase.SetListPreferencesUseCase
@@ -51,4 +58,13 @@ val appModule = module {
     factory { SetListPreferencesUseCase(repository = get()) }
     factory { SetAllItemsCheckedUseCase(repository = get()) }
     factory { DeleteListItemsUseCase(repository = get()) }
+
+    single<IncomeRepository> {
+        IncomeRepositoryImpl(dao = get(), extraIncomeDao = get(), ioDispatcher = get(named("io")))
+    }
+    factory { GetIncomeSettingsUseCase(repository = get()) }
+    factory { SaveIncomeSettingsUseCase(repository = get()) }
+    factory { GetExtraIncomesUseCase(repository = get()) }
+    factory { SaveExtraIncomeUseCase(repository = get()) }
+    factory { DeleteExtraIncomeUseCase(repository = get()) }
 }

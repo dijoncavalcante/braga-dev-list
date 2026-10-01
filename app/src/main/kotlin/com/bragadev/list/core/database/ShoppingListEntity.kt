@@ -13,6 +13,9 @@ data class ShoppingListEntity(
     @ColumnInfo(defaultValue = "0") val sortOrder: Int = 0,
     /** "Mostrar valor" toggle of the list screen menu. */
     @ColumnInfo(defaultValue = "1") val showPrices: Boolean = true,
-    /** "Mostrar por quinzena" toggle of the list screen menu. */
+    /**
+     * "Visualizar: Ciclos financeiros" choice of the list screen menu. The column keeps its
+     * original name from when the view was a fixed 1–15 / 16–31 split, to avoid a table rebuild.
+     */
     @ColumnInfo(defaultValue = "0") val groupByFortnight: Boolean = false,
 )

@@ -6,14 +6,18 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [ShoppingListEntity::class, ShoppingListItemEntity::class],
-    version = 7,
+    entities = [ShoppingListEntity::class, ShoppingListItemEntity::class, IncomeSettingsEntity::class, ExtraIncomeEntity::class],
+    version = 9,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun shoppingListDao(): ShoppingListDao
 
     abstract fun shoppingListItemDao(): ShoppingListItemDao
+
+    abstract fun incomeSettingsDao(): IncomeSettingsDao
+
+    abstract fun extraIncomeDao(): ExtraIncomeDao
 }
 
 /**
@@ -139,5 +143,42 @@ val MIGRATION_6_7 = object : Migration(6, 7) {
             db.execSQL("INSERT OR IGNORE INTO `shopping_list_items` SELECT * FROM `items_backup`")
             db.execSQL("DROP TABLE `items_backup`")
         }
+    }
+}
+
+/** v7 -> v8: how the user receives their income (one row, created when they set it up). */
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `income_settings` (
+                `id` INTEGER NOT NULL,
+                `frequency` INTEGER NOT NULL,
+                `firstPayDay` INTEGER NOT NULL,
+                `firstAmountInCents` INTEGER NOT NULL,
+                `secondPayDay` INTEGER,
+                `secondAmountInCents` INTEGER,
+                `nextPaymentEpochDay` INTEGER NOT NULL,
+                PRIMARY KEY(`id`)
+            )
+            """.trimIndent(),
+        )
+    }
+}
+
+/** v8 -> v9: extra incomes ("Outras entradas"), recurring every month or received only once. */
+val MIGRATION_8_9 = object : Migration(8, 9) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS `extra_incomes` (
+                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                `name` TEXT NOT NULL,
+                `amountInCents` INTEGER NOT NULL,
+                `dayOfMonth` INTEGER,
+                `dateEpochDay` INTEGER
+            )
+            """.trimIndent(),
+        )
     }
 }

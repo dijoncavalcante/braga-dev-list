@@ -49,7 +49,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bragadev.list.R
-import com.bragadev.list.core.domain.model.FortnightGroups
+import com.bragadev.list.core.domain.model.CalendarDate
+import com.bragadev.list.core.domain.model.CycleExpense
+import com.bragadev.list.core.domain.model.FinancialOverview
 import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
@@ -59,6 +61,10 @@ import com.bragadev.list.features.home.presentation.component.RenameListDialog
 import com.bragadev.list.features.listdetail.presentation.component.AddItemBottomSheet
 import com.bragadev.list.features.listdetail.presentation.component.AllCheckedCelebration
 import com.bragadev.list.features.listdetail.presentation.component.DeleteItemsDialog
+import com.bragadev.list.features.listdetail.presentation.component.ExtraIncomeBottomSheet
+import com.bragadev.list.features.listdetail.presentation.component.FinancialCycleCard
+import com.bragadev.list.features.listdetail.presentation.component.IncomeSettingsBottomSheet
+import com.bragadev.list.features.listdetail.presentation.component.IncomeSetupCard
 import com.bragadev.list.features.listdetail.presentation.component.ListDetailMenu
 import com.bragadev.list.features.listdetail.presentation.component.ListSummaryBar
 import com.bragadev.list.features.listdetail.presentation.state.ListDetailUiState
@@ -69,6 +75,7 @@ import com.bragadev.list.ui.theme.BragadevlistTheme
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListDetailScreen(
     listId: Long,
@@ -101,7 +108,8 @@ fun ListDetailScreen(
         menuActions = ListDetailMenuActions(
             onSortOrderSelected = viewModel::onSortOrderSelected,
             onShowPricesToggle = viewModel::onShowPricesToggle,
-            onGroupByFortnightToggle = viewModel::onGroupByFortnightToggle,
+            onGroupByCycleSelected = viewModel::onGroupByCycleSelected,
+            onIncomeSettingsClick = viewModel::onIncomeSettingsClick,
             onUncheckAllClick = viewModel::onUncheckAllClick,
             onCheckAllClick = viewModel::onCheckAllClick,
             onDeleteItemsClick = viewModel::onDeleteItemsClick,
@@ -131,13 +139,43 @@ fun ListDetailScreen(
             onDismiss = viewModel::onDismissDeleteItems,
         )
     }
+
+    if (uiState.isIncomeSettingsVisible) {
+        IncomeSettingsBottomSheet(
+            initialSettings = uiState.incomeSettings,
+            today = uiState.today,
+            extraIncomes = uiState.extraIncomes,
+            onConfirm = viewModel::onIncomeSettingsConfirm,
+            onDismiss = viewModel::onDismissIncomeSettings,
+            onAddExtraIncomeClick = viewModel::onAddExtraIncomeClick,
+            onExtraIncomeClick = viewModel::onExtraIncomeClick,
+        )
+    }
+
+    // After the income sheet, so it opens on top of it.
+    if (uiState.isExtraIncomeSheetVisible) {
+        ExtraIncomeBottomSheet(
+            initialIncome = uiState.editingExtraIncome,
+            today = uiState.today,
+            onConfirm = viewModel::onExtraIncomeConfirm,
+            onDismiss = viewModel::onDismissExtraIncome,
+            onDelete = viewModel::onDeleteExtraIncomeConfirm,
+        )
+    }
 }
+
+/**
+ * "Visualizar: Ciclos financeiros". [overview] is null until the user sets up their income;
+ * the items are then shown as in "Todos", below an invitation to set it up.
+ */
+private data class CycleView(val overview: FinancialOverview?)
 
 /** Callbacks of the toolbar three-dots menu, grouped to keep [ListDetailContent] readable. */
 private data class ListDetailMenuActions(
     val onSortOrderSelected: (ItemSortOrder) -> Unit = {},
     val onShowPricesToggle: () -> Unit = {},
-    val onGroupByFortnightToggle: () -> Unit = {},
+    val onGroupByCycleSelected: (Boolean) -> Unit = {},
+    val onIncomeSettingsClick: () -> Unit = {},
     val onUncheckAllClick: () -> Unit = {},
     val onCheckAllClick: () -> Unit = {},
     val onDeleteItemsClick: () -> Unit = {},
@@ -178,13 +216,14 @@ private fun ListDetailContent(
                     ListDetailMenu(
                         sortOrder = uiState.sortOrder,
                         showPrices = uiState.showPrices,
-                        groupByFortnight = uiState.groupByFortnight,
+                        groupByCycle = uiState.groupByCycle,
                         hasItems = summary.total.count > 0,
                         hasCheckedItems = summary.checked.count > 0,
                         hasUncheckedItems = summary.unchecked.count > 0,
                         onSortOrderSelected = menuActions.onSortOrderSelected,
                         onShowPricesToggle = menuActions.onShowPricesToggle,
-                        onGroupByFortnightToggle = menuActions.onGroupByFortnightToggle,
+                        onGroupByCycleSelected = menuActions.onGroupByCycleSelected,
+                        onIncomeSettingsClick = menuActions.onIncomeSettingsClick,
                         onUncheckAllClick = menuActions.onUncheckAllClick,
                         onCheckAllClick = menuActions.onCheckAllClick,
                         onDeleteItemsClick = menuActions.onDeleteItemsClick,
@@ -216,10 +255,11 @@ private fun ListDetailContent(
             else -> ItemsState(
                 padding = padding,
                 items = uiState.items,
-                fortnightGroups = if (uiState.groupByFortnight) uiState.fortnightGroups else null,
+                cycleView = if (uiState.groupByCycle) CycleView(uiState.financialOverview) else null,
                 showPrices = uiState.showPrices,
                 onItemClick = onItemClick,
                 onItemCheckedChange = onItemCheckedChange,
+                onIncomeSettingsClick = menuActions.onIncomeSettingsClick,
             )
         }
 
@@ -282,10 +322,11 @@ private fun ErrorState(padding: PaddingValues, onRetryClick: () -> Unit) {
 private fun ItemsState(
     padding: PaddingValues,
     items: List<ShoppingListItem>,
-    fortnightGroups: FortnightGroups?,
+    cycleView: CycleView?,
     showPrices: Boolean,
     onItemClick: (ShoppingListItem) -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
+    onIncomeSettingsClick: () -> Unit,
 ) {
     // Only the sections the user opened/closed are stored; the rest keep their default.
     var toggledSections by rememberSaveable { mutableStateOf(emptySet<String>()) }
@@ -310,14 +351,33 @@ private fun ItemsState(
         // Extra bottom space so the "Adicionar item" button never covers the last item.
         contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 88.dp),
     ) {
-        val itemRow: ItemRow = { item, modifier ->
+        val itemRow: ItemRow = { item, dueDate, modifier ->
             ShoppingListItemRow(
                 item = item,
+                dueDate = dueDate,
                 showPrice = showPrices,
                 onClick = { onItemClick(item) },
                 onCheckedChange = { checked -> onItemCheckedChange(item.id, checked) },
                 modifier = modifier,
             )
+        }
+        val overview = cycleView?.overview
+
+        if (cycleView != null) {
+            item(key = "cycle_current_card") {
+                if (overview == null) {
+                    IncomeSetupCard(onSetupClick = onIncomeSettingsClick, modifier = Modifier.animateItem())
+                } else {
+                    FinancialCycleCard(
+                        title = stringResource(R.string.cycle_current_title),
+                        cycle = overview.current,
+                        today = overview.today,
+                        insights = overview.insights(),
+                        onEditIncomeClick = onIncomeSettingsClick,
+                        modifier = Modifier.animateItem(),
+                    )
+                }
+            }
         }
 
         if (isAllChecked) {
@@ -329,8 +389,8 @@ private fun ItemsState(
                     modifier = Modifier.animateItem(),
                 )
             }
-        } else if (fortnightGroups == null) {
-            // Complete view: unchecked items first (open); checked ones move to a list below (closed).
+        } else if (overview == null) {
+            // "Todos" (or cycles not set up yet): unchecked items first (open); checked ones move to a list below (closed).
             val unchecked = items.filterNot { it.isChecked }
             val uncheckedKey = "unchecked"
             val isUncheckedExpanded = sectionExpansion.isExpanded(uncheckedKey, expandedByDefault = true)
@@ -344,39 +404,41 @@ private fun ItemsState(
                 )
             }
             if (isUncheckedExpanded) {
-                items(items = unchecked, key = { it.id }) { item -> itemRow(item, Modifier.animateItem()) }
+                items(items = unchecked, key = { it.id }) { item -> itemRow(item, null, Modifier.animateItem()) }
             }
         } else {
-            // "Mostrar por quinzena": one list per fortnight, split by due day.
-            fortnightSection(
-                key = "first_fortnight",
-                titleRes = R.string.list_detail_first_fortnight,
-                subtitleRes = R.string.list_detail_first_fortnight_days,
-                items = fortnightGroups.firstFortnight,
+            // "Ciclos financeiros": what the current payment has to cover until the next one.
+            cycleSection(
+                key = "current_bills",
+                title = { stringResource(R.string.cycle_bills_section) },
+                subtitle = {
+                    stringResource(
+                        R.string.cycle_period,
+                        overview.current.startDate.toDayMonth(),
+                        overview.current.endDate.toDayMonth(),
+                    )
+                },
+                expenses = overview.current.bills,
                 sectionExpansion = sectionExpansion,
                 itemRow = itemRow,
             )
-            fortnightSection(
-                key = "second_fortnight",
-                titleRes = R.string.list_detail_second_fortnight,
-                subtitleRes = R.string.list_detail_second_fortnight_days,
-                items = fortnightGroups.secondFortnight,
-                sectionExpansion = sectionExpansion,
-                itemRow = itemRow,
-            )
-            if (fortnightGroups.withoutDueDay.isNotEmpty()) {
-                fortnightSection(
-                    key = "without_due_day",
-                    titleRes = R.string.list_detail_without_due_day,
-                    subtitleRes = null,
-                    items = fortnightGroups.withoutDueDay,
+            if (overview.current.otherExpenses.isNotEmpty()) {
+                cycleSection(
+                    key = "current_other",
+                    title = { stringResource(R.string.cycle_other_expenses_section) },
+                    subtitle = { stringResource(R.string.cycle_other_expenses_subtitle) },
+                    expenses = overview.current.otherExpenses,
                     sectionExpansion = sectionExpansion,
                     itemRow = itemRow,
                 )
             }
         }
 
-        // Checked items leave their list (or fortnight) and gather in one list at the end, closed by default.
+        if (overview != null) {
+            nextCycleSection(overview = overview, sectionExpansion = sectionExpansion, itemRow = itemRow)
+        }
+
+        // Checked items leave their list (or cycle) and gather in one list at the end, closed by default.
         checkedSection(
             key = "checked",
             items = items.filter { it.isChecked },
@@ -386,9 +448,42 @@ private fun ItemsState(
     }
 }
 
+/**
+ * Card of the next cycle followed by its bills, closed by default. The bills work like the
+ * current cycle's: tap to edit, checkbox to check (checked ones move to "Marcados"). An item is
+ * checked as a whole, so a bill that falls in both cycles shows the same state in both.
+ */
+private fun LazyListScope.nextCycleSection(
+    overview: FinancialOverview,
+    sectionExpansion: SectionExpansion,
+    itemRow: ItemRow,
+) {
+    val next = overview.next
+    item(key = "cycle_next_card") {
+        FinancialCycleCard(
+            title = stringResource(R.string.cycle_next_title),
+            cycle = next,
+            today = overview.today,
+            modifier = Modifier
+                .animateItem()
+                .padding(top = 16.dp),
+        )
+    }
+    cycleSection(
+        key = "next_bills",
+        title = { stringResource(R.string.cycle_next_bills_section) },
+        subtitle = { stringResource(R.string.cycle_period, next.startDate.toDayMonth(), next.endDate.toDayMonth()) },
+        expenses = next.bills,
+        sectionExpansion = sectionExpansion,
+        itemRow = itemRow,
+        expandedByDefault = false,
+    )
+}
+
 @Composable
 private fun ShoppingListItemRow(
     item: ShoppingListItem,
+    dueDate: CalendarDate?,
     showPrice: Boolean,
     onClick: () -> Unit,
     onCheckedChange: (Boolean) -> Unit,
@@ -414,9 +509,14 @@ private fun ShoppingListItemRow(
                     text = if (item.quantity > 1) "${item.name} (${item.quantity})" else item.name,
                     textDecoration = if (item.isChecked) TextDecoration.LineThrough else TextDecoration.None,
                 )
-                item.dueDay?.let { dueDay ->
+                val dueText = when {
+                    dueDate != null -> stringResource(R.string.cycle_item_due_date, dueDate.toDayMonth())
+                    item.dueDay != null -> stringResource(R.string.list_detail_item_due_day_format, item.dueDay)
+                    else -> null
+                }
+                dueText?.let { text ->
                     Text(
-                        text = stringResource(R.string.list_detail_item_due_day_format, dueDay),
+                        text = text,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -457,9 +557,11 @@ private fun ListDetailEmptyPreview() {
     }
 }
 
-
-/** Draws one item row; the modifier carries the list's move/appear animation. */
-private typealias ItemRow = @Composable (item: ShoppingListItem, modifier: Modifier) -> Unit
+/**
+ * Draws one item row; [dueDate] is the date the item falls due in a financial cycle (null = show
+ * just its due day) and the modifier carries the list's move/appear animation.
+ */
+private typealias ItemRow = @Composable (item: ShoppingListItem, dueDate: CalendarDate?, modifier: Modifier) -> Unit
 
 /**
  * Open/closed state of the collapsible sections. Lists of items to do start open and lists
@@ -475,26 +577,26 @@ private class SectionExpansion(
 }
 
 /**
- * One section of the "Mostrar por quinzena" view: a collapsible header (title, due days
- * covered and how many of its items are checked) followed by its unchecked items only; the
- * checked ones are shown in the single "Marcados" list at the end of the screen.
+ * One section of a cycle in the "Ciclos financeiros" view: a collapsible header (title, period
+ * and how many of its items are checked) followed by its unchecked items only, each with its due
+ * date in the cycle; the checked ones are shown in the single "Marcados" list at the end.
  */
-private fun LazyListScope.fortnightSection(
+private fun LazyListScope.cycleSection(
     key: String,
-    @StringRes titleRes: Int,
-    @StringRes subtitleRes: Int?,
-    items: List<ShoppingListItem>,
+    title: @Composable () -> String,
+    subtitle: @Composable () -> String,
+    expenses: List<CycleExpense>,
     sectionExpansion: SectionExpansion,
     itemRow: ItemRow,
+    expandedByDefault: Boolean = true,
 ) {
-    val (unchecked, checked) = items.partition { !it.isChecked }
-    val isExpanded = sectionExpansion.isExpanded(key, expandedByDefault = true)
+    val (unchecked, checked) = expenses.partition { !it.item.isChecked }
+    val isExpanded = sectionExpansion.isExpanded(key, expandedByDefault)
     item(key = "header_$key") {
-        val days = subtitleRes?.let { stringResource(it) }
-        val progress = stringResource(R.string.list_detail_fortnight_checked, checked.size, items.size)
+        val progress = stringResource(R.string.list_detail_section_checked_progress, checked.size, expenses.size)
         SectionHeader(
-            title = stringResource(titleRes),
-            subtitle = if (days != null) "$days · $progress" else progress,
+            title = title(),
+            subtitle = "${subtitle()} · $progress",
             isExpanded = isExpanded,
             onToggle = { sectionExpansion.toggle(key) },
             modifier = Modifier.animateItem(),
@@ -503,13 +605,16 @@ private fun LazyListScope.fortnightSection(
     if (!isExpanded) return
 
     when {
-        items.isEmpty() -> item(key = "empty_$key") {
-            SectionMessage(R.string.list_detail_fortnight_empty, Modifier.animateItem())
+        expenses.isEmpty() -> item(key = "empty_$key") {
+            SectionMessage(R.string.cycle_section_empty, Modifier.animateItem())
         }
         unchecked.isEmpty() -> item(key = "all_checked_$key") {
             SectionMessage(R.string.list_detail_section_all_checked, Modifier.animateItem())
         }
-        else -> items(items = unchecked, key = { it.id }) { item -> itemRow(item, Modifier.animateItem()) }
+        // An item can fall due twice in a long cycle, so the key also has the date.
+        else -> items(items = unchecked, key = { "${key}_${it.item.id}_${it.dueDate?.toEpochDay()}" }) { expense ->
+            itemRow(expense.item, expense.dueDate, Modifier.animateItem())
+        }
     }
 }
 
@@ -532,7 +637,7 @@ private fun LazyListScope.checkedSection(
         )
     }
     if (isExpanded) {
-        items(items = items, key = { it.id }) { item -> itemRow(item, Modifier.animateItem()) }
+        items(items = items, key = { it.id }) { item -> itemRow(item, null, Modifier.animateItem()) }
     }
 }
 

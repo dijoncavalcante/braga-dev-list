@@ -60,9 +60,9 @@ class ShoppingListRepositoryImpl(
         withContext(ioDispatcher) { listDao.setShowPrices(listId, showPrices) }
     }
 
-    override suspend fun setGroupByFortnight(listId: Long, groupByFortnight: Boolean): AppResult<Unit> =
+    override suspend fun setGroupByCycle(listId: Long, groupByCycle: Boolean): AppResult<Unit> =
         runCatchingToResult {
-            withContext(ioDispatcher) { listDao.setGroupByFortnight(listId, groupByFortnight) }
+            withContext(ioDispatcher) { listDao.setGroupByCycle(listId, groupByCycle) }
         }
 
     override suspend fun setAllItemsChecked(listId: Long, isChecked: Boolean): AppResult<Unit> = runCatchingToResult {

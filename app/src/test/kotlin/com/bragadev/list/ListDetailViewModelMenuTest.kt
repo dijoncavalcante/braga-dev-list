@@ -5,6 +5,7 @@ import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.usecase.DeleteListItemsUseCase
+import com.bragadev.list.core.domain.usecase.GetIncomeSettingsUseCase
 import com.bragadev.list.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.list.core.domain.usecase.GetListShareTextUseCase
 import com.bragadev.list.core.domain.usecase.GetShoppingListUseCase
@@ -45,6 +46,10 @@ class ListDetailViewModelMenuTest {
     private val setAllItemsCheckedUseCase: SetAllItemsCheckedUseCase = mockk()
     private val deleteListItemsUseCase: DeleteListItemsUseCase = mockk()
 
+    private val getIncomeSettingsUseCase: GetIncomeSettingsUseCase = mockk {
+        every { this@mockk.invoke() } returns flowOf(null)
+    }
+
     private lateinit var viewModel: ListDetailViewModel
 
     @Before
@@ -65,6 +70,11 @@ class ListDetailViewModelMenuTest {
             setListPreferencesUseCase = setListPreferencesUseCase,
             setAllItemsCheckedUseCase = setAllItemsCheckedUseCase,
             deleteListItemsUseCase = deleteListItemsUseCase,
+            getIncomeSettingsUseCase = getIncomeSettingsUseCase,
+            saveIncomeSettingsUseCase = mockk(),
+            getExtraIncomesUseCase = mockk { every { this@mockk.invoke() } returns flowOf(emptyList()) },
+            saveExtraIncomeUseCase = mockk(),
+            deleteExtraIncomeUseCase = mockk(),
         )
     }
 
@@ -86,15 +96,15 @@ class ListDetailViewModelMenuTest {
     fun `sort choice and toggles are saved`() {
         coEvery { setListPreferencesUseCase.setSortOrder(any(), any()) } returns AppResult.Success(Unit)
         coEvery { setListPreferencesUseCase.setShowPrices(any(), any()) } returns AppResult.Success(Unit)
-        coEvery { setListPreferencesUseCase.setGroupByFortnight(any(), any()) } returns AppResult.Success(Unit)
+        coEvery { setListPreferencesUseCase.setGroupByCycle(any(), any()) } returns AppResult.Success(Unit)
 
         viewModel.onSortOrderSelected(ItemSortOrder.DUE_DAY)
         viewModel.onShowPricesToggle()
-        viewModel.onGroupByFortnightToggle()
+        viewModel.onGroupByCycleSelected(true)
 
         coVerify(exactly = 1) { setListPreferencesUseCase.setSortOrder(1, ItemSortOrder.DUE_DAY) }
         coVerify(exactly = 1) { setListPreferencesUseCase.setShowPrices(1, false) }
-        coVerify(exactly = 1) { setListPreferencesUseCase.setGroupByFortnight(1, true) }
+        coVerify(exactly = 1) { setListPreferencesUseCase.setGroupByCycle(1, true) }
     }
 
     @Test

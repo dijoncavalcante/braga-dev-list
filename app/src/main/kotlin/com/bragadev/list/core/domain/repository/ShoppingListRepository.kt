@@ -25,7 +25,7 @@ interface ShoppingListRepository {
 
     suspend fun setShowPrices(listId: Long, showPrices: Boolean): AppResult<Unit>
 
-    suspend fun setGroupByFortnight(listId: Long, groupByFortnight: Boolean): AppResult<Unit>
+    suspend fun setGroupByCycle(listId: Long, groupByCycle: Boolean): AppResult<Unit>
 
     /** Checks or unchecks every item of the list at once. */
     suspend fun setAllItemsChecked(listId: Long, isChecked: Boolean): AppResult<Unit>

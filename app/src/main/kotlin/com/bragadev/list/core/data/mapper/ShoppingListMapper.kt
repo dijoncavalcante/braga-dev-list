@@ -14,7 +14,7 @@ fun ShoppingListWithItemCount.toDomain(): ShoppingList = ShoppingList(
     itemCount = itemCount,
     sortOrder = ItemSortOrder.fromCode(sortOrder),
     showPrices = showPrices,
-    groupByFortnight = groupByFortnight,
+    groupByCycle = groupByFortnight,
 )
 
 fun ShoppingListEntity.toDomain(itemCount: Int = 0): ShoppingList = ShoppingList(
@@ -24,7 +24,7 @@ fun ShoppingListEntity.toDomain(itemCount: Int = 0): ShoppingList = ShoppingList
     itemCount = itemCount,
     sortOrder = ItemSortOrder.fromCode(sortOrder),
     showPrices = showPrices,
-    groupByFortnight = groupByFortnight,
+    groupByCycle = groupByFortnight,
 )
 
 fun ShoppingListItemEntity.toDomain(): ShoppingListItem = ShoppingListItem(

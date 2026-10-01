@@ -36,22 +36,23 @@ import com.bragadev.list.core.domain.model.ItemSortOrder
 /**
  * Three dots of the list screen toolbar.
  *
- * "Ordenar por" is a single choice (radio buttons), so two orders can never be active at
- * once. It and the toggles ("Mostrar valor", "Mostrar por quinzena") keep the menu open so
- * the user sees the change; actions close it. Actions that would do nothing are disabled (e.g.
+ * "Ordenar por" and "Visualizar" are single choices (radio buttons), so two options can never
+ * be active at once. They and the "Mostrar valor" toggle keep the menu open so the user sees
+ * the change; actions close it. Actions that would do nothing are disabled (e.g.
  * "Marcar todos" when everything is already checked).
  */
 @Composable
 fun ListDetailMenu(
     sortOrder: ItemSortOrder,
     showPrices: Boolean,
-    groupByFortnight: Boolean,
+    groupByCycle: Boolean,
     hasItems: Boolean,
     hasCheckedItems: Boolean,
     hasUncheckedItems: Boolean,
     onSortOrderSelected: (ItemSortOrder) -> Unit,
     onShowPricesToggle: () -> Unit,
-    onGroupByFortnightToggle: () -> Unit,
+    onGroupByCycleSelected: (Boolean) -> Unit,
+    onIncomeSettingsClick: () -> Unit,
     onUncheckAllClick: () -> Unit,
     onCheckAllClick: () -> Unit,
     onDeleteItemsClick: () -> Unit,
@@ -68,23 +69,18 @@ fun ListDetailMenu(
             )
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            Text(
-                text = stringResource(R.string.list_detail_menu_sort_by),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-            SortOrderItem(
+            MenuSectionTitle(stringResource(R.string.list_detail_menu_sort_by))
+            ChoiceItem(
                 label = stringResource(R.string.list_detail_menu_sort_added),
                 selected = sortOrder == ItemSortOrder.ADDED,
                 onClick = { onSortOrderSelected(ItemSortOrder.ADDED) },
             )
-            SortOrderItem(
+            ChoiceItem(
                 label = stringResource(R.string.list_detail_menu_sort_alphabetically),
                 selected = sortOrder == ItemSortOrder.ALPHABETICAL,
                 onClick = { onSortOrderSelected(ItemSortOrder.ALPHABETICAL) },
             )
-            SortOrderItem(
+            ChoiceItem(
                 label = stringResource(R.string.list_detail_menu_sort_due_day),
                 selected = sortOrder == ItemSortOrder.DUE_DAY,
                 onClick = { onSortOrderSelected(ItemSortOrder.DUE_DAY) },
@@ -96,11 +92,22 @@ fun ListDetailMenu(
                 checked = showPrices,
                 onToggle = onShowPricesToggle,
             )
-            ToggleItem(
+            HorizontalDivider()
+            MenuSectionTitle(stringResource(R.string.list_detail_menu_view))
+            ChoiceItem(
+                label = stringResource(R.string.list_detail_menu_view_all),
+                selected = !groupByCycle,
+                onClick = { onGroupByCycleSelected(false) },
+            )
+            ChoiceItem(
+                label = stringResource(R.string.list_detail_menu_view_cycles),
+                selected = groupByCycle,
+                onClick = { onGroupByCycleSelected(true) },
+            )
+            ActionItem(
                 icon = Icons.Outlined.CalendarMonth,
-                label = stringResource(R.string.list_detail_menu_group_by_fortnight),
-                checked = groupByFortnight,
-                onToggle = onGroupByFortnightToggle,
+                label = stringResource(R.string.list_detail_menu_income_settings),
+                onClick = { expanded = false; onIncomeSettingsClick() },
             )
             HorizontalDivider()
             ActionItem(
@@ -138,7 +145,17 @@ fun ListDetailMenu(
 }
 
 @Composable
-private fun SortOrderItem(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun MenuSectionTitle(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+    )
+}
+
+@Composable
+private fun ChoiceItem(label: String, selected: Boolean, onClick: () -> Unit) {
     DropdownMenuItem(
         text = { Text(label) },
         // The whole row selects; the radio button only mirrors the state.

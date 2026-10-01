@@ -4,7 +4,7 @@ import com.bragadev.list.core.common.result.AppResult
 import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.repository.ShoppingListRepository
 
-/** Saves the "Ordenar por" choice and the "Mostrar valor" / "Mostrar por quinzena" toggles of a list. */
+/** Saves the "Ordenar por" choice and the "Mostrar valor" toggle and the "Visualizar" (todos / ciclos financeiros) choice of a list. */
 class SetListPreferencesUseCase(
     private val repository: ShoppingListRepository,
 ) {
@@ -14,6 +14,6 @@ class SetListPreferencesUseCase(
     suspend fun setShowPrices(listId: Long, enabled: Boolean): AppResult<Unit> =
         repository.setShowPrices(listId, enabled)
 
-    suspend fun setGroupByFortnight(listId: Long, enabled: Boolean): AppResult<Unit> =
-        repository.setGroupByFortnight(listId, enabled)
+    suspend fun setGroupByCycle(listId: Long, enabled: Boolean): AppResult<Unit> =
+        repository.setGroupByCycle(listId, enabled)
 }
