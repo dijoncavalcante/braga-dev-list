@@ -130,7 +130,7 @@ private fun SummaryColumn(
  * (e.g. "R$ 12.345,67") never get cut in the narrow columns of the bar.
  */
 @Composable
-private fun ShrinkToFitText(text: String, style: TextStyle, color: Color) {
+internal fun ShrinkToFitText(text: String, style: TextStyle, color: Color) {
     var fittedStyle by remember(text, style) { mutableStateOf(style) }
     var isFitted by remember(text, style) { mutableStateOf(false) }
     Text(

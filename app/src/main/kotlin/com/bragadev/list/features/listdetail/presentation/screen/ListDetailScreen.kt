@@ -66,7 +66,7 @@ import com.bragadev.list.features.listdetail.presentation.component.AllCheckedCe
 import com.bragadev.list.features.listdetail.presentation.component.AmountsVisibilityButton
 import com.bragadev.list.features.listdetail.presentation.component.DeleteItemsDialog
 import com.bragadev.list.features.listdetail.presentation.component.ExtraIncomeBottomSheet
-import com.bragadev.list.features.listdetail.presentation.component.FinancialCycleCard
+import com.bragadev.list.features.listdetail.presentation.component.CycleOverviewCard
 import com.bragadev.list.features.listdetail.presentation.component.IncomeSettingsBottomSheet
 import com.bragadev.list.features.listdetail.presentation.component.IncomeSetupCard
 import com.bragadev.list.features.listdetail.presentation.component.ListDetailMenu
@@ -396,11 +396,8 @@ private fun ItemsState(
                 if (overview == null) {
                     IncomeSetupCard(onSetupClick = onIncomeSettingsClick, modifier = Modifier.animateItem())
                 } else {
-                    FinancialCycleCard(
-                        title = stringResource(R.string.cycle_current_title),
-                        cycle = overview.current,
-                        today = overview.today,
-                        insights = overview.insights(),
+                    CycleOverviewCard(
+                        overview = overview,
                         onEditIncomeClick = onIncomeSettingsClick,
                         modifier = Modifier.animateItem(),
                     )
@@ -505,9 +502,10 @@ private fun ItemsState(
 }
 
 /**
- * Card of the next cycle followed by its bills, closed by default. The bills work like the
- * current cycle's: tap to edit, checkbox to check (checked ones move to "Marcados"). An item is
- * checked as a whole, so a bill that falls in both cycles shows the same state in both.
+ * Bills of the next cycle, closed by default; its numbers are in the overview card at the top.
+ * The bills work like the current cycle's: tap to edit, checkbox to check (checked ones move to
+ * "Marcados"). An item is checked as a whole, so a bill that falls in both cycles shows the same
+ * state in both.
  */
 private fun LazyListScope.nextCycleSection(
     overview: FinancialOverview,
@@ -515,16 +513,6 @@ private fun LazyListScope.nextCycleSection(
     itemRow: ItemRow,
 ) {
     val next = overview.next
-    item(key = "cycle_next_card") {
-        FinancialCycleCard(
-            title = stringResource(R.string.cycle_next_title),
-            cycle = next,
-            today = overview.today,
-            modifier = Modifier
-                .animateItem()
-                .padding(top = 16.dp),
-        )
-    }
     cycleSection(
         key = "next_bills",
         title = { stringResource(R.string.cycle_next_bills_section) },

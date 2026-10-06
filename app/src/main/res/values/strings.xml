@@ -125,15 +125,19 @@
     <string name="cycle_setup_button">Configurar recebimento</string>
     <string name="cycle_current_title">Ciclo atual</string>
     <string name="cycle_next_title">Próximo ciclo</string>
+    <string name="cycle_overview_title">Saldo projetado dos dois ciclos</string>
+    <plurals name="cycle_next_payment_in">
+        <item quantity="one">próximo recebimento em %1$d dia</item>
+        <item quantity="other">próximo recebimento em %1$d dias</item>
+    </plurals>
     <string name="cycle_period">%1$s → %2$s</string>
     <string name="cycle_edit_income">Editar recebimento</string>
-    <string name="cycle_income_on">💰 Recebimento · %1$s</string>
-    <string name="cycle_extra_income">➕ %1$s · %2$s</string>
-    <string name="cycle_extra_income_upcoming">➕ %1$s · %2$s (a receber)</string>
-    <string name="cycle_total_income">Total de entradas</string>
-    <string name="cycle_bills">📋 Contas</string>
-    <string name="cycle_other_expenses">💳 Outras despesas</string>
-    <string name="cycle_balance">💵 Saldo projetado</string>
+    <string name="cycle_income_on">Recebimento · %1$s</string>
+    <string name="cycle_extra_income">%1$s · %2$s</string>
+    <string name="cycle_extra_income_upcoming">%1$s · %2$s (a receber)</string>
+    <string name="cycle_bills">Contas</string>
+    <string name="cycle_other_expenses">Outras despesas</string>
+    <string name="cycle_balance">Saldo do ciclo</string>
     <string name="cycle_committed">%1$d%% das entradas comprometidas</string>
     <string name="cycle_status_healthy">Saudável</string>
     <string name="cycle_status_tight">Apertado</string>
@@ -144,23 +148,10 @@
     <string name="cycle_next_bills_section">Contas do próximo ciclo</string>
     <string name="cycle_section_empty">Nenhuma conta vence neste ciclo</string>
     <string name="cycle_item_due_date">Vence %1$s</string>
-    <string name="cycle_insight_received">💰 Você recebeu %1$s em %2$s.</string>
-    <plurals name="cycle_insight_next_payment">
-        <item quantity="one">📅 Falta %1$d dia para o próximo recebimento de %2$s (%3$s).</item>
-        <item quantity="other">📅 Faltam %1$d dias para o próximo recebimento de %2$s (%3$s).</item>
-    </plurals>
-    <string name="cycle_insight_balance_healthy">📋 Até o próximo recebimento você tem %1$s em despesas previstas. Saldo projetado do ciclo: %2$s.</string>
-    <string name="cycle_insight_balance_tight">📅 Você tem %1$s em despesas previstas para este ciclo e %2$s em entradas. Devem sobrar apenas %3$s.</string>
-    <string name="cycle_insight_balance_over">⚠️ Suas despesas previstas para este ciclo são de %1$s, enquanto suas entradas somam %2$s. Faltam %3$s.</string>
-    <string name="cycle_insight_extra_income_expected">➕ Você ainda vai receber %1$s de %2$s em %3$s, neste ciclo.</string>
-    <string name="cycle_insight_extra_incomes_expected">➕ Você ainda vai receber %1$d entradas extras neste ciclo, somando %2$s.</string>
-    <string name="cycle_insight_bill_before_extra">⚠️ %1$s (%2$s) vence em %3$s, antes de %4$s entrar (%5$s).</string>
-    <string name="cycle_insight_bills_before_extra">⚠️ %1$d contas, somando %2$s, vencem antes de %3$s entrar (%4$s).</string>
-    <string name="cycle_insight_bill_due">⚠️ %1$s (%2$s) vence em %3$s, antes do seu próximo recebimento.</string>
-    <string name="cycle_insight_bills_due">⚠️ %1$d contas, somando %2$s, ainda vencem antes do seu próximo recebimento.</string>
-    <string name="cycle_insight_bill_overdue">❗ %1$s (%2$s) venceu em %3$s e ainda não foi marcada.</string>
-    <string name="cycle_insight_bills_overdue">❗ %1$d contas, somando %2$s, já venceram e ainda não foram marcadas.</string>
-    <string name="cycle_insight_next_cycle_over">⚠️ No próximo ciclo (%1$s → %2$s) as despesas previstas (%3$s) superam as entradas de %4$s.</string>
+    <string name="cycle_insight_bill_before_extra">%1$s (%2$s) vence em %3$s, antes de %4$s entrar (%5$s).</string>
+    <string name="cycle_insight_bills_before_extra">%1$d contas, somando %2$s, vencem antes de %3$s entrar (%4$s).</string>
+    <string name="cycle_insight_bill_overdue">%1$s (%2$s) venceu em %3$s e ainda não foi marcada.</string>
+    <string name="cycle_insight_bills_overdue">%1$d contas, somando %2$s, já venceram e ainda não foram marcadas.</string>
 
     <string name="amounts_hide">Ocultar valores</string>
     <string name="amounts_show">Mostrar valores</string>

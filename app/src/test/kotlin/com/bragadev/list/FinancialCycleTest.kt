@@ -13,6 +13,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class FinancialCycleTest {
@@ -139,6 +140,34 @@ class FinancialCycleTest {
         val dueSoon = assertIs<CycleInsight.BillsDueBeforeNextPayment>(insights[4])
         assertEquals(listOf("Energia"), dueSoon.bills.map { it.item.name })
         assertEquals(5, insights.size)
+    }
+
+    @Test
+    fun `projected balance of the overview adds up both cycles`() {
+        val overview = overview(twiceAMonth, items, today = date(2026, 10, 1))
+
+        assertEquals(
+            overview.current.projectedBalanceInCents + overview.next.projectedBalanceInCents,
+            overview.projectedBalanceInCents,
+        )
+        assertEquals(overview.next.endDate, overview.periodEndDate)
+    }
+
+    @Test
+    fun `main alert is the overdue bills, never the facts already shown as numbers`() {
+        val withChecked = items.map { if (it.name == "Aluguel") it.copy(isChecked = true) else it }
+
+        val alert = overview(twiceAMonth, withChecked, today = date(2026, 10, 1)).mainAlert
+
+        val overdue = assertIs<CycleInsight.OverdueBills>(alert)
+        assertEquals(listOf("Internet"), overdue.bills.map { it.item.name })
+    }
+
+    @Test
+    fun `no main alert when nothing is overdue or waiting for an extra income`() {
+        val allChecked = items.map { it.copy(isChecked = true) }
+
+        assertNull(overview(twiceAMonth, allChecked, today = date(2026, 10, 1)).mainAlert)
     }
 
     @Test

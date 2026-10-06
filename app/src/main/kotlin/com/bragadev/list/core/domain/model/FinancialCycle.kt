@@ -96,6 +96,24 @@ data class FinancialOverview(
 
     val nextPayment: Payment get() = current.nextPayment
 
+    /** Last day covered by the two cycles together. */
+    val periodEndDate: CalendarDate get() = next.endDate
+
+    /**
+     * What should be left at [periodEndDate] once every expense of both cycles is paid: the two
+     * projected balances added up, so the user sees the whole period (about a month when paid twice
+     * a month) in one number. Negative = missing money.
+     */
+    val projectedBalanceInCents: Long get() = current.projectedBalanceInCents + next.projectedBalanceInCents
+
+    /**
+     * The one alert worth interrupting the user for, or null when everything is fine: bills overdue
+     * first, then bills that fall due before the extra income they depend on. Facts the screen
+     * already shows as numbers (received, balance, next payment) are never repeated as alerts.
+     */
+    val mainAlert: CycleInsight?
+        get() = insights().firstOrNull { it is CycleInsight.OverdueBills || it is CycleInsight.BillsDueBeforeExtraIncome }
+
     /** Always at least 1: on a pay day that payment is already the current cycle's. */
     val daysUntilNextPayment: Long get() = today.daysUntil(nextPayment.date)
 
