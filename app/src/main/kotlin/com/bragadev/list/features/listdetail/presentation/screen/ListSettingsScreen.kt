@@ -15,11 +15,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.AttachMoney
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.CheckBox
-import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
+import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.RemoveDone
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
@@ -241,21 +242,37 @@ private fun IncomeSection(actions: ListSettingsActions) {
     )
 }
 
-/** "Itens": bulk actions, each disabled when it would do nothing. */
+/**
+ * "Itens": bulk actions, each disabled when it would do nothing. Their icons are actions (✓✓ /
+ * undo), not checkboxes: a ticked box next to "Marcar todos" read as "already done". The line below
+ * each one tells how many items it would change, or why it is disabled.
+ */
 @Composable
 private fun ItemsSection(uiState: ListDetailUiState, actions: ListSettingsActions) {
     val summary = uiState.summary
+    val uncheckedCount = summary.unchecked.count
+    val checkedCount = summary.checked.count
     SectionTitle(R.string.list_settings_section_items)
     ActionRow(
-        icon = Icons.Outlined.CheckBox,
+        icon = Icons.Outlined.DoneAll,
         title = stringResource(R.string.list_detail_menu_check_all),
-        enabled = summary.unchecked.count > 0,
+        description = if (uncheckedCount > 0) {
+            pluralStringResource(R.plurals.list_settings_unchecked_count, uncheckedCount, uncheckedCount)
+        } else {
+            stringResource(R.string.list_settings_all_checked)
+        },
+        enabled = uncheckedCount > 0,
         onClick = actions.onCheckAllClick,
     )
     ActionRow(
-        icon = Icons.Outlined.CheckBoxOutlineBlank,
+        icon = Icons.Outlined.RemoveDone,
         title = stringResource(R.string.list_detail_menu_uncheck_all),
-        enabled = summary.checked.count > 0,
+        description = if (checkedCount > 0) {
+            pluralStringResource(R.plurals.list_settings_checked_count, checkedCount, checkedCount)
+        } else {
+            stringResource(R.string.list_settings_none_checked)
+        },
+        enabled = checkedCount > 0,
         onClick = actions.onUncheckAllClick,
     )
     ActionRow(
