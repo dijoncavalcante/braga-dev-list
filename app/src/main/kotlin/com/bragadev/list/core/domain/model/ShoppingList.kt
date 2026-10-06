@@ -12,6 +12,6 @@ data class ShoppingList(
     val sortOrder: ItemSortOrder = ItemSortOrder.ADDED,
     /** Prices are shown in the items and in the totals. */
     val showPrices: Boolean = true,
-    /** Items are shown by financial cycle (pay day → day before the next pay day) instead of all together. */
-    val groupByCycle: Boolean = false,
+    /** "Visualizar": all items together, by financial cycle or by fortnight of the due day. */
+    val viewMode: ItemViewMode = ItemViewMode.ALL,
 )

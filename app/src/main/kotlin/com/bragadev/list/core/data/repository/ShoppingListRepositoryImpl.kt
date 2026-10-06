@@ -8,6 +8,7 @@ import com.bragadev.list.core.database.ShoppingListItemDao
 import com.bragadev.list.core.database.ShoppingListItemEntity
 import com.bragadev.list.core.database.ShoppingListEntity
 import com.bragadev.list.core.domain.model.ItemSortOrder
+import com.bragadev.list.core.domain.model.ItemViewMode
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.repository.ShoppingListRepository
@@ -60,9 +61,9 @@ class ShoppingListRepositoryImpl(
         withContext(ioDispatcher) { listDao.setShowPrices(listId, showPrices) }
     }
 
-    override suspend fun setGroupByCycle(listId: Long, groupByCycle: Boolean): AppResult<Unit> =
+    override suspend fun setViewMode(listId: Long, viewMode: ItemViewMode): AppResult<Unit> =
         runCatchingToResult {
-            withContext(ioDispatcher) { listDao.setGroupByCycle(listId, groupByCycle) }
+            withContext(ioDispatcher) { listDao.setViewMode(listId, viewMode.code) }
         }
 
     override suspend fun setAllItemsChecked(listId: Long, isChecked: Boolean): AppResult<Unit> = runCatchingToResult {
@@ -91,7 +92,7 @@ class ShoppingListRepositoryImpl(
                     createdAt = createdAt,
                     sortOrder = source?.sortOrder ?: ItemSortOrder.ADDED.code,
                     showPrices = source?.showPrices ?: true,
-                    groupByFortnight = source?.groupByFortnight ?: false,
+                    viewMode = source?.viewMode ?: ItemViewMode.ALL.code,
                 )
                 val newListId = listDao.duplicate(sourceListId = listId, copy = copy)
                 copy.copy(id = newListId).toDomain()

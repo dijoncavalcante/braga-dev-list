@@ -4,6 +4,7 @@ import com.bragadev.list.core.database.ShoppingListEntity
 import com.bragadev.list.core.database.ShoppingListItemEntity
 import com.bragadev.list.core.database.ShoppingListWithItemCount
 import com.bragadev.list.core.domain.model.ItemSortOrder
+import com.bragadev.list.core.domain.model.ItemViewMode
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 
@@ -14,7 +15,7 @@ fun ShoppingListWithItemCount.toDomain(): ShoppingList = ShoppingList(
     itemCount = itemCount,
     sortOrder = ItemSortOrder.fromCode(sortOrder),
     showPrices = showPrices,
-    groupByCycle = groupByFortnight,
+    viewMode = ItemViewMode.fromCode(viewMode),
 )
 
 fun ShoppingListEntity.toDomain(itemCount: Int = 0): ShoppingList = ShoppingList(
@@ -24,7 +25,7 @@ fun ShoppingListEntity.toDomain(itemCount: Int = 0): ShoppingList = ShoppingList
     itemCount = itemCount,
     sortOrder = ItemSortOrder.fromCode(sortOrder),
     showPrices = showPrices,
-    groupByCycle = groupByFortnight,
+    viewMode = ItemViewMode.fromCode(viewMode),
 )
 
 fun ShoppingListItemEntity.toDomain(): ShoppingListItem = ShoppingListItem(

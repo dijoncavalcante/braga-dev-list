@@ -13,7 +13,7 @@ interface ShoppingListDao {
         """
         SELECT l.id AS id, l.name AS name, l.createdAt AS createdAt,
             l.sortOrder AS sortOrder, l.showPrices AS showPrices,
-            l.groupByFortnight AS groupByFortnight,
+            l.groupByFortnight AS viewMode,
             COUNT(i.id) AS itemCount
         FROM shopping_lists l
         LEFT JOIN shopping_list_items i ON i.listId = l.id
@@ -41,8 +41,8 @@ interface ShoppingListDao {
     @Query("UPDATE shopping_lists SET showPrices = :showPrices WHERE id = :listId")
     suspend fun setShowPrices(listId: Long, showPrices: Boolean)
 
-    @Query("UPDATE shopping_lists SET groupByFortnight = :groupByCycle WHERE id = :listId")
-    suspend fun setGroupByCycle(listId: Long, groupByCycle: Boolean)
+    @Query("UPDATE shopping_lists SET groupByFortnight = :viewMode WHERE id = :listId")
+    suspend fun setViewMode(listId: Long, viewMode: Int)
 
     /** Items are removed together with the list (ON DELETE CASCADE). */
     @Query("DELETE FROM shopping_lists WHERE id = :listId")

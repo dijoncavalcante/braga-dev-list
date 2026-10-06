@@ -46,6 +46,13 @@
     <string name="list_detail_menu_show_prices">Mostrar valor</string>
     <string name="list_detail_menu_view">Visualizar</string>
     <string name="list_detail_menu_view_all">Todos</string>
+    <string name="list_detail_menu_view_fortnights">Quinzenas</string>
+    <string name="list_detail_first_fortnight">1ª quinzena</string>
+    <string name="list_detail_first_fortnight_days">Vencimento do dia 1 ao 15</string>
+    <string name="list_detail_second_fortnight">2ª quinzena</string>
+    <string name="list_detail_second_fortnight_days">Vencimento do dia 16 ao 31</string>
+    <string name="list_detail_without_due_day">Sem vencimento</string>
+    <string name="list_detail_fortnight_empty">Nenhum item nesta quinzena</string>
     <string name="list_detail_menu_view_cycles">Ciclos financeiros</string>
     <string name="list_detail_menu_income_settings">Configurar recebimento</string>
     <string name="list_detail_section_checked_progress">%1$d de %2$d marcados</string>

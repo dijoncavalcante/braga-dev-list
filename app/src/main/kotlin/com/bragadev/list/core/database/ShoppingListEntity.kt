@@ -14,8 +14,10 @@ data class ShoppingListEntity(
     /** "Mostrar valor" toggle of the list screen menu. */
     @ColumnInfo(defaultValue = "1") val showPrices: Boolean = true,
     /**
-     * "Visualizar: Ciclos financeiros" choice of the list screen menu. The column keeps its
-     * original name from when the view was a fixed 1–15 / 16–31 split, to avoid a table rebuild.
+     * "Visualizar" choice of the list screen menu, as [com.bragadev.list.core.domain.model.ItemViewMode.code].
+     * The column keeps its
+     * original name (and INTEGER type) from when it was a true/false flag, to avoid a table rebuild;
+     * the old values 0 and 1 are the codes of "Todos" and "Ciclos financeiros".
      */
-    @ColumnInfo(defaultValue = "0") val groupByFortnight: Boolean = false,
+    @ColumnInfo(name = "groupByFortnight", defaultValue = "0") val viewMode: Int = 0,
 )

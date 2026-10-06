@@ -10,6 +10,6 @@ data class ShoppingListWithItemCount(
     val createdAt: Long,
     val sortOrder: Int,
     val showPrices: Boolean,
-    val groupByFortnight: Boolean,
+    val viewMode: Int,
     val itemCount: Int,
 )

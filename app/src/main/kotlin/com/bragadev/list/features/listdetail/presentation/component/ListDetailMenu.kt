@@ -32,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.bragadev.list.R
 import com.bragadev.list.core.domain.model.ItemSortOrder
+import com.bragadev.list.core.domain.model.ItemViewMode
 
 /**
  * Three dots of the list screen toolbar.
@@ -45,13 +46,13 @@ import com.bragadev.list.core.domain.model.ItemSortOrder
 fun ListDetailMenu(
     sortOrder: ItemSortOrder,
     showPrices: Boolean,
-    groupByCycle: Boolean,
+    viewMode: ItemViewMode,
     hasItems: Boolean,
     hasCheckedItems: Boolean,
     hasUncheckedItems: Boolean,
     onSortOrderSelected: (ItemSortOrder) -> Unit,
     onShowPricesToggle: () -> Unit,
-    onGroupByCycleSelected: (Boolean) -> Unit,
+    onViewModeSelected: (ItemViewMode) -> Unit,
     onIncomeSettingsClick: () -> Unit,
     onUncheckAllClick: () -> Unit,
     onCheckAllClick: () -> Unit,
@@ -96,13 +97,18 @@ fun ListDetailMenu(
             MenuSectionTitle(stringResource(R.string.list_detail_menu_view))
             ChoiceItem(
                 label = stringResource(R.string.list_detail_menu_view_all),
-                selected = !groupByCycle,
-                onClick = { onGroupByCycleSelected(false) },
+                selected = viewMode == ItemViewMode.ALL,
+                onClick = { onViewModeSelected(ItemViewMode.ALL) },
+            )
+            ChoiceItem(
+                label = stringResource(R.string.list_detail_menu_view_fortnights),
+                selected = viewMode == ItemViewMode.FORTNIGHTS,
+                onClick = { onViewModeSelected(ItemViewMode.FORTNIGHTS) },
             )
             ChoiceItem(
                 label = stringResource(R.string.list_detail_menu_view_cycles),
-                selected = groupByCycle,
-                onClick = { onGroupByCycleSelected(true) },
+                selected = viewMode == ItemViewMode.CYCLES,
+                onClick = { onViewModeSelected(ItemViewMode.CYCLES) },
             )
             ActionItem(
                 icon = Icons.Outlined.CalendarMonth,

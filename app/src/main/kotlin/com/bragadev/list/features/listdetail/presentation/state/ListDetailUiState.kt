@@ -5,6 +5,7 @@ import com.bragadev.list.core.domain.model.ExtraIncome
 import com.bragadev.list.core.domain.model.FinancialOverview
 import com.bragadev.list.core.domain.model.IncomeSettings
 import com.bragadev.list.core.domain.model.ItemSortOrder
+import com.bragadev.list.core.domain.model.ItemViewMode
 import com.bragadev.list.core.domain.model.ListSummary
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
@@ -49,8 +50,8 @@ data class ListDetailUiState(
 
     val showPrices: Boolean get() = list?.showPrices ?: true
 
-    /** "Visualizar: Ciclos financeiros"; otherwise "Todos". */
-    val groupByCycle: Boolean get() = list?.groupByCycle ?: false
+    /** "Visualizar": todos, ciclos financeiros or quinzenas. */
+    val viewMode: ItemViewMode get() = list?.viewMode ?: ItemViewMode.ALL
 
     val isEmpty: Boolean get() = !isLoading && error == null && items.isEmpty()
 

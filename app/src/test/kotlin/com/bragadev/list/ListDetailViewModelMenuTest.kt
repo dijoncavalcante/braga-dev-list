@@ -2,6 +2,7 @@ package com.bragadev.list
 
 import com.bragadev.list.core.common.result.AppResult
 import com.bragadev.list.core.domain.model.ItemSortOrder
+import com.bragadev.list.core.domain.model.ItemViewMode
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.usecase.DeleteListItemsUseCase
@@ -104,15 +105,15 @@ class ListDetailViewModelMenuTest {
     fun `sort choice and toggles are saved`() {
         coEvery { setListPreferencesUseCase.setSortOrder(any(), any()) } returns AppResult.Success(Unit)
         coEvery { setListPreferencesUseCase.setShowPrices(any(), any()) } returns AppResult.Success(Unit)
-        coEvery { setListPreferencesUseCase.setGroupByCycle(any(), any()) } returns AppResult.Success(Unit)
+        coEvery { setListPreferencesUseCase.setViewMode(any(), any()) } returns AppResult.Success(Unit)
 
         viewModel.onSortOrderSelected(ItemSortOrder.DUE_DAY)
         viewModel.onShowPricesToggle()
-        viewModel.onGroupByCycleSelected(true)
+        viewModel.onViewModeSelected(ItemViewMode.FORTNIGHTS)
 
         coVerify(exactly = 1) { setListPreferencesUseCase.setSortOrder(1, ItemSortOrder.DUE_DAY) }
         coVerify(exactly = 1) { setListPreferencesUseCase.setShowPrices(1, false) }
-        coVerify(exactly = 1) { setListPreferencesUseCase.setGroupByCycle(1, true) }
+        coVerify(exactly = 1) { setListPreferencesUseCase.setViewMode(1, ItemViewMode.FORTNIGHTS) }
     }
 
     @Test

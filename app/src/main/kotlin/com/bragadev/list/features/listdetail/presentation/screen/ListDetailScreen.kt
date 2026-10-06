@@ -53,7 +53,10 @@ import com.bragadev.list.R
 import com.bragadev.list.core.domain.model.CalendarDate
 import com.bragadev.list.core.domain.model.CycleExpense
 import com.bragadev.list.core.domain.model.FinancialOverview
+import com.bragadev.list.core.domain.model.FortnightGroups
 import com.bragadev.list.core.domain.model.ItemSortOrder
+import com.bragadev.list.core.domain.model.ItemViewMode
+import com.bragadev.list.core.domain.model.groupByFortnight
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.util.extensions.shareText
@@ -124,7 +127,7 @@ private fun ListDetailScreenContent(
         menuActions = ListDetailMenuActions(
             onSortOrderSelected = viewModel::onSortOrderSelected,
             onShowPricesToggle = viewModel::onShowPricesToggle,
-            onGroupByCycleSelected = viewModel::onGroupByCycleSelected,
+            onViewModeSelected = viewModel::onViewModeSelected,
             onIncomeSettingsClick = viewModel::onIncomeSettingsClick,
             onUncheckAllClick = viewModel::onUncheckAllClick,
             onCheckAllClick = viewModel::onCheckAllClick,
@@ -192,7 +195,7 @@ private data class ListDetailMenuActions(
     val onToggleAmountsVisibility: () -> Unit = {},
     val onSortOrderSelected: (ItemSortOrder) -> Unit = {},
     val onShowPricesToggle: () -> Unit = {},
-    val onGroupByCycleSelected: (Boolean) -> Unit = {},
+    val onViewModeSelected: (ItemViewMode) -> Unit = {},
     val onIncomeSettingsClick: () -> Unit = {},
     val onUncheckAllClick: () -> Unit = {},
     val onCheckAllClick: () -> Unit = {},
@@ -238,13 +241,13 @@ private fun ListDetailContent(
                     ListDetailMenu(
                         sortOrder = uiState.sortOrder,
                         showPrices = uiState.showPrices,
-                        groupByCycle = uiState.groupByCycle,
+                        viewMode = uiState.viewMode,
                         hasItems = summary.total.count > 0,
                         hasCheckedItems = summary.checked.count > 0,
                         hasUncheckedItems = summary.unchecked.count > 0,
                         onSortOrderSelected = menuActions.onSortOrderSelected,
                         onShowPricesToggle = menuActions.onShowPricesToggle,
-                        onGroupByCycleSelected = menuActions.onGroupByCycleSelected,
+                        onViewModeSelected = menuActions.onViewModeSelected,
                         onIncomeSettingsClick = menuActions.onIncomeSettingsClick,
                         onUncheckAllClick = menuActions.onUncheckAllClick,
                         onCheckAllClick = menuActions.onCheckAllClick,
@@ -263,7 +266,7 @@ private fun ListDetailContent(
             )
         },
         // Totals pinned to the bottom so they stay visible however long the list is.
-        // They are always for the whole list, in both views.
+        // They are always for the whole list, in every view.
         bottomBar = {
             if (uiState.items.isNotEmpty()) {
                 ListSummaryBar(summary = uiState.summary, showAmounts = uiState.showPrices)
@@ -277,7 +280,8 @@ private fun ListDetailContent(
             else -> ItemsState(
                 padding = padding,
                 items = uiState.items,
-                cycleView = if (uiState.groupByCycle) CycleView(uiState.financialOverview) else null,
+                cycleView = if (uiState.viewMode == ItemViewMode.CYCLES) CycleView(uiState.financialOverview) else null,
+                fortnightGroups = if (uiState.viewMode == ItemViewMode.FORTNIGHTS) uiState.items.groupByFortnight() else null,
                 showPrices = uiState.showPrices,
                 onItemClick = onItemClick,
                 onItemCheckedChange = onItemCheckedChange,
@@ -345,6 +349,8 @@ private fun ItemsState(
     padding: PaddingValues,
     items: List<ShoppingListItem>,
     cycleView: CycleView?,
+    /** "Visualizar: Quinzenas"; null in the other views. */
+    fortnightGroups: FortnightGroups?,
     showPrices: Boolean,
     onItemClick: (ShoppingListItem) -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
@@ -403,12 +409,40 @@ private fun ItemsState(
         }
 
         if (isAllChecked) {
-            // Everything checked: in both views the lists of items to do give way to a celebration.
+            // Everything checked: in every view the lists of items to do give way to a celebration.
             item(key = "all_checked_celebration") {
                 AllCheckedCelebration(
                     playConfetti = playConfetti,
                     onConfettiFinished = { playConfetti = false },
                     modifier = Modifier.animateItem(),
+                )
+            }
+        } else if (fortnightGroups != null) {
+            // "Quinzenas": one list per fortnight of the due day, with its unchecked items only.
+            fortnightSection(
+                key = "first_fortnight",
+                titleRes = R.string.list_detail_first_fortnight,
+                subtitleRes = R.string.list_detail_first_fortnight_days,
+                items = fortnightGroups.firstFortnight,
+                sectionExpansion = sectionExpansion,
+                itemRow = itemRow,
+            )
+            fortnightSection(
+                key = "second_fortnight",
+                titleRes = R.string.list_detail_second_fortnight,
+                subtitleRes = R.string.list_detail_second_fortnight_days,
+                items = fortnightGroups.secondFortnight,
+                sectionExpansion = sectionExpansion,
+                itemRow = itemRow,
+            )
+            if (fortnightGroups.withoutDueDay.isNotEmpty()) {
+                fortnightSection(
+                    key = "without_due_day",
+                    titleRes = R.string.list_detail_without_due_day,
+                    subtitleRes = null,
+                    items = fortnightGroups.withoutDueDay,
+                    sectionExpansion = sectionExpansion,
+                    itemRow = itemRow,
                 )
             }
         } else if (overview == null) {
@@ -596,6 +630,45 @@ private class SectionExpansion(
     fun isExpanded(key: String, expandedByDefault: Boolean): Boolean = expandedByDefault != (key in toggled)
 
     fun toggle(key: String) = onToggle(key)
+}
+
+/**
+ * One section of the "Quinzenas" view: a collapsible header (title, due days covered and how many
+ * of its items are checked) followed by its unchecked items only; the checked ones are shown in
+ * the single "Marcados" list at the end of the screen.
+ */
+private fun LazyListScope.fortnightSection(
+    key: String,
+    @StringRes titleRes: Int,
+    @StringRes subtitleRes: Int?,
+    items: List<ShoppingListItem>,
+    sectionExpansion: SectionExpansion,
+    itemRow: ItemRow,
+) {
+    val (unchecked, checked) = items.partition { !it.isChecked }
+    val isExpanded = sectionExpansion.isExpanded(key, expandedByDefault = true)
+    item(key = "header_$key") {
+        val days = subtitleRes?.let { stringResource(it) }
+        val progress = stringResource(R.string.list_detail_section_checked_progress, checked.size, items.size)
+        SectionHeader(
+            title = stringResource(titleRes),
+            subtitle = if (days != null) "$days · $progress" else progress,
+            isExpanded = isExpanded,
+            onToggle = { sectionExpansion.toggle(key) },
+            modifier = Modifier.animateItem(),
+        )
+    }
+    if (!isExpanded) return
+
+    when {
+        items.isEmpty() -> item(key = "empty_$key") {
+            SectionMessage(R.string.list_detail_fortnight_empty, Modifier.animateItem())
+        }
+        unchecked.isEmpty() -> item(key = "all_checked_$key") {
+            SectionMessage(R.string.list_detail_section_all_checked, Modifier.animateItem())
+        }
+        else -> items(items = unchecked, key = { it.id }) { item -> itemRow(item, null, Modifier.animateItem()) }
+    }
 }
 
 /**

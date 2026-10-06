@@ -9,6 +9,7 @@ import com.bragadev.list.core.domain.model.ExtraIncome
 import com.bragadev.list.core.domain.model.FinancialOverview
 import com.bragadev.list.core.domain.model.IncomeSettings
 import com.bragadev.list.core.domain.model.ItemSortOrder
+import com.bragadev.list.core.domain.model.ItemViewMode
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
 import com.bragadev.list.core.domain.model.buildFinancialOverview
@@ -163,12 +164,12 @@ class ListDetailViewModel(
         }
     }
 
-    /** "Visualizar": all items together (false) or by financial cycle (true). */
-    fun onGroupByCycleSelected(groupByCycle: Boolean) {
+    /** "Visualizar": only one view is active at a time. */
+    fun onViewModeSelected(viewMode: ItemViewMode) {
         val list = _uiState.value.list ?: return
-        if (list.groupByCycle == groupByCycle) return
+        if (list.viewMode == viewMode) return
         viewModelScope.launch {
-            setListPreferencesUseCase.setGroupByCycle(list.id, groupByCycle)
+            setListPreferencesUseCase.setViewMode(list.id, viewMode)
         }
     }
 
