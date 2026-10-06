@@ -14,4 +14,11 @@ sealed class Screen(val route: String) {
 
         fun createRoute(listId: Long) = "list_detail/$listId"
     }
+
+    /** Settings of a list; always opened on top of that list's [ListDetail]. */
+    data object ListSettings : Screen(route = "list_detail/{listId}/settings") {
+        fun createRoute(listId: Long) = "list_detail/$listId/settings"
+    }
+
+    data object About : Screen(route = "about")
 }

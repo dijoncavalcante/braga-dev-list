@@ -38,7 +38,6 @@
     <string name="list_detail_item_due_day_format">Vence dia %1$d</string>
     <string name="list_detail_dialog_save">Adicionar</string>
     <string name="list_detail_dialog_cancel">Cancelar</string>
-    <string name="list_detail_menu_description">Opções da lista</string>
     <string name="list_detail_menu_sort_by">Ordenar por</string>
     <string name="list_detail_menu_sort_added">Ordem de adição</string>
     <string name="list_detail_menu_sort_alphabetically">Ordem alfabética</string>
@@ -157,4 +156,35 @@
     <string name="amounts_show">Mostrar valores</string>
 
     <string name="action_back">Voltar</string>
+
+
+    <!-- Settings of a list (gear of the list screen) -->
+    <string name="list_settings_title">Configurações</string>
+    <string name="list_settings_subtitle">Ajustes da lista “%1$s”</string>
+    <string name="list_settings_section_display">Exibição</string>
+    <string name="list_settings_section_income">Recebimento</string>
+    <string name="list_settings_section_items">Itens</string>
+    <string name="list_settings_section_list">Lista</string>
+    <string name="list_settings_section_app">Aplicativo</string>
+    <string name="list_settings_view_all_description">Todos os itens juntos, os marcados no final</string>
+    <string name="list_settings_view_fortnights_description">Itens separados por vencimento: dias 1 a 15 e 16 a 31</string>
+    <string name="list_settings_view_cycles_description">Contas organizadas pelos seus dias de recebimento, com saldo projetado</string>
+    <string name="list_settings_show_prices_description">Mostra o valor de cada item e os totais</string>
+    <string name="list_settings_income_description">Quando e quanto você recebe, e outras entradas</string>
+    <string name="list_settings_delete_items_description">Excluir os marcados ou todos os itens</string>
+    <string name="list_settings_share_description">Enviar a lista como texto</string>
+    <string name="list_settings_about_description">Versão e desenvolvedora</string>
+    <string name="list_settings_checked_all_done">Todos os itens foram marcados</string>
+    <string name="list_settings_unchecked_all_done">Todos os itens foram desmarcados</string>
+
+    <!-- About the app -->
+    <string name="about_title">Sobre o app</string>
+    <string name="about_app_name">FinCheck</string>
+    <string name="about_tagline">Organize. Pague. Conquiste.</string>
+    <string name="about_description">O FinCheck é o seu checklist financeiro. Cadastre suas contas e despesas, acompanhe o que ainda falta pagar, marque o que já foi pago e veja quanto deve sobrar até o próximo recebimento. Tudo de forma simples, para você ter o controle do seu dinheiro sem complicação.</string>
+    <string name="about_version_label">Versão</string>
+    <string name="about_version_value">%1$s (%2$d)</string>
+    <string name="about_developer_label">Desenvolvido por</string>
+    <string name="about_developer_message">Feito com cuidado pela %1$s, para deixar a sua vida financeira mais leve.</string>
+    <string name="about_copyright">© %1$d %2$s. Todos os direitos reservados.</string>
 </resources>

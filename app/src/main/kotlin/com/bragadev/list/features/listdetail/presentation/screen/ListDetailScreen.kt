@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.PlaylistAdd
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
@@ -43,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,22 +54,15 @@ import com.bragadev.list.core.domain.model.CalendarDate
 import com.bragadev.list.core.domain.model.CycleExpense
 import com.bragadev.list.core.domain.model.FinancialOverview
 import com.bragadev.list.core.domain.model.FortnightGroups
-import com.bragadev.list.core.domain.model.ItemSortOrder
 import com.bragadev.list.core.domain.model.ItemViewMode
 import com.bragadev.list.core.domain.model.groupByFortnight
 import com.bragadev.list.core.domain.model.ShoppingList
 import com.bragadev.list.core.domain.model.ShoppingListItem
-import com.bragadev.list.core.util.extensions.shareText
-import com.bragadev.list.features.home.presentation.component.RenameListDialog
 import com.bragadev.list.features.listdetail.presentation.component.AddItemBottomSheet
 import com.bragadev.list.features.listdetail.presentation.component.AllCheckedCelebration
 import com.bragadev.list.features.listdetail.presentation.component.AmountsVisibilityButton
-import com.bragadev.list.features.listdetail.presentation.component.DeleteItemsDialog
-import com.bragadev.list.features.listdetail.presentation.component.ExtraIncomeBottomSheet
 import com.bragadev.list.features.listdetail.presentation.component.CycleOverviewCard
-import com.bragadev.list.features.listdetail.presentation.component.IncomeSettingsBottomSheet
 import com.bragadev.list.features.listdetail.presentation.component.IncomeSetupCard
-import com.bragadev.list.features.listdetail.presentation.component.ListDetailMenu
 import com.bragadev.list.features.listdetail.presentation.component.ListSummaryBar
 import com.bragadev.list.features.listdetail.presentation.component.LocalAmountsHidden
 import com.bragadev.list.features.listdetail.presentation.component.toDisplayAmount
@@ -86,22 +79,14 @@ import org.koin.core.parameter.parametersOf
 fun ListDetailScreen(
     listId: Long,
     onBackClick: () -> Unit,
+    onSettingsClick: () -> Unit,
     viewModel: ListDetailViewModel = koinViewModel(parameters = { parametersOf(listId) }),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-
-    // "Compartilhar": hand the list text to the Android share sheet.
-    val shareChooserTitle = stringResource(R.string.home_option_share)
-    LaunchedEffect(uiState.pendingShareText) {
-        val text = uiState.pendingShareText ?: return@LaunchedEffect
-        context.shareText(text, shareChooserTitle)
-        viewModel.onShareHandled()
-    }
 
     // The toolbar eye masks every amount on the screen (cards, rows, totals, feedbacks).
     CompositionLocalProvider(LocalAmountsHidden provides uiState.amountsHidden) {
-        ListDetailScreenContent(uiState, viewModel, onBackClick)
+        ListDetailScreenContent(uiState, viewModel, onBackClick, onSettingsClick)
     }
 }
 
@@ -111,6 +96,7 @@ private fun ListDetailScreenContent(
     uiState: ListDetailUiState,
     viewModel: ListDetailViewModel,
     onBackClick: () -> Unit,
+    onSettingsClick: () -> Unit,
 ) {
     ListDetailContent(
         uiState = uiState,
@@ -124,64 +110,14 @@ private fun ListDetailScreenContent(
         onDeleteItemConfirm = viewModel::onDeleteItemConfirm,
         onItemCheckedChange = viewModel::onItemCheckedChange,
         onRetryClick = viewModel::retry,
-        menuActions = ListDetailMenuActions(
-            onSortOrderSelected = viewModel::onSortOrderSelected,
-            onShowPricesToggle = viewModel::onShowPricesToggle,
-            onViewModeSelected = viewModel::onViewModeSelected,
-            onIncomeSettingsClick = viewModel::onIncomeSettingsClick,
-            onUncheckAllClick = viewModel::onUncheckAllClick,
-            onCheckAllClick = viewModel::onCheckAllClick,
-            onDeleteItemsClick = viewModel::onDeleteItemsClick,
-            onRenameListClick = viewModel::onRenameListClick,
-            onShareClick = viewModel::onShareClick,
+        toolbarActions = ListDetailToolbarActions(
             onToggleAmountsVisibility = viewModel::onToggleAmountsVisibility,
+            onSettingsClick = onSettingsClick,
+            onIncomeSettingsClick = viewModel::onIncomeSettingsClick,
         ),
     )
 
-    if (uiState.isRenameDialogVisible) {
-        uiState.list?.let { list ->
-            RenameListDialog(
-                list = list,
-                showError = uiState.showRenameError,
-                onNameChanged = viewModel::onRenameNameChanged,
-                onConfirm = viewModel::onRenameConfirm,
-                onDismiss = viewModel::onDismissRename,
-            )
-        }
-    }
-
-    if (uiState.isDeleteItemsDialogVisible) {
-        DeleteItemsDialog(
-            checkedCount = uiState.summary.checked.count,
-            totalCount = uiState.summary.total.count,
-            onDeleteChecked = { viewModel.onDeleteItemsConfirm(onlyChecked = true) },
-            onDeleteAll = { viewModel.onDeleteItemsConfirm(onlyChecked = false) },
-            onDismiss = viewModel::onDismissDeleteItems,
-        )
-    }
-
-    if (uiState.isIncomeSettingsVisible) {
-        IncomeSettingsBottomSheet(
-            initialSettings = uiState.incomeSettings,
-            today = uiState.today,
-            extraIncomes = uiState.extraIncomes,
-            onConfirm = viewModel::onIncomeSettingsConfirm,
-            onDismiss = viewModel::onDismissIncomeSettings,
-            onAddExtraIncomeClick = viewModel::onAddExtraIncomeClick,
-            onExtraIncomeClick = viewModel::onExtraIncomeClick,
-        )
-    }
-
-    // After the income sheet, so it opens on top of it.
-    if (uiState.isExtraIncomeSheetVisible) {
-        ExtraIncomeBottomSheet(
-            initialIncome = uiState.editingExtraIncome,
-            today = uiState.today,
-            onConfirm = viewModel::onExtraIncomeConfirm,
-            onDismiss = viewModel::onDismissExtraIncome,
-            onDelete = viewModel::onDeleteExtraIncomeConfirm,
-        )
-    }
+    ListDetailDialogs(uiState = uiState, viewModel = viewModel)
 }
 
 /**
@@ -190,18 +126,14 @@ private fun ListDetailScreenContent(
  */
 private data class CycleView(val overview: FinancialOverview?)
 
-/** Callbacks of the toolbar (eye and three-dots menu), grouped to keep [ListDetailContent] readable. */
-private data class ListDetailMenuActions(
+/**
+ * Callbacks of the toolbar (eye and settings) and of the income cards, grouped to keep
+ * [ListDetailContent] readable. Every list option lives in the settings screen.
+ */
+private data class ListDetailToolbarActions(
     val onToggleAmountsVisibility: () -> Unit = {},
-    val onSortOrderSelected: (ItemSortOrder) -> Unit = {},
-    val onShowPricesToggle: () -> Unit = {},
-    val onViewModeSelected: (ItemViewMode) -> Unit = {},
+    val onSettingsClick: () -> Unit = {},
     val onIncomeSettingsClick: () -> Unit = {},
-    val onUncheckAllClick: () -> Unit = {},
-    val onCheckAllClick: () -> Unit = {},
-    val onDeleteItemsClick: () -> Unit = {},
-    val onRenameListClick: () -> Unit = {},
-    val onShareClick: () -> Unit = {},
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -218,7 +150,7 @@ private fun ListDetailContent(
     onDeleteItemConfirm: () -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
     onRetryClick: () -> Unit,
-    menuActions: ListDetailMenuActions,
+    toolbarActions: ListDetailToolbarActions,
 ) {
     Scaffold(
         topBar = {
@@ -233,28 +165,16 @@ private fun ListDetailContent(
                     }
                 },
                 actions = {
-                    val summary = uiState.summary
                     AmountsVisibilityButton(
                         amountsHidden = uiState.amountsHidden,
-                        onToggle = menuActions.onToggleAmountsVisibility,
+                        onToggle = toolbarActions.onToggleAmountsVisibility,
                     )
-                    ListDetailMenu(
-                        sortOrder = uiState.sortOrder,
-                        showPrices = uiState.showPrices,
-                        viewMode = uiState.viewMode,
-                        hasItems = summary.total.count > 0,
-                        hasCheckedItems = summary.checked.count > 0,
-                        hasUncheckedItems = summary.unchecked.count > 0,
-                        onSortOrderSelected = menuActions.onSortOrderSelected,
-                        onShowPricesToggle = menuActions.onShowPricesToggle,
-                        onViewModeSelected = menuActions.onViewModeSelected,
-                        onIncomeSettingsClick = menuActions.onIncomeSettingsClick,
-                        onUncheckAllClick = menuActions.onUncheckAllClick,
-                        onCheckAllClick = menuActions.onCheckAllClick,
-                        onDeleteItemsClick = menuActions.onDeleteItemsClick,
-                        onRenameListClick = menuActions.onRenameListClick,
-                        onShareClick = menuActions.onShareClick,
-                    )
+                    IconButton(onClick = toolbarActions.onSettingsClick) {
+                        Icon(
+                            imageVector = Icons.Outlined.Settings,
+                            contentDescription = stringResource(R.string.list_settings_title),
+                        )
+                    }
                 },
             )
         },
@@ -285,7 +205,7 @@ private fun ListDetailContent(
                 showPrices = uiState.showPrices,
                 onItemClick = onItemClick,
                 onItemCheckedChange = onItemCheckedChange,
-                onIncomeSettingsClick = menuActions.onIncomeSettingsClick,
+                onIncomeSettingsClick = toolbarActions.onIncomeSettingsClick,
             )
         }
 
@@ -596,7 +516,7 @@ private fun ListDetailEmptyPreview() {
             onDeleteItemConfirm = {},
             onItemCheckedChange = { _, _ -> },
             onRetryClick = {},
-            menuActions = ListDetailMenuActions(),
+            toolbarActions = ListDetailToolbarActions(),
         )
     }
 }
