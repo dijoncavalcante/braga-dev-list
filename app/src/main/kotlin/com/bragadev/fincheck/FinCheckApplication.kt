@@ -8,14 +8,15 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 
-class BragaDevListApplication : Application() {
+class FinCheckApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         startKoin {
-            //if (BuildConfig.DEBUG) {
+            // Dependency-injection logs only while developing; never in the published app.
+            if (BuildConfig.DEBUG) {
                 androidLogger()
-           // }
-            androidContext(this@BragaDevListApplication)
+            }
+            androidContext(this@FinCheckApplication)
             modules(databaseModule, appModule, viewModelModule)
         }
     }

@@ -58,7 +58,7 @@ import com.bragadev.fincheck.core.domain.model.IncomeSettings
 import com.bragadev.fincheck.core.domain.model.PayDay
 import com.bragadev.fincheck.core.domain.model.ShoppingListItem
 import com.bragadev.fincheck.core.domain.model.buildFinancialOverview
-import com.bragadev.fincheck.ui.theme.BragadevlistTheme
+import com.bragadev.fincheck.ui.theme.FinCheckTheme
 
 /** Percent → progress bar fraction. */
 private const val PERCENT = 100f
@@ -431,7 +431,7 @@ private fun CycleOverviewCardPreview() {
         today = CalendarDate(2026, 10, 1),
         extraIncomes = listOf(ExtraIncome(1, "Aluguel", 120_000, ExtraIncomeRecurrence.Monthly(5))),
     ) ?: return
-    BragadevlistTheme {
+    FinCheckTheme {
         CycleOverviewCard(
             overview = overview,
             onEditIncomeClick = {},

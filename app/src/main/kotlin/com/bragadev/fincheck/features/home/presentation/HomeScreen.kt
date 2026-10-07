@@ -44,7 +44,7 @@ import com.bragadev.fincheck.features.home.presentation.component.RenameListDial
 import com.bragadev.fincheck.features.home.presentation.state.HomeUiState
 import com.bragadev.fincheck.features.home.presentation.viewmodel.HomeViewModel
 import com.bragadev.fincheck.ui.components.EmptyStateContent
-import com.bragadev.fincheck.ui.theme.BragadevlistTheme
+import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import org.koin.androidx.compose.koinViewModel
 
 /**
@@ -236,7 +236,7 @@ private fun ShoppingListRow(list: ShoppingList, onClick: () -> Unit, onMenuClick
 @Preview(showBackground = true)
 @Composable
 private fun HomeEmptyPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         HomeContent(
             uiState = HomeUiState(isLoading = false, lists = emptyList()),
             onCreateListClick = {},
@@ -250,7 +250,7 @@ private fun HomeEmptyPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun HomeWithListsPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         HomeContent(
             uiState = HomeUiState(
                 isLoading = false,

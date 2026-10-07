@@ -29,7 +29,7 @@ import com.bragadev.fincheck.R
 import com.bragadev.fincheck.features.create.presentation.state.CreateListError
 import com.bragadev.fincheck.features.create.presentation.state.CreateNewListUiState
 import com.bragadev.fincheck.features.create.presentation.viewmodel.CreateNewListViewModel
-import com.bragadev.fincheck.ui.theme.BragadevlistTheme
+import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -118,7 +118,7 @@ private fun CreateListError.toStringRes(): Int = when (this) {
 @Preview(showBackground = true)
 @Composable
 private fun CreateNewListPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         CreateNewListContent(
             uiState = CreateNewListUiState(),
             onNameChanged = {},

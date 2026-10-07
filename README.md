@@ -1,117 +1,97 @@
-# braga-dev-list
-App de lista que pode ser usado para compras ou acompanhamento de contas mensais
+# FinCheck
 
-app/
-├── java/ ou kotlin/
-│   └── com.example.yourapp/
-│       ├── App.kt                      // Classe Application
-│       ├── core/                       // Módulo Core (transversal)
-│       │   ├── di/
-│       │   │   ├── AppModule.kt
-│       │   │   └── ViewModelModule.kt
-│       │   ├── network/
-│       │   │   ├── ApiService.kt
-│       │   │   └── NetworkModule.kt
-│       │   ├── database/
-│       │   │   ├── AppDatabase.kt
-│       │   │   └── DaoModule.kt
-│       │   ├── domain/                 // Camada de Domínio (Clean Architecture)
-│       │   │   ├── model/
-│       │   │   │   └── User.kt
-│       │   │   ├── repository/         // Interfaces de Repositório (Clean Architecture)
-│       │   │   │   └── UserRepository.kt
-│       │   │   └── usecase/
-│       │   │       └── GetUserUseCase.kt
-│       │   ├── data/                   // Camada de Dados (Clean Architecture)
-│       │   │   ├── model/              // Modelos de dados (DTOs, Entidades)
-│       │   │   │   ├── UserDto.kt
-│       │   │   │   └── UserEntity.kt
-│       │   │   ├── mapper/             // Mapeadores entre DTO/Entity e Modelos de Domínio
-│       │   │   │   └── UserMapper.kt
-│       │   │   ├── repository/         // Implementações de Repositórios
-│       │   │   │   └── UserRepositoryImpl.kt
-│       │   │   ├── local/              // Fontes de dados locais (Room DAOs)
-│       │   │   │   └── UserDao.kt
-│       │   │   └── remote/             // Fontes de dados remotas (APIs)
-│       │   │       └── UserApiService.kt
-│       │   └── util/
-│       │       ├── Constants.kt
-│       │       └── Extensions.kt
-│       ├── features/                   // Módulos de Feature
-│       │   └── login/                  // Exemplo de feature: Login
-│       │       ├── di/                 // DI específico da feature (opcional)
-│       │       ├── domain/             // Domínio específico da feature (opcional)
-│       │       │   ├── model/
-│       │       │   ├── repository/
-│       │       │   └── usecase/
-│       │       ├── data/               // Dados específicos da feature (opcional)
-│       │       │   ├── model/
-│       │       │   ├── mapper/
-│       │       │   ├── repository/
-│       │       │   ├── local/
-│       │       │   └── remote/
-│       │       ├── presentation/       // Camada de Apresentação (MVVM com Compose)
-│       │       │   ├── LoginViewModel.kt // ViewModel para a feature de Login
-│       │       │   ├── LoginScreen.kt    // Composable principal da tela de Login
-│       │       │   ├── components/       // Composables reutilizáveis específicos desta tela/feature
-│       │       │   │   ├── EmailTextField.kt
-│       │       │   │   └── LoginButton.kt
-│       │       │   └── navigation/       // Navegação específica da feature (se houver sub-rotas)
-│       │   └── profile/                // Outra feature...
-│       │       └── ...
-│       ├── navigation/                 // Configuração de navegação principal (Jetpack Navigation Compose)
-│       │   ├── AppNavigation.kt        // Define o NavHost e as rotas principais
-│       │   └── Screen.kt               // Sealed class/object para definir as rotas como constantes
-│       ├── ui/                         // Recursos de UI globais para Compose
-│       │   ├── theme/                  // Tema da aplicação (Colors.kt, Theme.kt, Type.kt, Shape.kt)
-│       │   │   ├── Color.kt
-│       │   │   ├── Theme.kt
-│       │   │   ├── Type.kt
-│       │   │   └── Shape.kt
-│       │   └── components/             // Composables genéricos reutilizáveis em toda a aplicação
-│       │       ├── MyCustomButton.kt
-│       │       └── LoadingIndicator.kt
-│       └── MainActivity.kt             // Activity principal que hospeda os Composables
-├── res/
-│   ├── drawable/                     // Drawables ainda são usados (ícones, imagens de fundo, etc.)
-│   ├── values/                       // Strings, dimensões (menos comum para espaçamento em Compose), etc.
-│   └── ...
-└── AndroidManifest.xml
+**Organize. Pague. Conquiste.**
 
-Principais Mudanças e Considerações para Jetpack Compose:
+FinCheck é um checklist financeiro para Android: o usuário cadastra suas contas e despesas,
+acompanha o que ainda falta pagar, marca o que já foi pago e vê quanto deve sobrar até o próximo
+recebimento.
 
-1.features/nome_da_feature/presentation/:
-•NomeDaFeatureViewModel.kt: O ViewModel permanece o mesmo, seguindo os princípios do MVVM. Ele prepara e gerencia o estado da UI e expõe esse estado através de StateFlow (preferencialmente) ou LiveData para os Composables observarem.
-•NomeDaFeatureScreen.kt: Este arquivo conterá a função Composable principal que define a UI para aquela tela/feature. Ele observará o estado do ViewModel e chamará outros Composables menores.
-•components/ (dentro de presentation/): Aqui você pode colocar Composables menores e reutilizáveis que são específicos para esta tela ou feature. Por exemplo, um campo de texto personalizado para email na tela de login.
-•Navegação: A navegação entre telas dentro de uma feature ou para outras features é geralmente gerenciada por um NavController que é passado para os Composables ou através de eventos expostos pelo ViewModel que a Activity/Composable pai observa.
+Desenvolvido por **BragaDev**.
 
-2.navigation/ (nível raiz ou dentro de core):
-•AppNavigation.kt: Define o NavHost do Jetpack Navigation Compose e configura o gráfico de navegação principal da sua aplicação, mapeando rotas (strings) para seus respectivos Composables de tela.•Screen.kt: É uma boa prática definir suas rotas como constantes usando uma sealed class ou object para evitar erros de digitação e facilitar a refatoração.
+## Funcionalidades
 
-3.ui/ (nível raiz ou dentro de core):
-•theme/: Jetpack Compose incentiva fortemente a criação de um sistema de design coeso. A pasta theme (geralmente criada automaticamente pelo Android Studio) contém:
-    •Color.kt: Define as cores da sua aplicação.
-    •Theme.kt: Define o tema principal da aplicação, aplicando cores, tipografia e formas. É aqui que você envolve seu Composable raiz.
-    •Type.kt: Define os estilos de tipografia.
-    •Shape.kt: Define as formas dos componentes (cantos arredondados, etc.).
-•components/ (dentro de ui/): Contém Composables genéricos e reutilizáveis que podem ser usados em qualquer parte da sua aplicação, independentemente da feature. Pense em botões padronizados, indicadores de carregamento, caixas de diálogo genéricas, etc.
+- Listas de contas e despesas com valor, quantidade e dia de vencimento.
+- Itens não marcados e marcados em listas separadas e recolhíveis, com comemoração ao concluir tudo.
+- Três visualizações por lista:
+  - **Todos**: todos os itens juntos.
+  - **Quinzenas**: itens separados pelo vencimento (dias 1 a 15 e 16 a 31).
+  - **Ciclos financeiros**: contas organizadas pelos dias de recebimento, com o saldo projetado
+    de cada ciclo e dos dois ciclos somados.
+- Recebimento mensal ou quinzenal e outras entradas (aluguel, freelas, reembolsos).
+- Totais fixos no rodapé, ocultação dos valores, ordenação, compartilhamento como texto.
+- Todos os dados ficam apenas no aparelho: o app não usa internet.
 
-4.MainActivity.kt:
+## Stack
 
+- Kotlin, Jetpack Compose e Material 3
+- Arquitetura em camadas (domínio, dados e apresentação) com MVVM e casos de uso
+- Room (banco local), Koin (injeção de dependência), Coroutines e Flow
+- Navigation Compose
+- Testes: JUnit, MockK, Turbine, kotlinx-coroutines-test e testes instrumentados do Room
+- Qualidade: detekt, ktlint e JaCoCo
 
+## Estrutura
 
-•Geralmente se torna mais simples. Sua responsabilidade principal é configurar o tema da aplicação e hospedar o NavHost (ou o Composable da tela inicial se a navegação for simples).
+```
+app/src/main/kotlin/com/bragadev/fincheck/
+├── FinCheckApplication.kt      Inicialização do Koin
+├── MainActivity.kt             Splash screen, tema e navegação
+├── core/
+│   ├── common/result/          AppResult e AppError
+│   ├── data/                   Mappers e implementações dos repositórios
+│   ├── database/               Room: entidades, DAOs, AppDatabase e migrações
+│   ├── di/                     Módulos do Koin
+│   ├── domain/                 Modelos, interfaces de repositório e casos de uso
+│   └── util/extensions/        Moeda, datas e compartilhamento
+├── features/
+│   ├── home/                   Minhas listas
+│   ├── create/                 Nova lista
+│   ├── listdetail/             Lista de itens, ciclos, quinzenas e configurações
+│   └── about/                  Sobre o app
+├── navigation/                 Rotas e grafo de navegação
+└── ui/                         Tema FinCheck e componentes compartilhados
+```
 
-5.res/layout/: Esta pasta se torna menos utilizada, pois a UI é definida programaticamente com Composables. No entanto, você ainda pode precisar dela para layouts específicos de Views tradicionais (se estiver misturando Compose com Views) ou para recursos como layouts de widgets de app.
+## Como rodar
 
-6.Camadas domain e data (Clean Architecture):
-•A estrutura dessas camadas permanece idêntica à abordagem tradicional. Jetpack Compose é uma ferramenta de UI, e Clean Architecture se concentra na separação de preocupações em um nível mais fundamental (lógica de negócios, acesso a dados).
-•core/domain/repository/: Definir interfaces para seus repositórios aqui é uma prática chave da Clean Architecture, permitindo que a camada de domínio dependa de abstrações, não de implementações concretas.
-•core/data/mapper/: Mapeadores são importantes para converter entre modelos de dados (DTOs da API, Entidades do Room) e os modelos de domínio puros que sua camada de domínio e View
+Requisitos: Android Studio recente e JDK 17.
 
+```bash
+./gradlew :app:installDebug
+```
 
+## Testes e qualidade
 
-./gradlew detekt
+```bash
+./gradlew :app:testDebugUnitTest            # testes unitários
+./gradlew :app:connectedDebugAndroidTest    # testes no aparelho, inclui a migração do banco
+./gradlew detekt ktlintCheck                # análise estática e estilo
+./gradlew :app:jacocoTestReport             # cobertura de testes
+```
 
-./gradlew ktlintFormat
+## Banco de dados
+
+O esquema de cada versão é exportado para `app/schemas/` e versionado no git. A versão 9 é a
+linha de base da publicação. Para mudar o banco:
+
+1. Aumente `version` em `AppDatabase`.
+2. Adicione a migração em `ALL_MIGRATIONS` (nunca altere uma migração já publicada).
+3. Compile para exportar o novo JSON e faça o commit dele.
+4. Rode `./gradlew :app:connectedDebugAndroidTest`: o `DatabaseMigrationTest` valida que os dados
+   dos usuários chegam intactos ao novo esquema.
+
+## Build de release
+
+O release usa R8 e é assinado com a chave de upload da Google Play, lida de `keystore.properties`
+(fora do git). Copie `keystore.properties.example`, preencha com a sua chave e gere o bundle:
+
+```bash
+./gradlew :app:bundleRelease
+```
+
+O arquivo para a Play Store fica em `app/build/outputs/bundle/release/app-release.aab`.
+Sem `keystore.properties`, o release é assinado com a chave de debug e serve apenas para testes locais.
+
+---
+
+© BragaDev. Todos os direitos reservados.

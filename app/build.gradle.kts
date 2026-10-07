@@ -1,9 +1,9 @@
 import org.gradle.testing.jacoco.tasks.JacocoReport
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.io.gitlab.arturbosch.detekt)
     alias(libs.plugins.ktlint)
@@ -19,7 +19,7 @@ val keystoreProperties: Properties? = rootProject.file("keystore.properties")
 
 android {
     namespace = "com.bragadev.fincheck"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         // Permanent store identity of FinCheck: it can never change once published on Google Play.
@@ -68,9 +68,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
     buildFeatures {
         compose = true
         // BuildConfig.VERSION_NAME / VERSION_CODE for the "Sobre o app" screen.
@@ -82,7 +79,13 @@ android {
         }
     }
     // The exported database schemas feed MigrationTestHelper in the instrumented tests.
-    sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
+    sourceSets.getByName("androidTest").assets.directories.add("$projectDir/schemas")
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
 }
 
 room {
@@ -134,7 +137,8 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         "**/*Screen*.*",
         "**/*Preview*.*",
     )
-    val debugTree = fileTree("${layout.buildDirectory.get()}/tmp/kotlin-classes/debug") {
+    // AGP built-in Kotlin compiles to intermediates/built_in_kotlinc (no longer tmp/kotlin-classes).
+    val debugTree = fileTree("${layout.buildDirectory.get()}/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes") {
         exclude(fileFilter)
     }
     val mainSrc = "${project.projectDir}/src/main/kotlin"
@@ -148,8 +152,15 @@ tasks.register<JacocoReport>("jacocoTestReport") {
 }
 
 dependencies {
+    constraints {
+        // Navigation brings kotlinx-serialization 1.7.3 while room-testing (schema JSON) needs 1.8.1;
+        // the test APK is aligned to the app versions, so the app must resolve 1.8.1 too.
+        implementation(libs.kotlinx.serialization.core)
+    }
+
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
@@ -178,7 +189,8 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.koin.test)
     testImplementation(libs.koin.test.junit4)
-    testImplementation(kotlin("test"))
+    // kotlin.test with its JUnit 4 binding (AGP built-in Kotlin no longer picks it automatically).
+    testImplementation(libs.kotlin.test.junit)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

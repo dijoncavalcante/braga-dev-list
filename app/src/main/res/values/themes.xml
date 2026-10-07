@@ -1,5 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Bragadevlist" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--
+        App theme behind Compose. Its window background matches the Compose background, so there is
+        no white flash before the first frame (values-night has the dark variant).
+    -->
+    <style name="Theme.FinCheck" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/fincheck_window_background</item>
+    </style>
+
+    <!-- Launch screen: the FinCheck icon on the brand navy, then Theme.FinCheck. -->
+    <style name="Theme.FinCheck.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/fincheck_navy</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.FinCheck</item>
+    </style>
 </resources>

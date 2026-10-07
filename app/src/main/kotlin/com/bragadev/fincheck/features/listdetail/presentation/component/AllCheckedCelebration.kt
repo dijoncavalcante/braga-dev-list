@@ -41,7 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bragadev.fincheck.R
-import com.bragadev.fincheck.ui.theme.BragadevlistTheme
+import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.PI
@@ -221,7 +221,7 @@ private fun DrawScope.drawCheckMark(progress: Float, color: Color) {
 @Preview(showBackground = true)
 @Composable
 private fun AllCheckedCelebrationPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         AllCheckedCelebration(playConfetti = false, onConfettiFinished = {})
     }
 }

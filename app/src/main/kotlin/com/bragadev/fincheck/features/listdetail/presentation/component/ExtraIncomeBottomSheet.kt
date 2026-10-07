@@ -42,7 +42,7 @@ import com.bragadev.fincheck.R
 import com.bragadev.fincheck.core.domain.model.CalendarDate
 import com.bragadev.fincheck.core.domain.model.ExtraIncome
 import com.bragadev.fincheck.core.domain.model.ExtraIncomeRecurrence
-import com.bragadev.fincheck.ui.theme.BragadevlistTheme
+import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import kotlinx.coroutines.launch
 
 /**
@@ -228,7 +228,7 @@ private fun RecurrenceChoice(isMonthly: Boolean, onSelect: (isMonthly: Boolean) 
 @Preview(showBackground = true)
 @Composable
 private fun ExtraIncomeBottomSheetPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         ExtraIncomeBottomSheet(
             initialIncome = ExtraIncome(1, "Aluguel", 120_000, ExtraIncomeRecurrence.Monthly(15)),
             today = CalendarDate(2026, 10, 1),

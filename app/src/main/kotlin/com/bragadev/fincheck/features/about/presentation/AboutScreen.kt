@@ -36,7 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bragadev.fincheck.BuildConfig
 import com.bragadev.fincheck.R
-import com.bragadev.fincheck.ui.theme.BragadevlistTheme
+import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import java.util.Calendar
 
 /** Name of the company that develops the app; also used in the copyright line. */
@@ -176,7 +176,7 @@ private fun InfoRow(label: String, value: String) {
 @Preview(showBackground = true)
 @Composable
 private fun AboutPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         AboutContent(versionName = "1.0", versionCode = 1, year = 2026, onBackClick = {})
     }
 }

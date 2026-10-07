@@ -53,7 +53,7 @@ import com.bragadev.fincheck.core.domain.model.ItemViewMode
 import com.bragadev.fincheck.core.domain.model.ShoppingList
 import com.bragadev.fincheck.features.listdetail.presentation.state.ListDetailUiState
 import com.bragadev.fincheck.features.listdetail.presentation.viewmodel.ListDetailViewModel
-import com.bragadev.fincheck.ui.theme.BragadevlistTheme
+import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import kotlinx.coroutines.launch
 
 /**
@@ -402,7 +402,7 @@ private const val DISABLED_ALPHA = 0.38f
 @Preview(showBackground = true, heightDp = 1400)
 @Composable
 private fun ListSettingsPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         ListSettingsContent(
             uiState = ListDetailUiState(
                 isLoading = false,

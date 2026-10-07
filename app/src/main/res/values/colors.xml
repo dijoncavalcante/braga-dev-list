@@ -3,6 +3,7 @@
     <!-- FinCheck brand: navy (trust, technology), emerald (progress) and white (clarity). -->
     <color name="fincheck_navy">#FF0F172A</color>
     <color name="fincheck_emerald">#FF34D399</color>
-    <color name="black">#FF000000</color>
+    <!-- Window behind Compose; same as the light color scheme background (Slate50). -->
+    <color name="fincheck_window_background">#FFF8FAFC</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

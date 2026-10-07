@@ -1,19 +1,19 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Backup on Android 12+ (API 31+). Android 6 to 11 read backup_rules.xml.
+
+    The user's lists, bills and income live only on the device, so they go to the user's own
+    Google account backup and to a new phone in a device-to-device transfer. Nothing else is kept.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <!-- Room database fincheck.db, with its -wal and -shm files (write-ahead logging). -->
+        <include domain="database" path="." />
+        <!-- App preferences, e.g. "hide amounts". -->
+        <include domain="sharedpref" path="app_preferences.xml" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <include domain="database" path="." />
+        <include domain="sharedpref" path="app_preferences.xml" />
     </device-transfer>
-    -->
 </data-extraction-rules>

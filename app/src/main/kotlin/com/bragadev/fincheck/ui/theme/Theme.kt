@@ -82,7 +82,7 @@ private val LightColorScheme =
     )
 
 @Composable
-fun BragadevlistTheme(
+fun FinCheckTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Off by default: the FinCheck brand colors (same as the app icon) win over the
     // wallpaper-based dynamic colors of Android 12+, so icon and app look like one product.

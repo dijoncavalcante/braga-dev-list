@@ -45,7 +45,7 @@ import com.bragadev.fincheck.core.domain.model.IncomeFrequency
 import com.bragadev.fincheck.core.domain.model.IncomeSettings
 import com.bragadev.fincheck.core.domain.model.PayDay
 import com.bragadev.fincheck.core.util.extensions.toBrlCurrency
-import com.bragadev.fincheck.ui.theme.BragadevlistTheme
+import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import kotlinx.coroutines.launch
 
 /** How far ahead the next payment is looked for when suggesting its date. */
@@ -315,7 +315,7 @@ private fun PaymentFields(
 @Preview(showBackground = true)
 @Composable
 private fun IncomeSettingsBottomSheetPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         IncomeSettingsBottomSheet(
             initialSettings = IncomeSettings(
                 frequency = IncomeFrequency.TWICE_A_MONTH,

@@ -21,7 +21,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
@@ -49,7 +49,7 @@ import com.bragadev.fincheck.core.util.extensions.MAX_DUE_DAY
 import com.bragadev.fincheck.core.util.extensions.MIN_DUE_DAY
 import com.bragadev.fincheck.core.util.extensions.currencyInputToCents
 import com.bragadev.fincheck.core.util.extensions.toBrlCurrency
-import com.bragadev.fincheck.ui.theme.BragadevlistTheme
+import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import kotlinx.coroutines.launch
 
 /**
@@ -179,7 +179,7 @@ fun AddItemBottomSheet(
                     },
                     singleLine = true,
                     modifier = Modifier
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                         .fillMaxWidth(),
                 )
                 ExposedDropdownMenu(
@@ -260,7 +260,7 @@ fun AddItemBottomSheet(
 @Preview(showBackground = true)
 @Composable
 private fun AddItemBottomSheetPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         AddItemBottomSheet(onConfirm = { _, _, _, _ -> }, onDismiss = {})
     }
 }
@@ -269,7 +269,7 @@ private fun AddItemBottomSheetPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun EditItemBottomSheetPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         AddItemBottomSheet(
             initialItem = ShoppingListItem(
                 id = 1,

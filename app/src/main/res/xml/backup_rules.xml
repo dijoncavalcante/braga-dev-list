@@ -1,13 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?><!--
-   Sample backup rules file; uncomment and customize as necessary.
-   See https://developer.android.com/guide/topics/data/autobackup
-   for details.
-   Note: This file is ignored for devices older than API 31
-   See https://developer.android.com/about/versions/12/backup-restore
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Auto Backup on Android 6 to 11 (API 23-30). Android 12+ reads data_extraction_rules.xml.
+
+    The user's lists, bills and income live only on the device, so they go to the user's own
+    Google account backup: changing or resetting the phone must not lose them. Nothing else is kept.
 -->
 <full-backup-content>
-    <!--
-   <include domain="sharedpref" path="."/>
-   <exclude domain="sharedpref" path="device.xml"/>
--->
+    <!-- Room database fincheck.db, with its -wal and -shm files (write-ahead logging). -->
+    <include domain="database" path="." />
+    <!-- App preferences, e.g. "hide amounts". -->
+    <include domain="sharedpref" path="app_preferences.xml" />
 </full-backup-content>

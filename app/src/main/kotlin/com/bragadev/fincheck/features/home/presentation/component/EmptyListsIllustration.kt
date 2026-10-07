@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.bragadev.fincheck.ui.components.EmptyStateIllustration
-import com.bragadev.fincheck.ui.theme.BragadevlistTheme
+import com.bragadev.fincheck.ui.theme.FinCheckTheme
 
 /** "No lists yet" picture of the home screen: an empty box. */
 @Composable
@@ -17,7 +17,7 @@ fun EmptyListsIllustration(modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 private fun EmptyListsIllustrationPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         EmptyListsIllustration()
     }
 }

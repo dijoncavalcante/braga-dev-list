@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.bragadev.fincheck.R
 import com.bragadev.fincheck.core.domain.model.ItemsTotal
 import com.bragadev.fincheck.core.domain.model.ListSummary
-import com.bragadev.fincheck.ui.theme.BragadevlistTheme
+import com.bragadev.fincheck.ui.theme.FinCheckTheme
 
 /**
  * Totals pinned to the bottom of the screen, side by side: how many items are unchecked,
@@ -155,7 +155,7 @@ private val MIN_AMOUNT_FONT_SIZE = 10.sp
 @Preview(showBackground = true)
 @Composable
 private fun ListSummaryBarPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         ListSummaryBar(
             summary = ListSummary(
                 unchecked = ItemsTotal(count = 3, amountInCents = 25_000),
@@ -169,7 +169,7 @@ private fun ListSummaryBarPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun ListSummaryBarWithoutAmountsPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         ListSummaryBar(
             summary = ListSummary(
                 unchecked = ItemsTotal(count = 3, amountInCents = 25_000),

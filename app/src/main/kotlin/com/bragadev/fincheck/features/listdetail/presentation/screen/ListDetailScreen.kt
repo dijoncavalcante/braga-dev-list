@@ -70,7 +70,7 @@ import com.bragadev.fincheck.features.listdetail.presentation.state.ListDetailUi
 import com.bragadev.fincheck.features.listdetail.presentation.viewmodel.ListDetailViewModel
 import com.bragadev.fincheck.ui.components.EmptyStateContent
 import com.bragadev.fincheck.ui.components.EmptyStateIllustration
-import com.bragadev.fincheck.ui.theme.BragadevlistTheme
+import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -500,7 +500,7 @@ private fun ShoppingListItemRow(
 @Preview(showBackground = true)
 @Composable
 private fun ListDetailEmptyPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         ListDetailContent(
             uiState = ListDetailUiState(
                 isLoading = false,

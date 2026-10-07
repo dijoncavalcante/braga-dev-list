@@ -27,7 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.bragadev.fincheck.ui.theme.BragadevlistTheme
+import com.bragadev.fincheck.ui.theme.FinCheckTheme
 
 /**
  * Full-screen "nothing here yet" state shared by the app screens: an [illustration] above a
@@ -117,7 +117,7 @@ private fun Dot(size: Dp, color: Color, x: Dp, y: Dp) {
 @Preview(showBackground = true)
 @Composable
 private fun EmptyStateContentPreview() {
-    BragadevlistTheme {
+    FinCheckTheme {
         EmptyStateContent(
             title = "Nenhum item nesta lista",
             description = "Toque no botão abaixo para adicionar o primeiro item.",
