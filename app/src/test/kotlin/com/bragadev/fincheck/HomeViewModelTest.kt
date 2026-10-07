@@ -9,7 +9,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -22,7 +22,10 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class HomeViewModelTest {
 
-    private val dispatcher = UnconfinedTestDispatcher()
+    // Standard (not Unconfined): the ViewModel starts collecting in init, so with an unconfined
+    // dispatcher the lists would already be loaded before the test subscribes and the
+    // "loading" state could never be observed. Here coroutines run only as the test advances.
+    private val dispatcher = StandardTestDispatcher()
 
     @Before
     fun setUp() {

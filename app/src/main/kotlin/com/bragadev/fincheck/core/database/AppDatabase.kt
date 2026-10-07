@@ -3,12 +3,20 @@ package com.bragadev.fincheck.core.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
-import androidx.sqlite.db.SupportSQLiteDatabase
+
+/**
+ * Version FinCheck is first published with. Every install of fincheck.db starts here: the
+ * migrations of the pre-release versions 1..8 were removed because no device can ever hold those
+ * versions under this app id and file name (they stay in the git history).
+ */
+const val BASELINE_DATABASE_VERSION = 9
 
 @Database(
     entities = [ShoppingListEntity::class, ShoppingListItemEntity::class, IncomeSettingsEntity::class, ExtraIncomeEntity::class],
     version = 9,
-    exportSchema = false,
+    // Schemas are exported to app/schemas and committed: they are what DatabaseMigrationTest
+    // checks every migration against.
+    exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun shoppingListDao(): ShoppingListDao
@@ -21,164 +29,12 @@ abstract class AppDatabase : RoomDatabase() {
 }
 
 /**
- * v1 -> v2: adds the item unit price (in cents). Existing items get 0 (no price).
- */
-val MIGRATION_1_2 = object : Migration(1, 2) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE shopping_list_items ADD COLUMN priceInCents INTEGER NOT NULL DEFAULT 0")
-    }
-}
-
-/**
- * v2 -> v3: adds the optional item due date. Existing items get null (no due date).
- */
-val MIGRATION_2_3 = object : Migration(2, 3) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE shopping_list_items ADD COLUMN dueDateMillis INTEGER")
-    }
-}
-
-/**
- * v3 -> v4: the full due date is replaced by just the due day of the month (1..31).
- * Existing dates keep their day (10/10/2026 -> 10). Dates were stored as UTC midnight,
- * so the day is read in UTC.
+ * Every migration since [BASELINE_DATABASE_VERSION], in order. Used both by the app and by
+ * DatabaseMigrationTest, so a migration added here is tested automatically.
  *
- * SQLite on older Android versions (minSdk 24) has no DROP COLUMN, so the table is
- * recreated with the new schema and the rows are copied over.
+ * To change the database: bump `version` in [AppDatabase], add the `Migration(n, n + 1)` here
+ * (never edit a published one), build once to export the new schema JSON, commit it and run the
+ * instrumented tests. Users' data must survive every update: a broken migration makes the app
+ * crash on launch.
  */
-val MIGRATION_3_4 = object : Migration(3, 4) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `shopping_list_items_new` (
-                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                `listId` INTEGER NOT NULL,
-                `name` TEXT NOT NULL,
-                `quantity` INTEGER NOT NULL,
-                `priceInCents` INTEGER NOT NULL DEFAULT 0,
-                `dueDay` INTEGER,
-                `isChecked` INTEGER NOT NULL,
-                `createdAt` INTEGER NOT NULL,
-                FOREIGN KEY(`listId`) REFERENCES `shopping_lists`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
-            )
-            """.trimIndent(),
-        )
-        db.execSQL(
-            """
-            INSERT INTO `shopping_list_items_new`
-                (`id`, `listId`, `name`, `quantity`, `priceInCents`, `dueDay`, `isChecked`, `createdAt`)
-            SELECT
-                `id`, `listId`, `name`, `quantity`, `priceInCents`,
-                CASE WHEN `dueDateMillis` IS NULL THEN NULL
-                     ELSE CAST(strftime('%d', `dueDateMillis` / 1000, 'unixepoch') AS INTEGER)
-                END,
-                `isChecked`, `createdAt`
-            FROM `shopping_list_items`
-            """.trimIndent(),
-        )
-        db.execSQL("DROP TABLE `shopping_list_items`")
-        db.execSQL("ALTER TABLE `shopping_list_items_new` RENAME TO `shopping_list_items`")
-        db.execSQL("CREATE INDEX IF NOT EXISTS `index_shopping_list_items_listId` ON `shopping_list_items` (`listId`)")
-    }
-}
-
-/**
- * v4 -> v5: per-list display preferences of the list screen menu ("Ordem alfabética"
- * off and "Mostrar valor" on for every existing list).
- */
-val MIGRATION_4_5 = object : Migration(4, 5) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE shopping_lists ADD COLUMN sortAlphabetically INTEGER NOT NULL DEFAULT 0")
-        db.execSQL("ALTER TABLE shopping_lists ADD COLUMN showPrices INTEGER NOT NULL DEFAULT 1")
-    }
-}
-
-/** v5 -> v6: "Mostrar por quinzena" preference, off for every existing list. */
-val MIGRATION_5_6 = object : Migration(5, 6) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL("ALTER TABLE shopping_lists ADD COLUMN groupByFortnight INTEGER NOT NULL DEFAULT 0")
-    }
-}
-
-/**
- * v6 -> v7: the "Ordem alfabética" on/off is replaced by a single "Ordenar por" choice
- * (0 = ordem de adição, 1 = ordem alfabética, 2 = vencimento), so two orders can never
- * be on at the same time. Lists that were A→Z stay A→Z; the others keep the order added.
- *
- * SQLite on older Android versions (minSdk 24) has no DROP/RENAME COLUMN, so the table
- * is recreated and the rows copied with the same ids. Room only turns foreign keys on after
- * migrations run; still, if they are on, dropping the old table would cascade-delete the
- * items, so they are backed up first and restored afterwards.
- */
-val MIGRATION_6_7 = object : Migration(6, 7) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        val foreignKeysOn = db.query("PRAGMA foreign_keys").use { it.moveToFirst() && it.getInt(0) == 1 }
-        if (foreignKeysOn) {
-            db.execSQL("CREATE TEMP TABLE `items_backup` AS SELECT * FROM `shopping_list_items`")
-        }
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `shopping_lists_new` (
-                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                `name` TEXT NOT NULL,
-                `createdAt` INTEGER NOT NULL,
-                `sortOrder` INTEGER NOT NULL DEFAULT 0,
-                `showPrices` INTEGER NOT NULL DEFAULT 1,
-                `groupByFortnight` INTEGER NOT NULL DEFAULT 0
-            )
-            """.trimIndent(),
-        )
-        db.execSQL(
-            """
-            INSERT INTO `shopping_lists_new` (`id`, `name`, `createdAt`, `sortOrder`, `showPrices`, `groupByFortnight`)
-            SELECT `id`, `name`, `createdAt`,
-                CASE WHEN `sortAlphabetically` = 1 THEN 1 ELSE 0 END,
-                `showPrices`, `groupByFortnight`
-            FROM `shopping_lists`
-            """.trimIndent(),
-        )
-        db.execSQL("DROP TABLE `shopping_lists`")
-        db.execSQL("ALTER TABLE `shopping_lists_new` RENAME TO `shopping_lists`")
-        if (foreignKeysOn) {
-            db.execSQL("INSERT OR IGNORE INTO `shopping_list_items` SELECT * FROM `items_backup`")
-            db.execSQL("DROP TABLE `items_backup`")
-        }
-    }
-}
-
-/** v7 -> v8: how the user receives their income (one row, created when they set it up). */
-val MIGRATION_7_8 = object : Migration(7, 8) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `income_settings` (
-                `id` INTEGER NOT NULL,
-                `frequency` INTEGER NOT NULL,
-                `firstPayDay` INTEGER NOT NULL,
-                `firstAmountInCents` INTEGER NOT NULL,
-                `secondPayDay` INTEGER,
-                `secondAmountInCents` INTEGER,
-                `nextPaymentEpochDay` INTEGER NOT NULL,
-                PRIMARY KEY(`id`)
-            )
-            """.trimIndent(),
-        )
-    }
-}
-
-/** v8 -> v9: extra incomes ("Outras entradas"), recurring every month or received only once. */
-val MIGRATION_8_9 = object : Migration(8, 9) {
-    override fun migrate(db: SupportSQLiteDatabase) {
-        db.execSQL(
-            """
-            CREATE TABLE IF NOT EXISTS `extra_incomes` (
-                `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                `name` TEXT NOT NULL,
-                `amountInCents` INTEGER NOT NULL,
-                `dayOfMonth` INTEGER,
-                `dateEpochDay` INTEGER
-            )
-            """.trimIndent(),
-        )
-    }
-}
+val ALL_MIGRATIONS: Array<Migration> = emptyArray()

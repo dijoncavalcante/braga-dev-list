@@ -1,4 +1,5 @@
 import org.gradle.testing.jacoco.tasks.JacocoReport
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -7,31 +8,60 @@ plugins {
     alias(libs.plugins.io.gitlab.arturbosch.detekt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
     id("jacoco")
 }
 
+/** Upload key settings from the project root; null when the file is absent (e.g. CI, other devs). */
+val keystoreProperties: Properties? = rootProject.file("keystore.properties")
+    .takeIf { it.exists() }
+    ?.let { file -> Properties().apply { file.inputStream().use(::load) } }
+
 android {
     namespace = "com.bragadev.fincheck"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         // Permanent store identity of FinCheck: it can never change once published on Google Play.
         applicationId = "com.bragadev.fincheck"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        // Upload key for Google Play, read from keystore.properties (git-ignored, never committed).
+        // See keystore.properties.example for the expected keys.
+        if (keystoreProperties != null) {
+            create("upload") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8: shrinks, optimizes and obfuscates the code; unused resources are removed too.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            // Without keystore.properties the release is signed with the debug key, only to be
+            // tested on a device: Google Play rejects debug-signed uploads.
+            signingConfig = if (keystoreProperties != null) {
+                signingConfigs.getByName("upload")
+            } else {
+                logger.warn("keystore.properties not found: release signed with the DEBUG key (not uploadable).")
+                signingConfigs.getByName("debug")
+            }
         }
     }
     compileOptions {
@@ -51,6 +81,14 @@ android {
             isReturnDefaultValues = true
         }
     }
+    // The exported database schemas feed MigrationTestHelper in the instrumented tests.
+    sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
+}
+
+room {
+    // One JSON per database version, committed to git: the contract of every published version,
+    // used to test that each migration produces exactly the schema the app expects.
+    schemaDirectory("$projectDir/schemas")
 }
 
 detekt {
@@ -146,6 +184,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.androidx.room.testing)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
