@@ -11,11 +11,12 @@ plugins {
 }
 
 android {
-    namespace = "com.bragadev.list"
+    namespace = "com.bragadev.fincheck"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.bragadev.list"
+        // Permanent store identity of FinCheck: it can never change once published on Google Play.
+        applicationId = "com.bragadev.fincheck"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
