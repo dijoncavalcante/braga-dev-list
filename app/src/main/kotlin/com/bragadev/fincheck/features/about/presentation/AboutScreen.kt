@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -36,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bragadev.fincheck.BuildConfig
 import com.bragadev.fincheck.R
+import com.bragadev.fincheck.ui.components.adaptiveContentWidth
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import java.util.Calendar
 
@@ -47,12 +49,13 @@ private const val DEVELOPER = "BragaDev"
  * and who develops it.
  */
 @Composable
-fun AboutScreen(onBackClick: () -> Unit) {
+fun AboutScreen(onBackClick: () -> Unit, onPrivacyPolicyClick: () -> Unit) {
     AboutContent(
         versionName = BuildConfig.VERSION_NAME,
         versionCode = BuildConfig.VERSION_CODE,
         year = Calendar.getInstance().get(Calendar.YEAR),
         onBackClick = onBackClick,
+        onPrivacyPolicyClick = onPrivacyPolicyClick,
     )
 }
 
@@ -63,6 +66,7 @@ private fun AboutContent(
     versionCode: Int,
     year: Int,
     onBackClick: () -> Unit,
+    onPrivacyPolicyClick: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -83,6 +87,7 @@ private fun AboutContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .adaptiveContentWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -117,6 +122,10 @@ private fun AboutContent(
                     HorizontalDivider()
                     InfoRow(label = stringResource(R.string.about_developer_label), value = DEVELOPER)
                 }
+            }
+
+            TextButton(onClick = onPrivacyPolicyClick) {
+                Text(stringResource(R.string.privacy_title))
             }
 
             Text(
@@ -177,6 +186,6 @@ private fun InfoRow(label: String, value: String) {
 @Composable
 private fun AboutPreview() {
     FinCheckTheme {
-        AboutContent(versionName = "1.0", versionCode = 1, year = 2026, onBackClick = {})
+        AboutContent(versionName = "1.0", versionCode = 1, year = 2026, onBackClick = {}, onPrivacyPolicyClick = {})
     }
 }

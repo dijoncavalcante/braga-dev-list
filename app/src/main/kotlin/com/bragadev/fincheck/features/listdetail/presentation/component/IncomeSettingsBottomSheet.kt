@@ -29,6 +29,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,6 +55,12 @@ private const val SUGGESTION_WINDOW_DAYS = 62L
 
 /** Day and amount being typed for one payment; the day is null until chosen. */
 private data class PaymentInput(val day: Int? = null, val amountInCents: Long = 0)
+
+/** Keeps a payment being typed across rotation (rememberSaveable): [day, amount], day -1 = not chosen. */
+private val PaymentInputSaver = listSaver<PaymentInput, Long>(
+    save = { listOf(it.day?.toLong() ?: -1L, it.amountInCents) },
+    restore = { (day, amount) -> PaymentInput(day = day.takeIf { it >= 0 }?.toInt(), amountInCents = amount) },
+)
 
 /**
  * "Como você recebe?": monthly (one day and amount) or twice a month (two days, each with its
@@ -79,12 +87,12 @@ fun IncomeSettingsBottomSheet(
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
 ) {
     val scope = rememberCoroutineScope()
-    var frequency by remember { mutableStateOf(initialSettings?.frequency ?: IncomeFrequency.MONTHLY) }
-    var first by remember { mutableStateOf(initialSettings?.payDays?.getOrNull(0).toInput()) }
-    var second by remember { mutableStateOf(initialSettings?.payDays?.getOrNull(1).toInput()) }
+    var frequency by rememberSaveable { mutableStateOf(initialSettings?.frequency ?: IncomeFrequency.MONTHLY) }
+    var first by rememberSaveable(stateSaver = PaymentInputSaver) { mutableStateOf(initialSettings?.payDays?.getOrNull(0).toInput()) }
+    var second by rememberSaveable(stateSaver = PaymentInputSaver) { mutableStateOf(initialSettings?.payDays?.getOrNull(1).toInput()) }
     // A saved date that already passed is no longer "the next payment": suggest a new one instead.
-    var pickedNextDate by remember { mutableStateOf(initialSettings?.nextPaymentDate?.takeIf { it >= today }) }
-    var showErrors by remember { mutableStateOf(false) }
+    var pickedNextDate by rememberSaveable(stateSaver = OptionalCalendarDateSaver) { mutableStateOf(initialSettings?.nextPaymentDate?.takeIf { it >= today }) }
+    var showErrors by rememberSaveable { mutableStateOf(false) }
 
     val inputs = if (frequency == IncomeFrequency.MONTHLY) listOf(first) else listOf(first, second)
     val hasSameDays = frequency == IncomeFrequency.TWICE_A_MONTH && first.day != null && first.day == second.day

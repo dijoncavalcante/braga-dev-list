@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.bragadev.fincheck.R
 import com.bragadev.fincheck.core.domain.model.ItemsTotal
 import com.bragadev.fincheck.core.domain.model.ListSummary
+import com.bragadev.fincheck.ui.components.adaptiveContentWidth
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
 
 /**
@@ -49,7 +50,9 @@ fun ListSummaryBar(summary: ListSummary, modifier: Modifier = Modifier, showAmou
         modifier = modifier.fillMaxWidth(),
     ) {
         Row(
+            // The bar spans the screen; its three columns line up with the centered content on tablets.
             modifier = Modifier
+                .adaptiveContentWidth()
                 .navigationBarsPadding()
                 .height(IntrinsicSize.Min)
                 .padding(horizontal = 8.dp, vertical = 12.dp),

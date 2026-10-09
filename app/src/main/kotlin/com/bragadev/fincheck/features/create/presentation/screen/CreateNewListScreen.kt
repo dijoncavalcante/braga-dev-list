@@ -29,6 +29,7 @@ import com.bragadev.fincheck.R
 import com.bragadev.fincheck.features.create.presentation.state.CreateListError
 import com.bragadev.fincheck.features.create.presentation.state.CreateNewListUiState
 import com.bragadev.fincheck.features.create.presentation.viewmodel.CreateNewListViewModel
+import com.bragadev.fincheck.ui.components.adaptiveContentWidth
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import org.koin.androidx.compose.koinViewModel
 
@@ -75,6 +76,7 @@ private fun CreateNewListContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .adaptiveContentWidth()
                 .padding(24.dp),
         ) {
             Column {

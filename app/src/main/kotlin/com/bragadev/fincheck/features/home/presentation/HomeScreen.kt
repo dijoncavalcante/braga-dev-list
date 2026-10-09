@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,6 +44,7 @@ import com.bragadev.fincheck.features.home.presentation.component.ListOptionsShe
 import com.bragadev.fincheck.features.home.presentation.component.RenameListDialog
 import com.bragadev.fincheck.features.home.presentation.state.HomeUiState
 import com.bragadev.fincheck.features.home.presentation.viewmodel.HomeViewModel
+import com.bragadev.fincheck.ui.components.adaptiveContentWidth
 import com.bragadev.fincheck.ui.components.EmptyStateContent
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import org.koin.androidx.compose.koinViewModel
@@ -185,7 +187,8 @@ private fun ListsState(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(padding),
+            .padding(padding)
+            .adaptiveContentWidth(),
         contentPadding = PaddingValues(16.dp),
     ) {
         items(items = lists, key = { it.id }) { list ->
@@ -217,7 +220,7 @@ private fun ShoppingListRow(list: ShoppingList, onClick: () -> Unit, onMenuClick
             ) {
                 Text(text = list.name)
                 Text(
-                    text = "${list.itemCount} itens",
+                    text = pluralStringResource(R.plurals.home_list_item_count, list.itemCount, list.itemCount),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

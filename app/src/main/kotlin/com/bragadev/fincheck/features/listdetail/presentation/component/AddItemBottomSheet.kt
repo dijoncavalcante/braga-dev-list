@@ -34,6 +34,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,14 +77,14 @@ fun AddItemBottomSheet(
 ) {
     val scope = rememberCoroutineScope()
     val isEditing = initialItem != null
-    var name by remember(initialItem) { mutableStateOf(initialItem?.name.orEmpty()) }
-    var quantityText by remember(initialItem) { mutableStateOf((initialItem?.quantity ?: 1).toString()) }
-    var showNameError by remember(initialItem) { mutableStateOf(false) }
-    var priceInCents by remember(initialItem) { mutableLongStateOf(initialItem?.priceInCents ?: 0L) }
+    var name by rememberSaveable(initialItem) { mutableStateOf(initialItem?.name.orEmpty()) }
+    var quantityText by rememberSaveable(initialItem) { mutableStateOf((initialItem?.quantity ?: 1).toString()) }
+    var showNameError by rememberSaveable(initialItem) { mutableStateOf(false) }
+    var priceInCents by rememberSaveable(initialItem) { mutableLongStateOf(initialItem?.priceInCents ?: 0L) }
     val priceText = priceInCents.toBrlCurrency()
-    var dueDay by remember(initialItem) { mutableStateOf(initialItem?.dueDay) }
+    var dueDay by rememberSaveable(initialItem) { mutableStateOf(initialItem?.dueDay) }
     var isDueDayMenuExpanded by remember { mutableStateOf(false) }
-    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
 
     // Cancel button: animate the sheet away before telling the caller, like a swipe down does.
     val hideAndDismiss: () -> Unit = {

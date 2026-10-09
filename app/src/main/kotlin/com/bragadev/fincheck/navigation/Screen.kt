@@ -21,4 +21,6 @@ sealed class Screen(val route: String) {
     }
 
     data object About : Screen(route = "about")
+
+    data object PrivacyPolicy : Screen(route = "privacy_policy")
 }

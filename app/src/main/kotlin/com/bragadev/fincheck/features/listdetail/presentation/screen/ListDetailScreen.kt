@@ -68,6 +68,7 @@ import com.bragadev.fincheck.features.listdetail.presentation.component.LocalAmo
 import com.bragadev.fincheck.features.listdetail.presentation.component.toDisplayAmount
 import com.bragadev.fincheck.features.listdetail.presentation.state.ListDetailUiState
 import com.bragadev.fincheck.features.listdetail.presentation.viewmodel.ListDetailViewModel
+import com.bragadev.fincheck.ui.components.adaptiveContentWidth
 import com.bragadev.fincheck.ui.components.EmptyStateContent
 import com.bragadev.fincheck.ui.components.EmptyStateIllustration
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
@@ -295,7 +296,8 @@ private fun ItemsState(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(padding),
+            .padding(padding)
+            .adaptiveContentWidth(),
         // Extra bottom space so the "Adicionar item" button never covers the last item.
         contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 88.dp),
     ) {

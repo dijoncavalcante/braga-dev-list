@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.bragadev.fincheck.features.about.presentation.AboutScreen
+import com.bragadev.fincheck.features.about.presentation.PrivacyPolicyScreen
 import com.bragadev.fincheck.features.create.presentation.screen.CreateNewListScreen
 import com.bragadev.fincheck.features.home.presentation.HomeScreen
 import com.bragadev.fincheck.features.listdetail.presentation.screen.ListDetailScreen
@@ -64,10 +65,17 @@ fun AppNavigation() {
                 viewModel = koinViewModel(viewModelStoreOwner = listEntry, parameters = { parametersOf(listId) }),
                 onBackClick = { navController.popBackStack() },
                 onAboutClick = { navController.navigate(Screen.About.route) },
+                onPrivacyPolicyClick = { navController.navigate(Screen.PrivacyPolicy.route) },
             )
         }
         composable(Screen.About.route) {
-            AboutScreen(onBackClick = { navController.popBackStack() })
+            AboutScreen(
+                onBackClick = { navController.popBackStack() },
+                onPrivacyPolicyClick = { navController.navigate(Screen.PrivacyPolicy.route) },
+            )
+        }
+        composable(Screen.PrivacyPolicy.route) {
+            PrivacyPolicyScreen(onBackClick = { navController.popBackStack() })
         }
     }
 }

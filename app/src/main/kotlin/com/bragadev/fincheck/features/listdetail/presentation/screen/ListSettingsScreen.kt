@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.PrivacyTip
 import androidx.compose.material.icons.outlined.RemoveDone
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,6 +54,7 @@ import com.bragadev.fincheck.core.domain.model.ItemViewMode
 import com.bragadev.fincheck.core.domain.model.ShoppingList
 import com.bragadev.fincheck.features.listdetail.presentation.state.ListDetailUiState
 import com.bragadev.fincheck.features.listdetail.presentation.viewmodel.ListDetailViewModel
+import com.bragadev.fincheck.ui.components.adaptiveContentWidth
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import kotlinx.coroutines.launch
 
@@ -68,6 +70,7 @@ fun ListSettingsScreen(
     viewModel: ListDetailViewModel,
     onBackClick: () -> Unit,
     onAboutClick: () -> Unit,
+    onPrivacyPolicyClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -96,6 +99,7 @@ fun ListSettingsScreen(
             onRenameListClick = viewModel::onRenameListClick,
             onShareClick = viewModel::onShareClick,
             onAboutClick = onAboutClick,
+            onPrivacyPolicyClick = onPrivacyPolicyClick,
         ),
     )
 
@@ -115,6 +119,7 @@ private data class ListSettingsActions(
     val onRenameListClick: () -> Unit = {},
     val onShareClick: () -> Unit = {},
     val onAboutClick: () -> Unit = {},
+    val onPrivacyPolicyClick: () -> Unit = {},
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -144,6 +149,7 @@ private fun ListSettingsContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .adaptiveContentWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 24.dp),
         ) {
@@ -168,6 +174,13 @@ private fun ListSettingsContent(
                 title = stringResource(R.string.about_title),
                 description = stringResource(R.string.list_settings_about_description),
                 onClick = actions.onAboutClick,
+                showChevron = true,
+            )
+            ActionRow(
+                icon = Icons.Outlined.PrivacyTip,
+                title = stringResource(R.string.privacy_title),
+                description = stringResource(R.string.privacy_settings_description),
+                onClick = actions.onPrivacyPolicyClick,
                 showChevron = true,
             )
         }

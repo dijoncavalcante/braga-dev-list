@@ -14,6 +14,10 @@
     <string name="home_option_delete">Excluir</string>
     <string name="home_rename_title">Renomear lista</string>
     <string name="home_delete_title">Excluir lista?</string>
+    <plurals name="home_list_item_count">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d itens</item>
+    </plurals>
     <string name="home_delete_message">A lista \"%1$s\" e todos os itens dela serão excluídos. Essa ação não pode ser desfeita.</string>
 
     <string name="create_list_title">Nova lista</string>
@@ -196,4 +200,38 @@
     <string name="about_developer_label">Desenvolvido por</string>
     <string name="about_developer_message">Feito com cuidado pela %1$s, para deixar a sua vida financeira mais leve.</string>
     <string name="about_copyright">© %1$d %2$s. Todos os direitos reservados.</string>
+
+    <!-- Privacy policy: same content as docs/privacy-policy.html (keep both in sync) -->
+    <string name="privacy_title">Política de privacidade</string>
+    <string name="privacy_updated">Última atualização: 9 de outubro de 2026</string>
+    <string name="privacy_summary">Em resumo: o FinCheck não coleta, não envia e não compartilha os seus dados. Tudo o que você cadastra fica apenas no seu aparelho. O app não usa internet, não tem login, anúncios nem ferramentas de análise.</string>
+    <string name="privacy_intro">Esta política explica como o FinCheck, desenvolvido pela BragaDev, trata as informações de quem o utiliza, em conformidade com a Lei Geral de Proteção de Dados (LGPD) e com as políticas do Google Play.</string>
+    <string-array name="privacy_section_titles">
+        <item>1. Quais informações o app armazena</item>
+        <item>2. Onde os dados ficam</item>
+        <item>3. Backup do Android</item>
+        <item>4. Compartilhamento</item>
+        <item>5. Anúncios, análises e terceiros</item>
+        <item>6. Por quanto tempo os dados ficam guardados e como excluí-los</item>
+        <item>7. Seus direitos</item>
+        <item>8. Segurança</item>
+        <item>9. Crianças</item>
+        <item>10. Alterações nesta política</item>
+        <item>11. Contato</item>
+    </string-array>
+    <string-array name="privacy_section_bodies">
+        <item>O FinCheck guarda no seu aparelho apenas o que você cadastra:\n• listas e itens (nome, quantidade, valor, dia de vencimento e se o item foi marcado);\n• a configuração de recebimento e as outras entradas que você informar;\n• preferências do app, como ordenação, visualização e a opção de ocultar valores.\n\nO app não solicita nem acessa nome, e-mail, telefone, localização, contatos, fotos, dados bancários, identificadores de publicidade ou qualquer outra informação do aparelho.</item>
+        <item>Todas as informações ficam armazenadas localmente, apenas no seu aparelho. O FinCheck não possui servidores, não pede permissão de acesso à internet e não transmite dados para a BragaDev nem para terceiros. Nós não temos acesso às suas informações.</item>
+        <item>Se o backup estiver ativado no seu aparelho, o próprio Android pode incluir os dados do FinCheck no backup da sua conta Google e na transferência para um novo aparelho. Esse backup é feito e criptografado pelo Google, fica vinculado à sua conta e é controlado por você nas configurações do Android. A BragaDev não tem acesso a ele.</item>
+        <item>Não vendemos, alugamos nem compartilhamos dados. O app só envia informações para fora quando você usa a opção \"Compartilhar\" de uma lista: o texto da lista é entregue ao aplicativo que você escolher, seguindo as regras desse aplicativo.</item>
+        <item>O FinCheck não exibe anúncios e não utiliza ferramentas de análise, rastreamento ou relatórios de uso de terceiros.</item>
+        <item>Os dados permanecem no aparelho até que você os apague. Você pode, a qualquer momento:\n• excluir itens e listas dentro do app;\n• apagar todos os dados em Configurações do Android › Apps › FinCheck › Armazenamento › Limpar dados;\n• desinstalar o app, o que remove todos os dados do aparelho;\n• gerenciar ou excluir os backups nas configurações da sua conta Google.</item>
+        <item>A LGPD garante a você direitos como acesso, correção e exclusão dos seus dados. Como as informações ficam somente no seu aparelho e sob o seu controle, você exerce esses direitos diretamente pelo app e pelas configurações do Android, sem depender de nós.</item>
+        <item>Os dados ficam na área privada do app no aparelho, protegida pelo Android contra o acesso de outros aplicativos. Recomendamos manter o bloqueio de tela ativado.</item>
+        <item>O FinCheck é um app de organização financeira destinado a maiores de 18 anos e não é direcionado a crianças.</item>
+        <item>Podemos atualizar esta política, por exemplo, se o app ganhar novos recursos. A versão vigente estará sempre disponível no app e na página online, com a data da última atualização.</item>
+        <item>BragaDev, desenvolvedora do FinCheck\nE-mail: dijoncavalcante@gmail.com</item>
+    </string-array>
+    <string name="privacy_open_online">Ver versão online</string>
+    <string name="privacy_settings_description">Como o FinCheck trata os seus dados</string>
 </resources>

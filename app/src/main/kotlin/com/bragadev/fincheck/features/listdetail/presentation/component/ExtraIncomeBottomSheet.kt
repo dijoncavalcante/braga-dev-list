@@ -31,6 +31,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,13 +66,13 @@ fun ExtraIncomeBottomSheet(
 ) {
     val scope = rememberCoroutineScope()
     val initialRecurrence = initialIncome?.recurrence
-    var name by remember { mutableStateOf(initialIncome?.name.orEmpty()) }
-    var amountInCents by remember { mutableLongStateOf(initialIncome?.amountInCents ?: 0L) }
-    var isMonthly by remember { mutableStateOf(initialRecurrence !is ExtraIncomeRecurrence.Once) }
-    var day by remember { mutableStateOf((initialRecurrence as? ExtraIncomeRecurrence.Monthly)?.dayOfMonth) }
-    var date by remember { mutableStateOf((initialRecurrence as? ExtraIncomeRecurrence.Once)?.date) }
-    var showErrors by remember { mutableStateOf(false) }
-    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var name by rememberSaveable { mutableStateOf(initialIncome?.name.orEmpty()) }
+    var amountInCents by rememberSaveable { mutableLongStateOf(initialIncome?.amountInCents ?: 0L) }
+    var isMonthly by rememberSaveable { mutableStateOf(initialRecurrence !is ExtraIncomeRecurrence.Once) }
+    var day by rememberSaveable { mutableStateOf((initialRecurrence as? ExtraIncomeRecurrence.Monthly)?.dayOfMonth) }
+    var date by rememberSaveable(stateSaver = OptionalCalendarDateSaver) { mutableStateOf((initialRecurrence as? ExtraIncomeRecurrence.Once)?.date) }
+    var showErrors by rememberSaveable { mutableStateOf(false) }
+    var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
 
     val hideAndDismiss: () -> Unit = {
         scope.launch { sheetState.hide() }.invokeOnCompletion {
