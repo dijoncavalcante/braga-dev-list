@@ -11,8 +11,11 @@ const val FIRST_FORTNIGHT_LAST_DAY = 15
  * Each group keeps the order of the list it came from.
  */
 data class FortnightGroups<T>(
+    /** Entries due on days 1–15. */
     val firstFortnight: List<T>,
+    /** Entries due on days 16–31. */
     val secondFortnight: List<T>,
+    /** Entries without a due day. */
     val withoutDueDay: List<T>,
 )
 

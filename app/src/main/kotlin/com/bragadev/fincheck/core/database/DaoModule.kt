@@ -4,6 +4,7 @@ import androidx.room.Room
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
+/** File name of the Room database; never change it, or users lose their data. */
 private const val DATABASE_NAME = "fincheck.db"
 
 /**

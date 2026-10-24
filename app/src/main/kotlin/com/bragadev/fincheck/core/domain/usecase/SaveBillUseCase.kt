@@ -4,7 +4,9 @@ import com.bragadev.fincheck.core.common.result.AppError
 import com.bragadev.fincheck.core.common.result.AppResult
 import com.bragadev.fincheck.core.domain.model.Bill
 import com.bragadev.fincheck.core.domain.model.BillEditScope
+import com.bragadev.fincheck.core.domain.model.MAX_DESCRIPTION_LENGTH
 import com.bragadev.fincheck.core.domain.model.YearMonth
+import com.bragadev.fincheck.core.domain.model.toDescription
 import com.bragadev.fincheck.core.domain.repository.BillRepository
 import com.bragadev.fincheck.core.util.extensions.MAX_DUE_DAY
 import com.bragadev.fincheck.core.util.extensions.MIN_DUE_DAY
@@ -18,6 +20,7 @@ import com.bragadev.fincheck.core.util.extensions.MIN_DUE_DAY
 class SaveBillUseCase(
     private val repository: BillRepository,
 ) {
+    /** Validates [bill] and saves it as a new bill, with its name and description trimmed. */
     suspend fun add(bill: Bill): AppResult<Unit> {
         validate(bill)?.let { return it }
         return repository.addBill(bill.normalized())
@@ -64,6 +67,7 @@ class SaveBillUseCase(
         }
     }
 
+    /** The validation error of the first broken rule; null when [bill] can be saved. */
     private fun validate(bill: Bill): AppResult.Error? =
         when {
             bill.name.isBlank() -> AppResult.Error(AppError.Validation(reason = "invalid_bill_name"))
@@ -71,11 +75,16 @@ class SaveBillUseCase(
                 AppResult.Error(AppError.Validation(reason = "invalid_due_day"))
             bill.endMonth != null && bill.endMonth < bill.startMonth ->
                 AppResult.Error(AppError.Validation(reason = "invalid_bill_end"))
+            (bill.description.toDescription()?.length ?: 0) > MAX_DESCRIPTION_LENGTH ->
+                AppResult.Error(AppError.Validation(reason = "invalid_bill_description"))
             else -> null
         }
 
-    private fun Bill.normalized() = copy(name = name.trim(), priceInCents = priceInCents.coerceAtLeast(0))
+    /** Trimmed name and description and a price never below zero. */
+    private fun Bill.normalized() =
+        copy(name = name.trim(), priceInCents = priceInCents.coerceAtLeast(0), description = description.toDescription())
 
+    /** Whether this bill ends before [other] does (a bill with no end never does). */
     private fun Bill.endsBefore(other: Bill): Boolean {
         val end = endMonth ?: return false
         return other.endMonth == null || end < other.endMonth

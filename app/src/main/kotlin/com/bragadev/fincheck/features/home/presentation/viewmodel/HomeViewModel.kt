@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** ViewModel of the "Listas" tab: observes the lists and runs the options of each one (rename, share, copy, delete). */
 class HomeViewModel(
     private val getShoppingListsUseCase: GetShoppingListsUseCase,
     private val renameShoppingListUseCase: RenameShoppingListUseCase,
@@ -30,14 +31,17 @@ class HomeViewModel(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
+    /** State the screen draws. */
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    /** Collection of the lists; replaced when the user retries. */
     private var observeJob: Job? = null
 
     init {
         observeLists()
     }
 
+    /** Reads the lists again after an error. */
     fun retry() {
         _uiState.update { it.copy(isLoading = true, error = null) }
         observeLists()
@@ -45,10 +49,12 @@ class HomeViewModel(
 
     // region Options sheet (three dots)
 
+    /** Opens the options sheet of [list]. */
     fun onListMenuClick(list: ShoppingList) {
         _uiState.update { it.copy(menuList = list) }
     }
 
+    /** Closes the options sheet. */
     fun onDismissListMenu() {
         _uiState.update { it.copy(menuList = null) }
     }
@@ -57,14 +63,17 @@ class HomeViewModel(
 
     // region Renomear
 
+    /** "Renomear": opens the rename dialog for the list of the options sheet. */
     fun onRenameClick() {
         _uiState.update { it.copy(renamingList = it.menuList, menuList = null, showRenameError = false) }
     }
 
+    /** The name in the rename dialog changed; hides the error. */
     fun onRenameNameChanged() {
         _uiState.update { it.copy(showRenameError = false) }
     }
 
+    /** Saves [newName]; the dialog closes on success and shows an error for an invalid name. */
     fun onRenameConfirm(newName: String) {
         val list = _uiState.value.renamingList ?: return
         viewModelScope.launch {
@@ -77,6 +86,7 @@ class HomeViewModel(
         }
     }
 
+    /** Closes the rename dialog without saving. */
     fun onDismissRename() {
         _uiState.update { it.copy(renamingList = null, showRenameError = false) }
     }
@@ -85,6 +95,7 @@ class HomeViewModel(
 
     // region Compartilhar
 
+    /** "Compartilhar": builds the text of the list of the options sheet, for the share sheet. */
     fun onShareClick() {
         val list = _uiState.value.menuList ?: return
         _uiState.update { it.copy(menuList = null) }
@@ -105,6 +116,7 @@ class HomeViewModel(
 
     // region Copiar
 
+    /** "Copiar": copies the list of the options sheet with its items. */
     fun onCopyClick() {
         val list = _uiState.value.menuList ?: return
         _uiState.update { it.copy(menuList = null) }
@@ -117,10 +129,12 @@ class HomeViewModel(
 
     // region Excluir
 
+    /** "Excluir": asks to confirm the deletion of the list of the options sheet. */
     fun onDeleteClick() {
         _uiState.update { it.copy(deletingList = it.menuList, menuList = null) }
     }
 
+    /** Deletes the list waiting for confirmation, with its items. */
     fun onDeleteConfirm() {
         val list = _uiState.value.deletingList ?: return
         viewModelScope.launch {
@@ -131,12 +145,14 @@ class HomeViewModel(
         }
     }
 
+    /** Closes the delete confirmation without deleting. */
     fun onDismissDelete() {
         _uiState.update { it.copy(deletingList = null) }
     }
 
     // endregion
 
+    /** Starts (or restarts) collecting the lists into the state. */
     private fun observeLists() {
         observeJob?.cancel()
         observeJob = getShoppingListsUseCase()

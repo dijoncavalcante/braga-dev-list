@@ -17,8 +17,11 @@ sealed interface ExtraIncomeRecurrence {
  */
 data class ExtraIncome(
     val id: Long = 0,
+    /** Name shown in the cycle, such as "Aluguel do apartamento". */
     val name: String,
+    /** Amount received each time, in cents. */
     val amountInCents: Long,
+    /** Whether it comes every month or only once. */
     val recurrence: ExtraIncomeRecurrence,
 ) {
     /** Dates this income arrives between [from] and [to] (both included), oldest first. */
@@ -35,5 +38,6 @@ data class ExtraIncome(
 
 /** One arrival of an [ExtraIncome] inside a financial cycle. */
 data class ExtraIncomeEntry(val income: ExtraIncome, val date: CalendarDate) {
+    /** Amount received on this date, in cents. */
     val amountInCents: Long get() = income.amountInCents
 }

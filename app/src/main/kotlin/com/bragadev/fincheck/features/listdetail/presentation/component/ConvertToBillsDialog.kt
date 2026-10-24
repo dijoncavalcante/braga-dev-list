@@ -104,6 +104,7 @@ fun ConvertToBillsDialog(
     )
 }
 
+/** One radio option of "Repete?". */
 @Composable
 private fun RepetitionOption(
     text: String,

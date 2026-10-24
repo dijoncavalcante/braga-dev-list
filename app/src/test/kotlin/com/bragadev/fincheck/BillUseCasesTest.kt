@@ -5,6 +5,7 @@ import com.bragadev.fincheck.core.common.result.AppResult
 import com.bragadev.fincheck.core.domain.model.Bill
 import com.bragadev.fincheck.core.domain.model.BillEditScope
 import com.bragadev.fincheck.core.domain.model.BillRepetition
+import com.bragadev.fincheck.core.domain.model.MAX_DESCRIPTION_LENGTH
 import com.bragadev.fincheck.core.domain.model.ShoppingListItem
 import com.bragadev.fincheck.core.domain.model.YearMonth
 import com.bragadev.fincheck.core.domain.repository.BillRepository
@@ -66,6 +67,19 @@ class BillUseCasesTest {
             invalid.forEach { (reason, bill) ->
                 assertEquals(AppError.Validation(reason), assertIs<AppResult.Error>(save.add(bill)).error)
             }
+        }
+
+    @Test
+    fun `the description is trimmed, a blank one is saved as none and a long one is refused`() =
+        runTest {
+            save.add(internet.copy(id = 0, description = "  Débito automático "))
+            coVerify { repository.addBill(internet.copy(id = 0, description = "Débito automático")) }
+
+            save.add(internet.copy(id = 0, description = "   "))
+            coVerify { repository.addBill(internet.copy(id = 0, description = null)) }
+
+            val tooLong = save.add(internet.copy(id = 0, description = "a".repeat(MAX_DESCRIPTION_LENGTH + 1)))
+            assertIs<AppError.Validation>((tooLong as AppResult.Error).error)
         }
 
     @Test

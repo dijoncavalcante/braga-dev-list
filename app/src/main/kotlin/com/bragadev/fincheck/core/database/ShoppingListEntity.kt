@@ -4,10 +4,14 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+/** A list as stored in the `shopping_lists` table, with the preferences of its screen. */
 @Entity(tableName = "shopping_lists")
 data class ShoppingListEntity(
+    /** Generated id; 0 before the list is saved. */
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    /** Name typed by the user, such as "Compras do mês". */
     val name: String,
+    /** Creation time in epoch milliseconds; newer lists come first. */
     val createdAt: Long,
     /** "Ordenar por" choice of the list screen menu, as [com.bragadev.fincheck.core.domain.model.ItemSortOrder.code]. */
     @ColumnInfo(defaultValue = "0") val sortOrder: Int = 0,

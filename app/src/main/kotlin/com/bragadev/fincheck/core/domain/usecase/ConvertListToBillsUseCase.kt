@@ -18,6 +18,12 @@ class ConvertListToBillsUseCase(
     private val listRepository: ShoppingListRepository,
     private val billRepository: BillRepository,
 ) {
+    /**
+     * Creates one bill per item of list [listId], starting in [startMonth] and repeating as
+     * [repetition] says.
+     *
+     * @return how many bills were created; 0 for an empty list.
+     */
     suspend operator fun invoke(
         listId: Long,
         startMonth: YearMonth,
@@ -37,6 +43,7 @@ class ConvertListToBillsUseCase(
                     dueDay = item.dueDay,
                     startMonth = startMonth,
                     endMonth = repetition.endMonth(startMonth),
+                    description = item.description,
                 )
             }
         return when (val result = billRepository.addBills(bills)) {

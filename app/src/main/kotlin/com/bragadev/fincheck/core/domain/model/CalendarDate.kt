@@ -32,6 +32,7 @@ data class CalendarDate(val year: Int, val month: Int, val day: Int) : Comparabl
         return era * DAYS_PER_ERA + dayOfEra - EPOCH_SHIFT
     }
 
+    /** This date moved [days] days forward (negative = backward). */
     fun plusDays(days: Long): CalendarDate = fromEpochDay(toEpochDay() + days)
 
     /** Days from this date until [other]; negative when [other] is before. */
@@ -52,7 +53,9 @@ data class CalendarDate(val year: Int, val month: Int, val day: Int) : Comparabl
     fun toDayMonthYear(): String = "%02d/%02d/%04d".format(day, month, year)
 
     companion object {
+        /** Days in a 400-year Gregorian era. */
         private const val DAYS_PER_ERA = 146_097L
+        /** Days from 0000-03-01 to 1970-01-01, used by the epoch day conversion. */
         private const val EPOCH_SHIFT = 719_468L
 
         fun fromEpochDay(epochDay: Long): CalendarDate {

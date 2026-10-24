@@ -13,6 +13,7 @@ import com.bragadev.fincheck.R
 
 /** The two top-level tabs: "Meses" (bills and money of each month) and "Listas" (standalone lists). */
 enum class TopLevelTab(
+    /** Destination the tab opens. */
     val screen: Screen,
 ) {
     MONTHS(Screen.Months),

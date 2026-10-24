@@ -16,6 +16,7 @@ const val MAX_PAY_DAY = 31
  * [code] is what is stored in the database; keep it stable when adding new frequencies.
  */
 enum class IncomeFrequency(val code: Int, val paymentsPerMonth: Int) {
+    /** A single payment a month. */
     MONTHLY(code = 0, paymentsPerMonth = 1),
 
     /** Two payments a month, on any two days the user chooses, each with its own amount. */
@@ -23,6 +24,7 @@ enum class IncomeFrequency(val code: Int, val paymentsPerMonth: Int) {
     ;
 
     companion object {
+        /** The frequency stored as [code]; [MONTHLY] for an unknown code. */
         fun fromCode(code: Int): IncomeFrequency = entries.firstOrNull { it.code == code } ?: MONTHLY
     }
 }
@@ -31,6 +33,7 @@ enum class IncomeFrequency(val code: Int, val paymentsPerMonth: Int) {
 data class PayDay(
     /** 1..31; in months shorter than it the payment falls on the last day of the month. */
     val dayOfMonth: Int,
+    /** Amount received, in cents. */
     val amountInCents: Long,
 )
 
@@ -44,10 +47,12 @@ data class PayDay(
  * scheduled payment closest to it. See [DayOfMonthSchedule].
  */
 data class IncomeSettings(
+    /** How often the income arrives. */
     val frequency: IncomeFrequency,
     val payDays: List<PayDay>,
     val nextPaymentDate: CalendarDate,
 ) {
+    /** The schedule that turns these settings into dated payments. */
     fun toSchedule(): IncomeSchedule = when (frequency) {
         IncomeFrequency.MONTHLY, IncomeFrequency.TWICE_A_MONTH -> DayOfMonthSchedule(payDays, nextPaymentDate)
     }

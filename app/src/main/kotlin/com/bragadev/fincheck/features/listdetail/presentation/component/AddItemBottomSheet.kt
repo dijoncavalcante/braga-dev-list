@@ -42,6 +42,7 @@ import com.bragadev.fincheck.R
 import com.bragadev.fincheck.core.domain.model.ShoppingListItem
 import com.bragadev.fincheck.core.util.extensions.currencyInputToCents
 import com.bragadev.fincheck.core.util.extensions.toBrlCurrency
+import com.bragadev.fincheck.ui.components.DescriptionField
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import kotlinx.coroutines.launch
 
@@ -62,7 +63,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AddItemBottomSheet(
     initialItem: ShoppingListItem? = null,
-    onConfirm: (name: String, quantity: Int, priceInCents: Long) -> Unit,
+    onConfirm: (name: String, quantity: Int, priceInCents: Long, description: String) -> Unit,
     onDismiss: () -> Unit,
     onDelete: (() -> Unit)? = null,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -73,6 +74,7 @@ fun AddItemBottomSheet(
     var quantityText by rememberSaveable(initialItem) { mutableStateOf((initialItem?.quantity ?: 1).toString()) }
     var showNameError by rememberSaveable(initialItem) { mutableStateOf(false) }
     var priceInCents by rememberSaveable(initialItem) { mutableLongStateOf(initialItem?.priceInCents ?: 0L) }
+    var description by rememberSaveable(initialItem) { mutableStateOf(initialItem?.description.orEmpty()) }
     val priceText = priceInCents.toBrlCurrency()
     var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
 
@@ -145,6 +147,7 @@ fun AddItemBottomSheet(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
             )
+            DescriptionField(value = description, onValueChange = { description = it })
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -163,6 +166,7 @@ fun AddItemBottomSheet(
                         name.trim(),
                         quantityText.toIntOrNull()?.coerceAtLeast(1) ?: 1,
                         priceInCents,
+                        description,
                     )
                 }) {
                     Text(
@@ -207,7 +211,7 @@ fun AddItemBottomSheet(
 @Composable
 private fun AddItemBottomSheetPreview() {
     FinCheckTheme {
-        AddItemBottomSheet(onConfirm = { _, _, _ -> }, onDismiss = {})
+        AddItemBottomSheet(onConfirm = { _, _, _, _ -> }, onDismiss = {})
     }
 }
 
@@ -226,8 +230,9 @@ private fun EditItemBottomSheetPreview() {
                 dueDay = 10,
                 isChecked = false,
                 createdAt = 0,
+                description = "Integral, pacote de 5 kg",
             ),
-            onConfirm = { _, _, _ -> },
+            onConfirm = { _, _, _, _ -> },
             onDismiss = {},
             onDelete = {},
         )

@@ -13,17 +13,21 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** ViewModel of the "Nova lista" screen: keeps the typed name and creates the list. */
 class CreateNewListViewModel(
     private val createShoppingListUseCase: CreateShoppingListUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateNewListUiState())
+    /** State the screen draws. */
     val uiState: StateFlow<CreateNewListUiState> = _uiState.asStateFlow()
 
+    /** The name field changed; clears any error shown. */
     fun onNameChanged(name: String) {
         _uiState.update { it.copy(name = name, error = null) }
     }
 
+    /** Creates the list with the typed name and calls [onSaved] with its id; shows an error instead when it fails. */
     fun onSaveClick(onSaved: (Long) -> Unit) {
         val currentName = _uiState.value.name
         viewModelScope.launch {
@@ -40,6 +44,7 @@ class CreateNewListViewModel(
         }
     }
 
+    /** A validation error means the name is empty or too long; anything else is generic. */
     private fun AppError.toCreateListError(): CreateListError = when (this) {
         is AppError.Validation -> CreateListError.EmptyName
         else -> CreateListError.Generic

@@ -8,6 +8,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 
+/** Application entry point: starts Koin with the database, use case and ViewModel modules. */
 class FinCheckApplication : Application() {
     override fun onCreate() {
         super.onCreate()

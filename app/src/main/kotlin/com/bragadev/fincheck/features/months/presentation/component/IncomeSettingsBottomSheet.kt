@@ -27,7 +27,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -264,9 +263,11 @@ private fun suggestNextPaymentDate(inputs: List<PaymentInput>, today: CalendarDa
         ?.date
 }
 
+/** The form fields of this pay day; empty fields when there is none. */
 private fun PayDay?.toInput(): PaymentInput =
     if (this == null) PaymentInput() else PaymentInput(day = dayOfMonth, amountInCents = amountInCents)
 
+/** Radio options of how often the income arrives. */
 @Composable
 private fun FrequencyChoice(selected: IncomeFrequency, onSelect: (IncomeFrequency) -> Unit) {
     Column(modifier = Modifier.selectableGroup()) {

@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+/** Brand colors for dark mode. */
 private val DarkColorScheme =
     darkColorScheme(
         primary = Emerald400,
@@ -46,6 +47,7 @@ private val DarkColorScheme =
         surfaceContainerHighest = Slate800,
     )
 
+/** Brand colors for light mode. */
 private val LightColorScheme =
     lightColorScheme(
         primary = Emerald700,
@@ -81,6 +83,13 @@ private val LightColorScheme =
         surfaceContainerHighest = Slate300,
     )
 
+/**
+ * FinCheck's Material 3 theme: the brand colors in light and dark mode.
+ *
+ * @param darkTheme dark colors; follows the system by default.
+ * @param dynamicColor Android 12+ wallpaper colors instead of the brand ones; off by default.
+ * @param content the screen drawn with this theme.
+ */
 @Composable
 fun FinCheckTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

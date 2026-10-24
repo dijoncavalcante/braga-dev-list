@@ -16,6 +16,7 @@ import com.bragadev.fincheck.core.domain.model.YearMonth
 import com.bragadev.fincheck.core.domain.model.buildFinancialOverview
 import com.bragadev.fincheck.core.domain.model.buildMonthOverview
 import com.bragadev.fincheck.core.domain.model.nextMonths
+import com.bragadev.fincheck.core.domain.model.toDescription
 import com.bragadev.fincheck.core.domain.usecase.DeleteBillUseCase
 import com.bragadev.fincheck.core.domain.usecase.DeleteExtraIncomeUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetAmountsHiddenUseCase
@@ -67,6 +68,7 @@ class MonthViewModel(
     private val currentDate: () -> CalendarDate = CalendarDate::today,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MonthUiState(today = currentDate()))
+    /** State the tab draws. */
     val uiState: StateFlow<MonthUiState> = _uiState.asStateFlow()
 
     /** The app opens on the current month. */
@@ -85,14 +87,18 @@ class MonthViewModel(
 
     // region Month navigation
 
+    /** Opens [month]; months before the first one are never opened. */
     fun onMonthSelected(month: YearMonth) {
         selectedMonth.value = month.coerceAtLeast(_uiState.value.firstMonth)
     }
 
+    /** Opens the month before the one on screen. */
     fun onPreviousMonthClick() = onMonthSelected(selectedMonth.value.plusMonths(-1))
 
+    /** Opens the month after the one on screen. */
     fun onNextMonthClick() = onMonthSelected(selectedMonth.value.plusMonths(1))
 
+    /** Goes back to the current month. */
     fun onCurrentMonthClick() = onMonthSelected(YearMonth.of(currentDate()))
 
     /** "Visualizar": only one view is active at a time. */
@@ -100,6 +106,7 @@ class MonthViewModel(
         viewModelScope.launch { setMonthViewModeUseCase(viewMode) }
     }
 
+    /** Eye of the toolbar: hides or shows the amounts (an app-wide preference). */
     fun onToggleAmountsVisibility() {
         val hidden = !_uiState.value.amountsHidden
         viewModelScope.launch { setAmountsHiddenUseCase(hidden) }
@@ -109,10 +116,12 @@ class MonthViewModel(
 
     // region Bills
 
+    /** Opens the new bill form. */
     fun onAddBillClick() {
         _uiState.update { it.copy(isAddBillVisible = true) }
     }
 
+    /** Closes the new bill form without saving. */
     fun onDismissAddBill() {
         _uiState.update { it.copy(isAddBillVisible = false) }
     }
@@ -123,6 +132,7 @@ class MonthViewModel(
         priceInCents: Long,
         dueDay: Int?,
         repetition: BillRepetition,
+        description: String = "",
     ) {
         val month = selectedMonth.value
         val bill =
@@ -132,6 +142,7 @@ class MonthViewModel(
                 dueDay = dueDay,
                 startMonth = month,
                 endMonth = repetition.endMonth(month),
+                description = description.toDescription(),
             )
         viewModelScope.launch {
             when (saveBillUseCase.add(bill)) {
@@ -141,10 +152,12 @@ class MonthViewModel(
         }
     }
 
+    /** Opens [bill] in the form. */
     fun onBillClick(bill: MonthBill) {
         _uiState.update { it.copy(editingBill = bill) }
     }
 
+    /** Closes the bill form without saving. */
     fun onDismissEditBill() {
         _uiState.update { it.copy(editingBill = null) }
     }
@@ -155,6 +168,7 @@ class MonthViewModel(
         priceInCents: Long,
         dueDay: Int?,
         repetition: BillRepetition,
+        description: String = "",
     ) {
         val original = _uiState.value.editingBill?.bill ?: return
         val edited =
@@ -163,6 +177,7 @@ class MonthViewModel(
                 priceInCents = priceInCents,
                 dueDay = dueDay,
                 endMonth = repetition.endMonth(original.startMonth),
+                description = description.toDescription(),
             )
         if (original.isRecurring) {
             _uiState.update { it.copy(pendingChange = PendingBillChange.Edit(original, edited)) }
@@ -171,6 +186,7 @@ class MonthViewModel(
         }
     }
 
+    /** Deletes the bill open in the form; a recurring one first asks which months. */
     fun onDeleteBillConfirm() {
         val bill = _uiState.value.editingBill?.bill ?: return
         if (bill.isRecurring) {
@@ -180,6 +196,7 @@ class MonthViewModel(
         }
     }
 
+    /** Applies the pending change to the months chosen by [scope]. */
     fun onScopeSelected(scope: BillEditScope) {
         val change = _uiState.value.pendingChange ?: return
         applyChange(change, scope)
@@ -190,6 +207,7 @@ class MonthViewModel(
         _uiState.update { it.copy(pendingChange = null) }
     }
 
+    /** Marks [bill] as paid or unpaid in its month only. */
     fun onBillPaidChange(
         bill: MonthBill,
         isPaid: Boolean,
@@ -197,6 +215,7 @@ class MonthViewModel(
         viewModelScope.launch { setBillPaidUseCase(bill.bill.id, bill.month, isPaid) }
     }
 
+    /** Saves or deletes the pending change in the months chosen by [scope]; the form closes on success. */
     private fun applyChange(
         change: PendingBillChange,
         scope: BillEditScope,
@@ -219,10 +238,12 @@ class MonthViewModel(
 
     // region Income ("Como você recebe?")
 
+    /** Opens the "Como você recebe?" sheet. */
     fun onIncomeSettingsClick() {
         _uiState.update { it.copy(isIncomeSettingsVisible = true) }
     }
 
+    /** Closes the "Como você recebe?" sheet without saving. */
     fun onDismissIncomeSettings() {
         _uiState.update { it.copy(isIncomeSettingsVisible = false) }
     }
@@ -237,14 +258,17 @@ class MonthViewModel(
         }
     }
 
+    /** Opens the extra income sheet empty, to add a new one. */
     fun onAddExtraIncomeClick() {
         _uiState.update { it.copy(isExtraIncomeSheetVisible = true, editingExtraIncome = null) }
     }
 
+    /** Opens [income] in the extra income sheet. */
     fun onExtraIncomeClick(income: ExtraIncome) {
         _uiState.update { it.copy(isExtraIncomeSheetVisible = true, editingExtraIncome = income) }
     }
 
+    /** Closes the extra income sheet without saving. */
     fun onDismissExtraIncome() {
         _uiState.update { it.copy(isExtraIncomeSheetVisible = false, editingExtraIncome = null) }
     }
@@ -260,6 +284,7 @@ class MonthViewModel(
         }
     }
 
+    /** Deletes the extra income open in the sheet; the sheet stays open on failure. */
     fun onDeleteExtraIncomeConfirm() {
         val income = _uiState.value.editingExtraIncome ?: return
         viewModelScope.launch {
@@ -272,6 +297,7 @@ class MonthViewModel(
 
     // endregion
 
+    /** Collects bills, income, extra incomes, view and month on screen together into the state. */
     private fun observeMonth() {
         combine(
             getBillBookUseCase(),
@@ -294,6 +320,7 @@ class MonthViewModel(
             .launchIn(viewModelScope)
     }
 
+    /** This state updated with [data]: the month's overview, its cycles and the strip of months. */
     private fun MonthUiState.withData(data: MonthData): MonthUiState {
         val overview = buildMonthOverview(data.month, data.today, data.book, data.settings, data.extraIncomes)
         return copy(
@@ -329,10 +356,16 @@ class MonthViewModel(
 
 /** Everything read for one emission, before it is turned into the UI state. */
 private data class MonthData(
+    /** Today's date when it was read. */
     val today: CalendarDate,
+    /** Month on screen. */
     val month: YearMonth,
+    /** "Visualizar" choice of the tab. */
     val viewMode: ItemViewMode,
+    /** Every bill and month status. */
     val book: BillBook,
+    /** Income settings; null until set up. */
     val settings: IncomeSettings?,
+    /** Every extra income. */
     val extraIncomes: List<ExtraIncome>,
 )

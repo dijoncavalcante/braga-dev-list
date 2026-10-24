@@ -50,6 +50,7 @@ fun PrivacyPolicyScreen(onBackClick: () -> Unit) {
     )
 }
 
+/** The privacy policy text, with a button to open the online version. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PrivacyPolicyContent(onBackClick: () -> Unit, onOpenOnlineClick: () -> Unit) {

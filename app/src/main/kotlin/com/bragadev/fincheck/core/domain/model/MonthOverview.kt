@@ -11,12 +11,16 @@ enum class MonthTiming { PAST, CURRENT, FUTURE }
  * @param extraIncomes extra incomes dated in the month.
  */
 data class MonthOverview(
+    /** The month shown. */
     val month: YearMonth,
+    /** Today's date, used to tell past, current and future months and overdue bills apart. */
     val today: CalendarDate,
+    /** Bills of the month, as [BillBook.billsOf] returns them. */
     val bills: List<MonthBill>,
     val payments: List<Payment> = emptyList(),
     val extraIncomes: List<ExtraIncomeEntry> = emptyList(),
 ) {
+    /** Whether the month is before, the same as or after the month of [today]. */
     val timing: MonthTiming
         get() {
             val current = YearMonth.of(today)
@@ -27,8 +31,10 @@ data class MonthOverview(
             }
         }
 
+    /** Total, paid and unpaid amounts of the month's bills. */
     val totals: MonthBillsTotals get() = bills.totals()
 
+    /** What comes in during the month: payments plus extra incomes, in cents. */
     val incomeInCents: Long get() = payments.sumOf { it.amountInCents } + extraIncomes.sumOf { it.amountInCents }
 
     /** Income of the month minus all its bills; negative = missing money. */

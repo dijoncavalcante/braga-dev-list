@@ -35,6 +35,9 @@
     <string name="list_detail_item_name_label">Nome do item</string>
     <string name="list_detail_item_quantity_label">Quantidade</string>
     <string name="list_detail_item_price_label">Valor (R$)</string>
+    <string name="description_label">Descrição (opcional)</string>
+    <!-- Character counter of the description field: "12/200". -->
+    <string name="description_counter">%1$d/%2$d</string>
     <string name="list_detail_item_due_date_label">Vencimento</string>
     <string name="list_detail_item_due_day_placeholder">Selecione o dia</string>
     <string name="list_detail_item_due_day_option">Dia %1$d</string>
@@ -48,9 +51,7 @@
     <string name="list_detail_menu_view_all">Todos</string>
     <string name="list_detail_menu_view_fortnights">Quinzenas</string>
     <string name="list_detail_first_fortnight">1ª quinzena</string>
-    <string name="list_detail_first_fortnight_days">Vencimento do dia 1 ao 15</string>
     <string name="list_detail_second_fortnight">2ª quinzena</string>
-    <string name="list_detail_second_fortnight_days">Vencimento do dia 16 ao 31</string>
     <string name="list_detail_without_due_day">Sem vencimento</string>
     <string name="list_detail_menu_income_settings">Configurar recebimento</string>
     <string name="list_detail_section_unchecked">Não marcados (%1$d)</string>
@@ -199,10 +200,12 @@
     <string name="months_section_paid">Pagas (%1$d)</string>
     <string name="months_section_all_paid">Todas as contas desta seção foram pagas</string>
     <string name="months_fortnight_empty">Nenhuma conta nesta quinzena</string>
-    <plurals name="months_section_paid_progress">
-        <item quantity="one">%1$d de %2$d paga</item>
-        <item quantity="other">%1$d de %2$d pagas</item>
-    </plurals>
+    <string name="months_section_paid_and_due">Pago %1$s · Falta %2$s</string>
+    <string name="fortnight_current">atual</string>
+    <string name="fortnight_other_expenses">outras despesas - %1$s</string>
+    <string name="fortnight_carried_over">Sobra da 1ª quinzena</string>
+    <string name="fortnight_carried_missing">Faltou na 1ª quinzena</string>
+    <string name="fortnight_balance">Saldo da quinzena</string>
     <string name="month_summary_title">Saldo previsto do mês</string>
     <string name="month_summary_title_no_income">Contas do mês</string>
     <string name="month_summary_income">Entradas do mês</string>

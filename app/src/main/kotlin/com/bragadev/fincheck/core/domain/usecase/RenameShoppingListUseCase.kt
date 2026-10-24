@@ -8,6 +8,7 @@ import com.bragadev.fincheck.core.domain.repository.ShoppingListRepository
 class RenameShoppingListUseCase(
     private val repository: ShoppingListRepository,
 ) {
+    /** Validates [name] and renames list [listId]. */
     suspend operator fun invoke(listId: Long, name: String): AppResult<Unit> {
         val trimmedName = name.trim()
         if (trimmedName.isEmpty() || trimmedName.length > MAX_LIST_NAME_LENGTH) {

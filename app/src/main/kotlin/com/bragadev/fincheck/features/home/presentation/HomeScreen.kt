@@ -44,8 +44,8 @@ import com.bragadev.fincheck.features.home.presentation.component.ListOptionsShe
 import com.bragadev.fincheck.features.home.presentation.component.RenameListDialog
 import com.bragadev.fincheck.features.home.presentation.state.HomeUiState
 import com.bragadev.fincheck.features.home.presentation.viewmodel.HomeViewModel
-import com.bragadev.fincheck.ui.components.adaptiveContentWidth
 import com.bragadev.fincheck.ui.components.EmptyStateContent
+import com.bragadev.fincheck.ui.components.adaptiveContentWidth
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import org.koin.androidx.compose.koinViewModel
 
@@ -111,6 +111,7 @@ fun HomeScreen(
     }
 }
 
+/** Stateless body of the "Listas" tab: loading, empty, error or the lists. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeContent(
@@ -141,6 +142,7 @@ private fun HomeContent(
     }
 }
 
+/** Spinner shown while the lists are read. */
 @Composable
 private fun LoadingState(padding: PaddingValues) {
     Box(
@@ -153,6 +155,7 @@ private fun LoadingState(padding: PaddingValues) {
     }
 }
 
+/** Illustration shown when there is no list yet. */
 @Composable
 private fun EmptyState(padding: PaddingValues) {
     EmptyStateContent(
@@ -164,6 +167,7 @@ private fun EmptyState(padding: PaddingValues) {
     }
 }
 
+/** Error message with a button to try again. */
 @Composable
 private fun ErrorState(padding: PaddingValues, onRetryClick: () -> Unit) {
     Column(
@@ -181,6 +185,7 @@ private fun ErrorState(padding: PaddingValues, onRetryClick: () -> Unit) {
     }
 }
 
+/** The lists, one card each. */
 @Composable
 private fun ListsState(
     padding: PaddingValues,
@@ -205,6 +210,7 @@ private fun ListsState(
     }
 }
 
+/** One list: name, item count and the three dots of its options. */
 @Composable
 private fun ShoppingListRow(list: ShoppingList, onClick: () -> Unit, onMenuClick: () -> Unit) {
     Card(

@@ -23,17 +23,17 @@ class UpdateListItemUseCaseTest {
 
         assertTrue(result is AppResult.Error)
         assertTrue((result as AppResult.Error).error is AppError.Validation)
-        coVerify(exactly = 0) { repository.updateItem(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { repository.updateItem(any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
     fun `edited values are trimmed, sanitized and delegated to the repository`() = runTest {
-        coEvery { repository.updateItem(any(), any(), any(), any(), any()) } returns AppResult.Success(Unit)
+        coEvery { repository.updateItem(any(), any(), any(), any(), any(), any()) } returns AppResult.Success(Unit)
 
         val result = useCase(itemId = 5, name = " Conta de luz ", quantity = 0, priceInCents = -1, dueDay = 31)
 
         assertEquals(AppResult.Success(Unit), result)
-        coVerify(exactly = 1) { repository.updateItem(5, "Conta de luz", 1, 0, 31) }
+        coVerify(exactly = 1) { repository.updateItem(5, "Conta de luz", 1, 0, 31, null) }
     }
 
     @Test
@@ -44,6 +44,6 @@ class UpdateListItemUseCaseTest {
             assertTrue(result is AppResult.Error)
             assertTrue((result as AppResult.Error).error is AppError.Validation)
         }
-        coVerify(exactly = 0) { repository.updateItem(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { repository.updateItem(any(), any(), any(), any(), any(), any()) }
     }
 }

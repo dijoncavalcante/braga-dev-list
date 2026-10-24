@@ -21,20 +21,26 @@ const val BASELINE_DATABASE_VERSION = 9
         BillEntity::class,
         BillMonthStatusEntity::class,
     ],
-    version = 10,
+    version = 12,
     // Schemas are exported to app/schemas and committed: they are what DatabaseMigrationTest
     // checks every migration against.
     exportSchema = true,
 )
+/** The app's single Room database (`fincheck.db`): lists, items, income and the bills of the "Meses" tab. */
 abstract class AppDatabase : RoomDatabase() {
+    /** Lists and their preferences. */
     abstract fun shoppingListDao(): ShoppingListDao
 
+    /** Items of the lists. */
     abstract fun shoppingListItemDao(): ShoppingListItemDao
 
+    /** The single income settings row. */
     abstract fun incomeSettingsDao(): IncomeSettingsDao
 
+    /** Extra incomes, besides the main income. */
     abstract fun extraIncomeDao(): ExtraIncomeDao
 
+    /** Bills of the "Meses" tab and their month statuses. */
     abstract fun billDao(): BillDao
 }
 
@@ -59,6 +65,22 @@ val MIGRATION_9_10 =
         }
     }
 
+/** 10 → 11: an optional description on each list item; existing items start without one. */
+val MIGRATION_10_11 =
+    object : Migration(10, 11) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `shopping_list_items` ADD COLUMN `description` TEXT")
+        }
+    }
+
+/** 11 → 12: an optional description on each bill; existing bills start without one. */
+val MIGRATION_11_12 =
+    object : Migration(11, 12) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE `bills` ADD COLUMN `description` TEXT")
+        }
+    }
+
 /**
  * Every migration since [BASELINE_DATABASE_VERSION], in order. Used both by the app and by
  * DatabaseMigrationTest, so a migration added here is tested automatically.
@@ -68,4 +90,4 @@ val MIGRATION_9_10 =
  * instrumented tests. Users' data must survive every update: a broken migration makes the app
  * crash on launch.
  */
-val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_9_10)
+val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12)

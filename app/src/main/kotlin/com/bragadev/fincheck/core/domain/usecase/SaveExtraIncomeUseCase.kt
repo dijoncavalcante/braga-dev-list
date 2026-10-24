@@ -15,6 +15,7 @@ import com.bragadev.fincheck.core.domain.repository.IncomeRepository
 class SaveExtraIncomeUseCase(
     private val repository: IncomeRepository,
 ) {
+    /** Validates [income] and saves it with its name trimmed; returns a validation error when a rule is broken. */
     suspend operator fun invoke(income: ExtraIncome): AppResult<Unit> {
         val name = income.name.trim()
         val recurrence = income.recurrence

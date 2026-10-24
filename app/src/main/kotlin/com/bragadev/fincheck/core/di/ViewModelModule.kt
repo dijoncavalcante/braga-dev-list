@@ -7,6 +7,7 @@ import com.bragadev.fincheck.features.months.presentation.viewmodel.MonthViewMod
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
+/** Koin module with every screen's ViewModel; screens get them through `koinViewModel()`. */
 val viewModelModule = module {
     viewModel {
         HomeViewModel(

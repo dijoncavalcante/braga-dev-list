@@ -61,6 +61,7 @@ import com.bragadev.fincheck.core.util.extensions.MAX_DUE_DAY
 import com.bragadev.fincheck.core.util.extensions.MIN_DUE_DAY
 import com.bragadev.fincheck.core.util.extensions.currencyInputToCents
 import com.bragadev.fincheck.core.util.extensions.toBrlCurrency
+import com.bragadev.fincheck.ui.components.DescriptionField
 import com.bragadev.fincheck.ui.components.label
 import com.bragadev.fincheck.ui.components.shortLabel
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
@@ -92,7 +93,13 @@ private enum class RepetitionChoice { ONCE, MONTHLY, FOR_MONTHS }
 @Composable
 fun BillBottomSheet(
     startMonth: YearMonth,
-    onConfirm: (name: String, priceInCents: Long, dueDay: Int?, repetition: BillRepetition) -> Unit,
+    onConfirm: (
+        name: String,
+        priceInCents: Long,
+        dueDay: Int?,
+        repetition: BillRepetition,
+        description: String,
+    ) -> Unit,
     onDismiss: () -> Unit,
     initialBill: Bill? = null,
     /** Month on screen, named in the delete confirmation. */
@@ -107,6 +114,7 @@ fun BillBottomSheet(
     var priceInCents by rememberSaveable(initialBill) { mutableLongStateOf(initialBill?.priceInCents ?: 0L) }
     val priceText = priceInCents.toBrlCurrency()
     var dueDay by rememberSaveable(initialBill) { mutableStateOf(initialBill?.dueDay) }
+    var description by rememberSaveable(initialBill) { mutableStateOf(initialBill?.description.orEmpty()) }
     val initialRepetition = initialBill?.repetition ?: BillRepetition.Monthly
     var choice by rememberSaveable(initialBill) { mutableStateOf(initialRepetition.toChoice()) }
     var monthCount by rememberSaveable(initialBill) {
@@ -187,6 +195,7 @@ fun BillBottomSheet(
                 onMonthCountChange = { monthCount = it.coerceIn(MIN_REPEAT_MONTHS, MAX_REPEAT_MONTHS) },
             )
             PeriodText(startMonth = startMonth, endMonth = repetition.endMonth(startMonth))
+            DescriptionField(value = description, onValueChange = { description = it })
             Row(
                 modifier =
                     Modifier
@@ -202,7 +211,7 @@ fun BillBottomSheet(
                         showNameError = true
                         return@Button
                     }
-                    onConfirm(name.trim(), priceInCents, dueDay, repetition)
+                    onConfirm(name.trim(), priceInCents, dueDay, repetition, description)
                 }) {
                     Text(
                         stringResource(
@@ -343,6 +352,7 @@ private fun RepetitionField(
     }
 }
 
+/** One radio option of "Repete?". */
 @Composable
 private fun RepetitionChoiceRow(
     text: String,
@@ -380,6 +390,7 @@ private fun PeriodText(
     )
 }
 
+/** The radio option that matches this repetition. */
 private fun BillRepetition.toChoice(): RepetitionChoice =
     when (this) {
         BillRepetition.Once -> RepetitionChoice.ONCE
@@ -392,6 +403,6 @@ private fun BillRepetition.toChoice(): RepetitionChoice =
 @Composable
 private fun BillBottomSheetPreview() {
     FinCheckTheme {
-        BillBottomSheet(startMonth = YearMonth(2026, 10), onConfirm = { _, _, _, _ -> }, onDismiss = {})
+        BillBottomSheet(startMonth = YearMonth(2026, 10), onConfirm = { _, _, _, _, _ -> }, onDismiss = {})
     }
 }

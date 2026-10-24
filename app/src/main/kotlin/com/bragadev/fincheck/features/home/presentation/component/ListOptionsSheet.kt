@@ -59,6 +59,7 @@ fun ListOptionsSheet(
     }
 }
 
+/** One option of the sheet; [isDestructive] paints it in the error color. */
 @Composable
 private fun OptionItem(
     icon: ImageVector,

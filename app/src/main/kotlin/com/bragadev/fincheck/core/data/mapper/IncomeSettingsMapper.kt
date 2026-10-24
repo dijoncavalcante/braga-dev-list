@@ -6,6 +6,7 @@ import com.bragadev.fincheck.core.domain.model.IncomeFrequency
 import com.bragadev.fincheck.core.domain.model.IncomeSettings
 import com.bragadev.fincheck.core.domain.model.PayDay
 
+/** Converts the single income settings row into the domain [IncomeSettings], with one or two pay days. */
 fun IncomeSettingsEntity.toDomain(): IncomeSettings {
     val second = if (secondPayDay != null && secondAmountInCents != null) {
         PayDay(dayOfMonth = secondPayDay, amountInCents = secondAmountInCents)
@@ -19,6 +20,7 @@ fun IncomeSettingsEntity.toDomain(): IncomeSettings {
     )
 }
 
+/** Converts the domain [IncomeSettings] into its single row; the second pay day is null for monthly income. */
 fun IncomeSettings.toEntity(): IncomeSettingsEntity {
     val first = payDays.first()
     val second = payDays.getOrNull(1)

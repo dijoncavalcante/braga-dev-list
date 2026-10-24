@@ -6,6 +6,7 @@ import com.bragadev.fincheck.core.domain.model.Bill
 import com.bragadev.fincheck.core.domain.model.BillMonthStatus
 import com.bragadev.fincheck.core.domain.model.YearMonth
 
+/** Converts a stored bill row into its domain [Bill], turning month indexes back into [YearMonth]s. */
 fun BillEntity.toDomain(): Bill =
     Bill(
         id = id,
@@ -15,8 +16,10 @@ fun BillEntity.toDomain(): Bill =
         startMonth = YearMonth.fromIndex(startMonth),
         endMonth = endMonth?.let(YearMonth::fromIndex),
         createdAt = createdAt,
+        description = description,
     )
 
+/** Converts a domain [Bill] into the row stored in the `bills` table. */
 fun Bill.toEntity(): BillEntity =
     BillEntity(
         id = id,
@@ -26,8 +29,10 @@ fun Bill.toEntity(): BillEntity =
         startMonth = startMonth.index,
         endMonth = endMonth?.index,
         createdAt = createdAt,
+        description = description,
     )
 
+/** Converts a stored month status row into its domain [BillMonthStatus]. */
 fun BillMonthStatusEntity.toDomain(): BillMonthStatus =
     BillMonthStatus(
         billId = billId,

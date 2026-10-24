@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
+/**
+ * [IncomeRepository] backed by Room: the income settings row and the extra incomes, read and written on `ioDispatcher`.
+ */
 class IncomeRepositoryImpl(
     private val dao: IncomeSettingsDao,
     private val extraIncomeDao: ExtraIncomeDao,

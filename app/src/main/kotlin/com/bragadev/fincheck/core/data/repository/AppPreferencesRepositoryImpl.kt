@@ -11,8 +11,11 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.withContext
 
+/** Key of the "amounts hidden" flag. */
 private const val KEY_AMOUNTS_HIDDEN = "amounts_hidden"
+/** Key of the "Visualizar" choice of the "Meses" tab, stored as an [ItemViewMode.code]. */
 private const val KEY_MONTH_VIEW_MODE = "month_view_mode"
+/** Key of the first month of the "Meses" tab, stored as a [YearMonth.index]. */
 private const val KEY_FIRST_MONTH = "first_month"
 
 /**

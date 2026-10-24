@@ -8,11 +8,11 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,6 +38,7 @@ import com.bragadev.fincheck.core.util.extensions.toBrlCurrency
  * Fields shared by the income forms ("Como você recebe?" and "Outras entradas").
  */
 
+/** Milliseconds in a day, to convert between the date picker and epoch days. */
 private const val MILLIS_PER_DAY = 86_400_000L
 
 /** Day of the month (1..31) picked from a dropdown; [day] is null until chosen. */

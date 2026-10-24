@@ -19,6 +19,7 @@ enum class ItemViewMode(val code: Int) {
     ;
 
     companion object {
+        /** The view stored as [code]; [ALL] for an unknown code. */
         fun fromCode(code: Int): ItemViewMode = entries.firstOrNull { it.code == code } ?: ALL
     }
 }

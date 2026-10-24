@@ -15,8 +15,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.AttachMoney
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.DeleteSweep
+import androidx.compose.material.icons.outlined.DoneAll
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.PrivacyTip
@@ -116,19 +116,31 @@ fun ListSettingsScreen(
 
 /** Everything the settings rows can do, grouped to keep [ListSettingsContent] readable. */
 private data class ListSettingsActions(
+    /** Goes back to the list. */
     val onBackClick: () -> Unit = {},
+    /** "Ordenar por" option chosen. */
     val onSortOrderSelected: (ItemSortOrder) -> Unit = {},
+    /** "Mostrar valor" switch. */
     val onShowPricesToggle: () -> Unit = {},
+    /** "Marcar todos os itens". */
     val onCheckAllClick: () -> Unit = {},
+    /** "Desmarcar todos os itens". */
     val onUncheckAllClick: () -> Unit = {},
+    /** "Excluir itens". */
     val onDeleteItemsClick: () -> Unit = {},
+    /** "Renomear lista". */
     val onRenameListClick: () -> Unit = {},
+    /** "Compartilhar". */
     val onShareClick: () -> Unit = {},
+    /** "Transformar em contas do mês". */
     val onConvertToBillsClick: () -> Unit = {},
+    /** "Sobre o app". */
     val onAboutClick: () -> Unit = {},
+    /** "Política de privacidade". */
     val onPrivacyPolicyClick: () -> Unit = {},
 )
 
+/** Stateless body of the settings screen, driven by [uiState] and [actions]. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ListSettingsContent(
@@ -287,6 +299,7 @@ private fun ListSection(hasItems: Boolean, actions: ListSettingsActions) {
     )
 }
 
+/** Title of a group of settings, in the primary color. */
 @Composable
 private fun SectionTitle(@StringRes textRes: Int) {
     Text(
@@ -297,6 +310,7 @@ private fun SectionTitle(@StringRes textRes: Int) {
     )
 }
 
+/** Title of a subgroup inside a group of settings. */
 @Composable
 private fun SubsectionTitle(@StringRes textRes: Int) {
     Text(
@@ -307,6 +321,7 @@ private fun SubsectionTitle(@StringRes textRes: Int) {
     )
 }
 
+/** Line between two groups of settings. */
 @Composable
 private fun SectionDivider() {
     HorizontalDivider(modifier = Modifier.padding(top = 12.dp))

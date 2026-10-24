@@ -18,6 +18,7 @@ enum class ItemSortOrder(val code: Int) {
     ;
 
     companion object {
+        /** The order stored as [code]; [ADDED] for an unknown code. */
         fun fromCode(code: Int): ItemSortOrder = entries.firstOrNull { it.code == code } ?: ADDED
     }
 }

@@ -40,9 +40,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bragadev.fincheck.R
@@ -53,10 +53,13 @@ import com.bragadev.fincheck.core.domain.model.ItemViewMode
 import com.bragadev.fincheck.core.domain.model.MonthBill
 import com.bragadev.fincheck.core.domain.model.YearMonth
 import com.bragadev.fincheck.core.domain.model.groupByFortnight
+import com.bragadev.fincheck.core.domain.model.toFortnights
+import com.bragadev.fincheck.core.domain.model.totals
 import com.bragadev.fincheck.features.months.presentation.component.BillBottomSheet
 import com.bragadev.fincheck.features.months.presentation.component.BillScopeDialog
 import com.bragadev.fincheck.features.months.presentation.component.CycleOverviewCard
 import com.bragadev.fincheck.features.months.presentation.component.ExtraIncomeBottomSheet
+import com.bragadev.fincheck.features.months.presentation.component.FortnightOverviewCard
 import com.bragadev.fincheck.features.months.presentation.component.IncomeSettingsBottomSheet
 import com.bragadev.fincheck.features.months.presentation.component.IncomeSetupCard
 import com.bragadev.fincheck.features.months.presentation.component.MonthHeader
@@ -123,6 +126,7 @@ fun MonthScreen(
     }
 }
 
+/** Top bar of the tab: title, eye, income settings and the menu with about and privacy policy. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MonthTopBar(
@@ -165,6 +169,7 @@ private fun MonthTopBar(
     )
 }
 
+/** Spinner shown while the month is read. */
 @Composable
 private fun LoadingState(padding: PaddingValues) {
     Box(
@@ -178,6 +183,7 @@ private fun LoadingState(padding: PaddingValues) {
     }
 }
 
+/** Message shown when the month could not be read. */
 @Composable
 private fun ErrorState(padding: PaddingValues) {
     Box(
@@ -296,18 +302,26 @@ private fun ViewModePicker(
     }
 }
 
-/** The cycles card in "Ciclos" (or the invitation to set up the income), the month's card otherwise. */
+/**
+ * The card of the view: both cycles in "Ciclos" (or the invitation to set up the income), both
+ * fortnights in "Quinzenas" once the income is set up, the month's card otherwise.
+ */
 @Composable
 private fun MonthCard(
     uiState: MonthUiState,
     onIncomeSettingsClick: () -> Unit,
 ) {
     val overview = uiState.financialOverview
+    val hasIncome = uiState.incomeSettings != null
     when {
+        uiState.viewMode == ItemViewMode.FORTNIGHTS && hasIncome -> {
+            val fortnights = remember(uiState.overview) { uiState.overview.toFortnights() }
+            FortnightOverviewCard(overview = fortnights, onEditIncomeClick = onIncomeSettingsClick)
+        }
         uiState.viewMode != ItemViewMode.CYCLES ->
             MonthSummaryCard(
                 overview = uiState.overview,
-                hasIncome = uiState.incomeSettings != null,
+                hasIncome = hasIncome,
                 onEditIncomeClick = onIncomeSettingsClick,
             )
         overview == null -> IncomeSetupCard(onSetupClick = onIncomeSettingsClick)
@@ -315,6 +329,7 @@ private fun MonthCard(
     }
 }
 
+/** Message shown when the month has no bill. */
 @Composable
 private fun EmptyMonth(month: YearMonth) {
     Column(
@@ -339,9 +354,13 @@ private fun EmptyMonth(month: YearMonth) {
 
 /** How each bill row is drawn and what tapping it does; shared by every section. */
 private class BillRows(
+    /** Month the user is looking at; bills of another month name theirs. */
     val selectedMonth: YearMonth,
+    /** Today, to mark overdue bills. */
     val today: CalendarDate,
+    /** Opens the bill in the form. */
     val onClick: (MonthBill) -> Unit,
+    /** Marks the bill as paid or unpaid in its month. */
     val onPaidChange: (MonthBill, Boolean) -> Unit,
 )
 
@@ -365,8 +384,13 @@ private fun LazyListScope.billSection(
     val unpaid = bills.filterNot { it.isPaid }
     val isExpanded = sectionExpansion.isExpanded(key, expandedByDefault)
     item(key = "header_$key") {
-        val paidCount = bills.size - unpaid.size
-        val progress = pluralStringResource(R.plurals.months_section_paid_progress, paidCount, paidCount, bills.size)
+        // What is paid and what is still to pay, always in sight: it is what the section is for.
+        val totals = bills.totals()
+        val progress = stringResource(
+            R.string.months_section_paid_and_due,
+            totals.paidInCents.toDisplayAmount(),
+            totals.unpaidInCents.toDisplayAmount(),
+        )
         val extra = subtitle()
         SectionHeader(
             title = title(),
@@ -397,7 +421,7 @@ private fun LazyListScope.fortnightSections(
     billSection(
         key = "first_fortnight",
         title = { stringResource(R.string.list_detail_first_fortnight) },
-        subtitle = { stringResource(R.string.list_detail_first_fortnight_days) },
+        subtitle = { null }, // its dates are in the card at the top
         bills = groups.firstFortnight,
         sectionExpansion = sectionExpansion,
         rows = rows,
@@ -406,7 +430,7 @@ private fun LazyListScope.fortnightSections(
     billSection(
         key = "second_fortnight",
         title = { stringResource(R.string.list_detail_second_fortnight) },
-        subtitle = { stringResource(R.string.list_detail_second_fortnight_days) },
+        subtitle = { null },
         bills = groups.secondFortnight,
         sectionExpansion = sectionExpansion,
         rows = rows,
@@ -534,6 +558,16 @@ private fun BillRow(
                     style = MaterialTheme.typography.bodySmall,
                     color = if (isOverdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                // The description is a note: two lines at most, the rest is read in the edit sheet.
+                bill.bill.description?.let { description ->
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
             if (bill.amountInCents > 0) {
                 Text(

@@ -143,19 +143,28 @@ fun AllCheckedCelebration(
     }
 }
 
+/** How many confetti pieces fly out. */
 private const val CONFETTI_COUNT = 28
 
 /** One confetti piece: where it flies to, how it looks and how it spins. Distances are fractions of the canvas. */
 private class ConfettiPiece(
+    /** Direction it flies to, in radians. */
     val angle: Float,
+    /** How far it flies, as a fraction of the largest distance. */
     val distance: Float,
+    /** Index of its color in the theme colors used for confetti. */
     val colorIndex: Int,
+    /** Width in dp. */
     val width: Float,
+    /** Height in dp. */
     val height: Float,
+    /** Full turns it makes while flying. */
     val spins: Float,
+    /** Drawn as a circle instead of a rectangle. */
     val isRound: Boolean,
 ) {
     companion object {
+        /** A piece with a random direction, distance, color, size and spin. */
         fun random() = ConfettiPiece(
             angle = Random.nextFloat() * 2f * PI.toFloat(),
             distance = 0.45f + Random.nextFloat() * 0.55f,

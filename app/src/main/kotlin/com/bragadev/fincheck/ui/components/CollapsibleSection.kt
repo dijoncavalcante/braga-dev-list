@@ -33,11 +33,13 @@ class SectionExpansion(
     private val toggled: Set<String>,
     private val onToggle: (key: String) -> Unit,
 ) {
+    /** Whether section [key] is open, given whether it starts open ([expandedByDefault]). */
     fun isExpanded(
         key: String,
         expandedByDefault: Boolean,
     ): Boolean = expandedByDefault != (key in toggled)
 
+    /** Opens section [key] if closed, or closes it if open. */
     fun toggle(key: String) = onToggle(key)
 }
 

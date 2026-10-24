@@ -14,6 +14,7 @@ const val MONTHS_AHEAD_SHOWN = 12
  * @param month 1 = January ... 12 = December
  */
 data class YearMonth(
+    /** The year, e.g. 2026. */
     val year: Int,
     val month: Int,
 ) : Comparable<YearMonth> {
@@ -24,15 +25,19 @@ data class YearMonth(
     /** Months since January of year 0; what the database stores. */
     val index: Int get() = year * 12 + (month - 1)
 
+    /** This month moved [months] months forward (negative = backward), across years. */
     fun plusMonths(months: Int): YearMonth = fromIndex(index + months)
 
     /** Months from this one until [other]; negative when [other] is before. */
     fun monthsUntil(other: YearMonth): Int = other.index - index
 
+    /** Day 1 of this month. */
     fun firstDay(): CalendarDate = CalendarDate(year, month, 1)
 
+    /** Last day of this month (28 to 31). */
     fun lastDay(): CalendarDate = CalendarDate(year, month, daysInMonth(year, month))
 
+    /** Whether [date] is in this month. */
     operator fun contains(date: CalendarDate): Boolean = date.year == year && date.month == month
 
     /** [dayOfMonth] (1..31) in this month; shorter months fall on their last day. */

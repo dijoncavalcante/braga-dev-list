@@ -8,6 +8,7 @@ private const val PERCENT = 100
 
 /** Months before and after today searched for the payments around it. */
 private const val MONTHS_SEARCHED_BEFORE = 2
+/** Months after today searched for the payments around it. */
 private const val MONTHS_SEARCHED_AFTER = 3
 
 /**
@@ -17,12 +18,16 @@ private const val MONTHS_SEARCHED_AFTER = 3
  * ("outras despesas"), which have no date of their own.
  */
 data class CycleExpense(val bill: MonthBill) {
+    /** Name of the bill. */
     val name: String get() = bill.name
 
+    /** Whether it was paid in its month. */
     val isPaid: Boolean get() = bill.isPaid
 
+    /** Actual due date; null for bills without a due day. */
     val dueDate: CalendarDate? get() = bill.dueDate
 
+    /** Amount of the bill, in cents. */
     val amountInCents: Long get() = bill.amountInCents
 }
 
@@ -50,25 +55,33 @@ enum class CycleStatus {
  * @param extraIncomes extra incomes dated inside the cycle, oldest first ("Outras entradas").
  */
 data class FinancialCycle(
+    /** The payment that opens the cycle. */
     val payment: Payment,
+    /** The payment that opens the next cycle; the cycle ends the day before it. */
     val nextPayment: Payment,
     val bills: List<CycleExpense>,
     val otherExpenses: List<CycleExpense> = emptyList(),
     val extraIncomes: List<ExtraIncomeEntry> = emptyList(),
 ) {
+    /** First day of the cycle: the day [payment] arrives. */
     val startDate: CalendarDate get() = payment.date
 
+    /** Last day of the cycle: the day before [nextPayment] arrives. */
     val endDate: CalendarDate get() = nextPayment.date.plusDays(-1)
 
+    /** Sum of the extra incomes of the cycle, in cents. */
     val extraIncomeInCents: Long get() = extraIncomes.sumOf { it.amountInCents }
 
     /** Everything that comes in during the cycle: the payment that opens it plus the extra incomes. */
     val incomeInCents: Long get() = payment.amountInCents + extraIncomeInCents
 
+    /** Sum of the bills with a due day, in cents. */
     val billsInCents: Long get() = bills.sumOf { it.amountInCents }
 
+    /** Sum of the expenses without a due day, in cents. */
     val otherExpensesInCents: Long get() = otherExpenses.sumOf { it.amountInCents }
 
+    /** Everything the cycle has to pay, in cents. */
     val expensesInCents: Long get() = billsInCents + otherExpensesInCents
 
     /** What should be left once every expense of the cycle is paid; negative = missing money. */
@@ -78,6 +91,7 @@ data class FinancialCycle(
     val committedPercent: Int?
         get() = if (incomeInCents > 0) (expensesInCents * PERCENT / incomeInCents).toInt() else null
 
+    /** Healthy, tight or over budget, from how much of the income the expenses take. */
     val status: CycleStatus
         get() = when {
             expensesInCents > incomeInCents -> CycleStatus.OVER_BUDGET
@@ -85,6 +99,7 @@ data class FinancialCycle(
             else -> CycleStatus.HEALTHY
         }
 
+    /** Whether [date] falls between the first and last day of the cycle. */
     operator fun contains(date: CalendarDate): Boolean = date in startDate..endDate
 }
 
@@ -93,8 +108,11 @@ data class FinancialCycle(
  * the one that starts with the next payment.
  */
 data class FinancialOverview(
+    /** Today, or the reference day of the month shown (see [isLive]). */
     val today: CalendarDate,
+    /** The cycle [today] is in. */
     val current: FinancialCycle,
+    /** The cycle that starts with the next payment. */
     val next: FinancialCycle,
     /**
      * The cycles are those of the month the user is in. False for another month: [today] is then
@@ -102,8 +120,10 @@ data class FinancialOverview(
      */
     val isLive: Boolean = true,
 ) {
+    /** The payment that opened the current cycle. */
     val lastPayment: Payment get() = current.payment
 
+    /** The payment that closes the current cycle and opens the next one. */
     val nextPayment: Payment get() = current.nextPayment
 
     /** Last day covered by the two cycles together. */

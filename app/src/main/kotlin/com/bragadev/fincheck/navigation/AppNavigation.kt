@@ -19,6 +19,7 @@ import com.bragadev.fincheck.features.months.presentation.screen.MonthScreen
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+/** Navigation graph of the app: the "Meses" and "Listas" tabs and every screen reached from them. */
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()

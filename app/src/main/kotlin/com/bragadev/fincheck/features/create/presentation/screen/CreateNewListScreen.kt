@@ -33,6 +33,12 @@ import com.bragadev.fincheck.ui.components.adaptiveContentWidth
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
 import org.koin.androidx.compose.koinViewModel
 
+/**
+ * "Nova lista" screen: a name field and a create button.
+ *
+ * @param onListCreated called with the new list's id, to open it.
+ * @param onCancel called when the user goes back without creating a list.
+ */
 @Composable
 fun CreateNewListScreen(
     onListCreated: (Long) -> Unit,
@@ -49,6 +55,7 @@ fun CreateNewListScreen(
     )
 }
 
+/** Stateless body of the "Nova lista" screen, driven by [uiState]. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CreateNewListContent(
@@ -112,6 +119,7 @@ private fun CreateNewListContent(
     }
 }
 
+/** Message shown under the name field for this error. */
 private fun CreateListError.toStringRes(): Int = when (this) {
     CreateListError.EmptyName -> R.string.create_list_error_empty_name
     CreateListError.Generic -> R.string.create_list_generic_error

@@ -14,6 +14,7 @@ import com.bragadev.fincheck.core.domain.repository.IncomeRepository
 class SaveIncomeSettingsUseCase(
     private val repository: IncomeRepository,
 ) {
+    /** Validates [settings] and saves them; returns a validation error when a rule is broken. */
     suspend operator fun invoke(settings: IncomeSettings): AppResult<Unit> {
         val reason = when {
             settings.payDays.size != settings.frequency.paymentsPerMonth -> "invalid_pay_day_count"

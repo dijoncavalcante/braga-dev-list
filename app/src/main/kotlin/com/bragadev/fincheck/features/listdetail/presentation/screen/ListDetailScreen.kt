@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -104,10 +105,13 @@ fun ListDetailScreen(
 
 /** Callbacks of the toolbar (eye and settings); every list option lives in the settings screen. */
 private data class ListDetailToolbarActions(
+    /** Eye of the toolbar: hides or shows the amounts. */
     val onToggleAmountsVisibility: () -> Unit = {},
+    /** Opens the settings screen of the list. */
     val onSettingsClick: () -> Unit = {},
 )
 
+/** Stateless body of a list's screen, driven by [uiState]. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ListDetailContent(
@@ -115,10 +119,10 @@ private fun ListDetailContent(
     onBackClick: () -> Unit,
     onAddItemClick: () -> Unit,
     onDismissAddItemDialog: () -> Unit,
-    onAddItemConfirm: (String, Int, Long) -> Unit,
+    onAddItemConfirm: (String, Int, Long, String) -> Unit,
     onItemClick: (ShoppingListItem) -> Unit,
     onDismissEditItemDialog: () -> Unit,
-    onEditItemConfirm: (String, Int, Long) -> Unit,
+    onEditItemConfirm: (String, Int, Long, String) -> Unit,
     onDeleteItemConfirm: () -> Unit,
     onItemCheckedChange: (Long, Boolean) -> Unit,
     onRetryClick: () -> Unit,
@@ -193,6 +197,7 @@ private fun ListDetailContent(
     }
 }
 
+/** Spinner shown while the list is read. */
 @Composable
 private fun LoadingState(padding: PaddingValues) {
     Box(
@@ -206,6 +211,7 @@ private fun LoadingState(padding: PaddingValues) {
     }
 }
 
+/** Message shown when the list has no item yet. */
 @Composable
 private fun EmptyState(padding: PaddingValues) {
     EmptyStateContent(
@@ -217,6 +223,7 @@ private fun EmptyState(padding: PaddingValues) {
     }
 }
 
+/** Error message with a button to try again. */
 @Composable
 private fun ErrorState(
     padding: PaddingValues,
@@ -337,6 +344,7 @@ private fun LazyListScope.checkedSection(
     }
 }
 
+/** One item: checkbox, name with quantity, description and price. */
 @Composable
 private fun ShoppingListItemRow(
     item: ShoppingListItem,
@@ -361,12 +369,23 @@ private fun ShoppingListItemRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(checked = item.isChecked, onCheckedChange = onCheckedChange)
-            Text(
-                // Quantity only when it adds information: "Arroz (2)", but just "Luz" for 1.
-                text = if (item.quantity > 1) "${item.name} (${item.quantity})" else item.name,
-                textDecoration = if (item.isChecked) TextDecoration.LineThrough else TextDecoration.None,
-                modifier = Modifier.weight(1f),
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    // Quantity only when it adds information: "Arroz (2)", but just "Luz" for 1.
+                    text = if (item.quantity > 1) "${item.name} (${item.quantity})" else item.name,
+                    textDecoration = if (item.isChecked) TextDecoration.LineThrough else TextDecoration.None,
+                )
+                // The description is a note: two lines at most, the rest is read in the edit sheet.
+                item.description?.let { description ->
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
             if (showPrice && item.priceInCents > 0) {
                 Text(
                     text = item.priceInCents.toDisplayAmount(),
@@ -391,10 +410,10 @@ private fun ListDetailEmptyPreview() {
             onBackClick = {},
             onAddItemClick = {},
             onDismissAddItemDialog = {},
-            onAddItemConfirm = { _, _, _ -> },
+            onAddItemConfirm = { _, _, _, _ -> },
             onItemClick = {},
             onDismissEditItemDialog = {},
-            onEditItemConfirm = { _, _, _ -> },
+            onEditItemConfirm = { _, _, _, _ -> },
             onDeleteItemConfirm = {},
             onItemCheckedChange = { _, _ -> },
             onRetryClick = {},

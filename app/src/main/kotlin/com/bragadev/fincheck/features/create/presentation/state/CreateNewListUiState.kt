@@ -1,8 +1,12 @@
 package com.bragadev.fincheck.features.create.presentation.state
 
+/** State of the "Nova lista" screen. */
 data class CreateNewListUiState(
+    /** Name typed so far. */
     val name: String = "",
+    /** True while the list is being saved; the button is disabled meanwhile. */
     val isSaving: Boolean = false,
+    /** Why the last save failed; null when there is nothing to show. */
     val error: CreateListError? = null,
 )
 

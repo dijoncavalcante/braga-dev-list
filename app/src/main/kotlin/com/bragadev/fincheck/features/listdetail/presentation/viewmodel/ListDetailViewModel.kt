@@ -37,6 +37,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel of one list ([listId]), shared by its screen and its settings screen: items,
+ * preferences, dialogs and the conversion into bills.
+ */
 class ListDetailViewModel(
     private val listId: Long,
     private val getShoppingListUseCase: GetShoppingListUseCase,
@@ -58,8 +62,10 @@ class ListDetailViewModel(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ListDetailUiState())
+    /** State both screens draw. */
     val uiState: StateFlow<ListDetailUiState> = _uiState.asStateFlow()
 
+    /** Collection of the list and its items; replaced when the user retries. */
     private var observeJob: Job? = null
 
     init {
@@ -76,28 +82,33 @@ class ListDetailViewModel(
         viewModelScope.launch { setAmountsHiddenUseCase(hidden) }
     }
 
+    /** Reads the list again after an error. */
     fun retry() {
         _uiState.update { it.copy(isLoading = true, error = null) }
         observeListDetail()
     }
 
+    /** Opens the add item sheet. */
     fun onAddItemClick() {
         _uiState.update { it.copy(isAddItemDialogVisible = true) }
     }
 
+    /** Closes the add item sheet without saving. */
     fun onDismissAddItemDialog() {
         _uiState.update { it.copy(isAddItemDialogVisible = false) }
     }
 
-    fun onAddItemConfirm(name: String, quantity: Int, priceInCents: Long) {
+    /** Adds the item typed in the sheet; the sheet closes on success and stays open on failure. */
+    fun onAddItemConfirm(name: String, quantity: Int, priceInCents: Long, description: String) {
         viewModelScope.launch {
-            when (addListItemUseCase(listId, name, quantity, priceInCents)) {
+            when (addListItemUseCase(listId, name, quantity, priceInCents, description = description)) {
                 is AppResult.Success -> _uiState.update { it.copy(isAddItemDialogVisible = false) }
                 is AppResult.Error -> Unit // dialog stays open; inline field validation is a follow-up iteration
             }
         }
     }
 
+    /** Opens [item] in the edit sheet. */
     fun onItemClick(item: ShoppingListItem) {
         _uiState.update { it.copy(editingItem = item) }
     }
@@ -111,10 +122,10 @@ class ListDetailViewModel(
      * Save: only now are the edited values written to the database. The due day is no longer edited
      * in a list (bills live in the "Meses" tab), so an older item keeps the one it had.
      */
-    fun onEditItemConfirm(name: String, quantity: Int, priceInCents: Long) {
+    fun onEditItemConfirm(name: String, quantity: Int, priceInCents: Long, description: String) {
         val item = _uiState.value.editingItem ?: return
         viewModelScope.launch {
-            when (updateListItemUseCase(item.id, name, quantity, priceInCents, item.dueDay)) {
+            when (updateListItemUseCase(item.id, name, quantity, priceInCents, item.dueDay, description)) {
                 is AppResult.Success -> _uiState.update { it.copy(editingItem = null) }
                 is AppResult.Error -> Unit // dialog stays open with the user's edits
             }
@@ -132,6 +143,7 @@ class ListDetailViewModel(
         }
     }
 
+    /** Checks or unchecks the item with [itemId]. */
     fun onItemCheckedChange(itemId: Long, isChecked: Boolean) {
         viewModelScope.launch {
             setItemCheckedUseCase(itemId, isChecked)
@@ -149,6 +161,7 @@ class ListDetailViewModel(
         }
     }
 
+    /** "Mostrar valor": shows or hides the prices of the list. */
     fun onShowPricesToggle() {
         val list = _uiState.value.list ?: return
         viewModelScope.launch {
@@ -156,14 +169,17 @@ class ListDetailViewModel(
         }
     }
 
+    /** "Marcar todos os itens". */
     fun onCheckAllClick() {
         viewModelScope.launch { setAllItemsCheckedUseCase(listId, isChecked = true) }
     }
 
+    /** "Desmarcar todos os itens". */
     fun onUncheckAllClick() {
         viewModelScope.launch { setAllItemsCheckedUseCase(listId, isChecked = false) }
     }
 
+    /** "Excluir itens": opens the dialog that asks which items to delete. */
     fun onDeleteItemsClick() {
         _uiState.update { it.copy(isDeleteItemsDialogVisible = true) }
     }
@@ -178,18 +194,22 @@ class ListDetailViewModel(
         }
     }
 
+    /** Closes the "Excluir itens" dialog without deleting. */
     fun onDismissDeleteItems() {
         _uiState.update { it.copy(isDeleteItemsDialogVisible = false) }
     }
 
+    /** "Renomear lista": opens the rename dialog. */
     fun onRenameListClick() {
         _uiState.update { it.copy(isRenameDialogVisible = true, showRenameError = false) }
     }
 
+    /** The name in the rename dialog changed; hides the error. */
     fun onRenameNameChanged() {
         _uiState.update { it.copy(showRenameError = false) }
     }
 
+    /** Saves [newName]; the dialog closes on success and shows an error for an invalid name. */
     fun onRenameConfirm(newName: String) {
         viewModelScope.launch {
             when (val result = renameShoppingListUseCase(listId, newName)) {
@@ -201,10 +221,12 @@ class ListDetailViewModel(
         }
     }
 
+    /** Closes the rename dialog without saving. */
     fun onDismissRename() {
         _uiState.update { it.copy(isRenameDialogVisible = false, showRenameError = false) }
     }
 
+    /** "Compartilhar": builds the text of the list, for the share sheet. */
     fun onShareClick() {
         val list = _uiState.value.list ?: return
         viewModelScope.launch {
@@ -231,10 +253,12 @@ class ListDetailViewModel(
         }
     }
 
+    /** Closes the "Transformar em contas do mês" dialog without creating bills. */
     fun onDismissConvertToBills() {
         _uiState.update { it.copy(isConvertDialogVisible = false) }
     }
 
+    /** Creates the bills from [startMonth] on, repeating as [repetition] says; the dialog stays open on failure. */
     fun onConvertToBillsConfirm(startMonth: YearMonth, repetition: BillRepetition) {
         viewModelScope.launch {
             when (val result = convertListToBillsUseCase(listId, startMonth, repetition)) {
@@ -253,6 +277,7 @@ class ListDetailViewModel(
 
     // endregion
 
+    /** Starts (or restarts) collecting the list and its items, in display order, into the state. */
     private fun observeListDetail() {
         observeJob?.cancel()
         observeJob = combine(

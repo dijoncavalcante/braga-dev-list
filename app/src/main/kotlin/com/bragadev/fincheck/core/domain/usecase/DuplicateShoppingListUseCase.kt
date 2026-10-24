@@ -4,6 +4,7 @@ import com.bragadev.fincheck.core.common.result.AppResult
 import com.bragadev.fincheck.core.domain.model.ShoppingList
 import com.bragadev.fincheck.core.domain.repository.ShoppingListRepository
 
+/** Prefix of the copy's name when the original has no month in it. */
 private const val COPY_PREFIX = "Cópia de "
 
 /** Month names in calendar order; "marco" is accepted without the cedilla when reading a name. */
@@ -31,6 +32,7 @@ private val YEAR_REGEX = Regex("(?<!\\d)\\d{4}(?!\\d)")
 class DuplicateShoppingListUseCase(
     private val repository: ShoppingListRepository,
 ) {
+    /** Copies [list] with its items under the next month's name, or "Cópia de <name>"; returns the new list. */
     suspend operator fun invoke(list: ShoppingList): AppResult<ShoppingList> {
         val copyName = (nextMonthName(list.name) ?: (COPY_PREFIX + list.name)).take(MAX_LIST_NAME_LENGTH).trim()
         return repository.duplicateList(listId = list.id, newName = copyName)

@@ -7,6 +7,7 @@ import com.bragadev.fincheck.core.domain.repository.ShoppingListRepository
 class DeleteListItemsUseCase(
     private val repository: ShoppingListRepository,
 ) {
+    /** Deletes the checked items of list [listId], or all of them when [onlyChecked] is false. */
     suspend operator fun invoke(listId: Long, onlyChecked: Boolean): AppResult<Unit> =
         repository.deleteItems(listId, onlyChecked)
 }

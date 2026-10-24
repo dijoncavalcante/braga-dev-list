@@ -6,5 +6,6 @@ import com.bragadev.fincheck.core.domain.repository.AppPreferencesRepository
 class SetAmountsHiddenUseCase(
     private val repository: AppPreferencesRepository,
 ) {
+    /** Saves whether amounts are [hidden]. */
     suspend operator fun invoke(hidden: Boolean) = repository.setAmountsHidden(hidden)
 }

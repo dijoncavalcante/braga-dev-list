@@ -26,6 +26,7 @@ import com.bragadev.fincheck.core.util.extensions.toBrlCurrency
 class GetListShareTextUseCase(
     private val repository: ShoppingListRepository,
 ) {
+    /** Builds the share text of [list] from its current items. */
     suspend operator fun invoke(list: ShoppingList): AppResult<String> =
         when (val result = repository.getItems(list.id)) {
             is AppResult.Success -> AppResult.Success(
@@ -38,6 +39,7 @@ class GetListShareTextUseCase(
             is AppResult.Error -> result
         }
 
+    /** The list name, one line per item and, when prices are shown, the total. */
     private fun buildShareText(
         listName: String,
         items: List<ShoppingListItem>,
@@ -55,10 +57,12 @@ class GetListShareTextUseCase(
         }
     }.trimEnd()
 
+    /** "☐ Arroz (2) - R$ 10,00 - vence dia 10", with the description on the next line. */
     private fun ShoppingListItem.toShareLine(showPrices: Boolean): String = buildString {
         append(if (isChecked) "☑ " else "☐ ")
         append(name).append(" (").append(quantity).append(')')
         if (showPrices && priceInCents > 0) append(" - ").append(priceInCents.toBrlCurrency())
         dueDay?.let { append(" - vence dia ").append(it) }
+        description?.let { append("\n   ").append(it) }
     }
 }

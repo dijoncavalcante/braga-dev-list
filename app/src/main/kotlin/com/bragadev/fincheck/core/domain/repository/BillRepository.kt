@@ -11,8 +11,10 @@ interface BillRepository {
     /** Every bill and month status; emits again on every change. */
     fun observeBillBook(): Flow<BillBook>
 
+    /** Saves a new bill. */
     suspend fun addBill(bill: Bill): AppResult<Unit>
 
+    /** Saves several new bills at once. */
     suspend fun addBills(bills: List<Bill>): AppResult<Unit>
 
     /** Replaces the whole rule of [bill], in every month. */
@@ -34,8 +36,10 @@ interface BillRepository {
         newBill: Bill,
     ): AppResult<Unit>
 
+    /** Deletes bill [billId] from every month, with its statuses. */
     suspend fun deleteBill(billId: Long): AppResult<Unit>
 
+    /** Marks bill [billId] as paid or unpaid in [month]. */
     suspend fun setPaid(
         billId: Long,
         month: YearMonth,

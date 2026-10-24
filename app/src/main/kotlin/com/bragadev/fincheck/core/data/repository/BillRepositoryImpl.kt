@@ -19,6 +19,7 @@ import kotlinx.coroutines.withContext
 class BillRepositoryImpl(
     private val dao: BillDao,
     private val ioDispatcher: CoroutineDispatcher,
+    /** Current time in epoch milliseconds, for the creation time of new bills; replaceable in tests. */
     private val clock: () -> Long = System::currentTimeMillis,
 ) : BillRepository {
     override fun observeBillBook(): Flow<BillBook> =

@@ -7,5 +7,6 @@ import com.bragadev.fincheck.core.domain.repository.ShoppingListRepository
 class DeleteShoppingListUseCase(
     private val repository: ShoppingListRepository,
 ) {
+    /** Deletes list [listId] and its items. */
     suspend operator fun invoke(listId: Long): AppResult<Unit> = repository.deleteList(listId)
 }

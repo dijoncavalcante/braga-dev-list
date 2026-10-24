@@ -95,6 +95,7 @@ fun MonthHeader(
     }
 }
 
+/** Horizontal strip of months, kept scrolled to [selectedMonth]. */
 @Composable
 private fun MonthStrip(
     strip: List<MonthStripEntry>,
@@ -118,6 +119,7 @@ private fun MonthStrip(
     }
 }
 
+/** One month of the strip: its name, year and balance (or bills total). */
 @Composable
 private fun MonthChip(
     entry: MonthStripEntry,

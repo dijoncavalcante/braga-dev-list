@@ -9,8 +9,11 @@ import androidx.room.PrimaryKey
  */
 @Entity(tableName = "extra_incomes")
 data class ExtraIncomeEntity(
+    /** Generated id; 0 before it is saved. */
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    /** Name shown in the cycle, such as "Aluguel do apartamento". */
     val name: String,
+    /** Amount received, in cents. */
     val amountInCents: Long,
     /** Day of the month it arrives (1..31) when it repeats every month. */
     val dayOfMonth: Int?,

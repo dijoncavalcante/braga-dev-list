@@ -7,6 +7,7 @@ import com.bragadev.fincheck.core.domain.repository.ShoppingListRepository
 class SetAllItemsCheckedUseCase(
     private val repository: ShoppingListRepository,
 ) {
+    /** Checks (or unchecks, when [isChecked] is false) every item of list [listId]. */
     suspend operator fun invoke(listId: Long, isChecked: Boolean): AppResult<Unit> =
         repository.setAllItemsChecked(listId, isChecked)
 }

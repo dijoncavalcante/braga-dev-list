@@ -3,6 +3,7 @@ package com.bragadev.fincheck.core.util.extensions
 import java.text.NumberFormat
 import java.util.Locale
 
+/** Locale used to format amounts as "R$ 1.234,56". */
 private val brlLocale: Locale = Locale.forLanguageTag("pt-BR")
 
 /** Max digits accepted in a currency input (R$ 9.999.999.999,99). */

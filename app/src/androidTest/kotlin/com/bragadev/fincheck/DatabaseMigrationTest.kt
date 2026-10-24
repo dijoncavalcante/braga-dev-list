@@ -8,6 +8,7 @@ import com.bragadev.fincheck.core.database.ALL_MIGRATIONS
 import com.bragadev.fincheck.core.database.AppDatabase
 import com.bragadev.fincheck.core.database.BASELINE_DATABASE_VERSION
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -69,6 +70,53 @@ class DatabaseMigrationTest {
                 cursor.moveToFirst()
                 assertEquals(1, cursor.getInt(0))
             }
+            // 10 → 11 and 11 → 12: existing items start without a description, and bills take one.
+            writable.query("SELECT description FROM shopping_list_items").use { cursor ->
+                cursor.moveToFirst()
+                assertTrue(cursor.isNull(0))
+            }
+            writable.execSQL("UPDATE bills SET description = 'Débito automático' WHERE id = 1")
+            writable.query("SELECT description FROM bills").use { cursor ->
+                cursor.moveToFirst()
+                assertEquals("Débito automático", cursor.getString(0))
+            }
+        } finally {
+            database.close()
+        }
+    }
+
+    /**
+     * Version 11 already ran on a device (item descriptions only): it must reach the current
+     * version keeping its lists, instead of failing Room's integrity check.
+     */
+    @Test
+    fun version11WithItemDescriptionsMigratesKeepingItsLists() {
+        helper.createDatabase(TEST_DB, 11).use { db ->
+            db.execSQL(
+                "INSERT INTO shopping_lists (id, name, createdAt, sortOrder, showPrices, groupByFortnight) " +
+                    "VALUES (1, 'outubro', 0, 0, 1, 1)",
+            )
+            db.execSQL(
+                "INSERT INTO shopping_list_items (id, listId, name, quantity, priceInCents, dueDay, isChecked, createdAt, description) " +
+                    "VALUES (1, 1, 'Arroz', 1, 2590, NULL, 0, 0, 'Integral')",
+            )
+        }
+
+        val database = Room.databaseBuilder(
+            InstrumentationRegistry.getInstrumentation().targetContext,
+            AppDatabase::class.java,
+            TEST_DB,
+        ).addMigrations(*ALL_MIGRATIONS).build()
+
+        try {
+            database.openHelper.readableDatabase
+                .query("SELECT l.name, i.description FROM shopping_lists l JOIN shopping_list_items i ON i.listId = l.id")
+                .use { cursor ->
+                    assertEquals(1, cursor.count)
+                    cursor.moveToFirst()
+                    assertEquals("outubro", cursor.getString(0))
+                    assertEquals("Integral", cursor.getString(1))
+                }
         } finally {
             database.close()
         }

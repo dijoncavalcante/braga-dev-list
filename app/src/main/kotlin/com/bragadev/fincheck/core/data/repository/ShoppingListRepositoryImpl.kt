@@ -4,9 +4,9 @@ import com.bragadev.fincheck.core.common.result.AppError
 import com.bragadev.fincheck.core.common.result.AppResult
 import com.bragadev.fincheck.core.data.mapper.toDomain
 import com.bragadev.fincheck.core.database.ShoppingListDao
+import com.bragadev.fincheck.core.database.ShoppingListEntity
 import com.bragadev.fincheck.core.database.ShoppingListItemDao
 import com.bragadev.fincheck.core.database.ShoppingListItemEntity
-import com.bragadev.fincheck.core.database.ShoppingListEntity
 import com.bragadev.fincheck.core.domain.model.ItemSortOrder
 import com.bragadev.fincheck.core.domain.model.ItemViewMode
 import com.bragadev.fincheck.core.domain.model.ShoppingList
@@ -111,6 +111,7 @@ class ShoppingListRepositoryImpl(
         quantity: Int,
         priceInCents: Long,
         dueDay: Int?,
+        description: String?,
     ): AppResult<ShoppingListItem> =
         runCatchingToResult {
             withContext(ioDispatcher) {
@@ -122,6 +123,7 @@ class ShoppingListRepositoryImpl(
                     dueDay = dueDay,
                     isChecked = false,
                     createdAt = System.currentTimeMillis(),
+                    description = description,
                 )
                 val id = itemDao.insert(entity)
                 entity.copy(id = id).toDomain()
@@ -134,9 +136,10 @@ class ShoppingListRepositoryImpl(
         quantity: Int,
         priceInCents: Long,
         dueDay: Int?,
+        description: String?,
     ): AppResult<Unit> = runCatchingToResult {
         withContext(ioDispatcher) {
-            itemDao.updateDetails(itemId, name, quantity, priceInCents, dueDay)
+            itemDao.updateDetails(itemId, name, quantity, priceInCents, dueDay, description)
         }
     }
 
@@ -152,6 +155,10 @@ class ShoppingListRepositoryImpl(
         }
     }
 
+    /**
+     * Runs [block] and wraps its value in [AppResult.Success]; any exception becomes
+     * [AppError.Database], since every call here is a database call.
+     */
     private inline fun <T> runCatchingToResult(block: () -> T): AppResult<T> = try {
         AppResult.Success(block())
     } catch (exception: Exception) {

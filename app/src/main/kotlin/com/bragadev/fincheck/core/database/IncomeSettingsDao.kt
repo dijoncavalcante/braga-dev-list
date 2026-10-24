@@ -5,6 +5,7 @@ import androidx.room.Query
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
+/** Room access to the single row of `income_settings`. */
 @Dao
 interface IncomeSettingsDao {
 
@@ -12,6 +13,7 @@ interface IncomeSettingsDao {
     @Query("SELECT * FROM income_settings WHERE id = ${IncomeSettingsEntity.SINGLE_ROW_ID}")
     fun observe(): Flow<IncomeSettingsEntity?>
 
+    /** Creates or replaces the income settings row. */
     @Upsert
     suspend fun upsert(settings: IncomeSettingsEntity)
 }

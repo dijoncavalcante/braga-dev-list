@@ -15,6 +15,7 @@ fun ExtraIncomeEntity.toDomain(): ExtraIncome? {
     return ExtraIncome(id = id, name = name, amountInCents = amountInCents, recurrence = recurrence)
 }
 
+/** Converts a domain [ExtraIncome] into its row: a monthly one stores the day, a one-off one the date. */
 fun ExtraIncome.toEntity(): ExtraIncomeEntity = ExtraIncomeEntity(
     id = id,
     name = name,

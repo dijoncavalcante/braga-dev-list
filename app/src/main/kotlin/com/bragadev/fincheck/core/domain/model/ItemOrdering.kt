@@ -23,5 +23,6 @@ fun List<ShoppingListItem>.sortedForDisplay(sortOrder: ItemSortOrder): List<Shop
     }
 }
 
+/** Collator for Brazilian Portuguese that ignores case and accents, so "Água" sorts next to "agua". */
 private fun portugueseCollator(): Collator =
     Collator.getInstance(Locale.forLanguageTag("pt-BR")).apply { strength = Collator.PRIMARY }

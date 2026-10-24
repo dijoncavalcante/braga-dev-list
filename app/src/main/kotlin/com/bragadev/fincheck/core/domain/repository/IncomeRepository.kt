@@ -10,12 +10,15 @@ interface IncomeRepository {
     /** Null until the user sets up their income. */
     fun observeSettings(): Flow<IncomeSettings?>
 
+    /** Creates or replaces the income settings. */
     suspend fun saveSettings(settings: IncomeSettings): AppResult<Unit>
 
+    /** Every extra income; emits again on every change. */
     fun observeExtraIncomes(): Flow<List<ExtraIncome>>
 
     /** Adds [income] when its id is 0, otherwise updates it. */
     suspend fun saveExtraIncome(income: ExtraIncome): AppResult<Unit>
 
+    /** Deletes the extra income with [id]. */
     suspend fun deleteExtraIncome(id: Long): AppResult<Unit>
 }

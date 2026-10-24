@@ -2,6 +2,7 @@ package com.bragadev.fincheck
 
 import com.bragadev.fincheck.core.common.result.AppError
 import com.bragadev.fincheck.core.common.result.AppResult
+import com.bragadev.fincheck.core.domain.model.MAX_DESCRIPTION_LENGTH
 import com.bragadev.fincheck.core.domain.model.ShoppingListItem
 import com.bragadev.fincheck.core.domain.repository.ShoppingListRepository
 import com.bragadev.fincheck.core.domain.usecase.AddListItemUseCase
@@ -24,7 +25,7 @@ class AddListItemUseCaseTest {
 
         assertTrue(result is AppResult.Error)
         assertTrue((result as AppResult.Error).error is AppError.Validation)
-        coVerify(exactly = 0) { repository.addItem(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { repository.addItem(any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
@@ -39,21 +40,21 @@ class AddListItemUseCaseTest {
             isChecked = false,
             createdAt = 0,
         )
-        coEvery { repository.addItem(1, "Arroz", 2, 1_250, DUE_DAY) } returns AppResult.Success(saved)
+        coEvery { repository.addItem(1, "Arroz", 2, 1_250, DUE_DAY, null) } returns AppResult.Success(saved)
 
         val result = useCase(listId = 1, name = " Arroz ", quantity = 2, priceInCents = 1_250, dueDay = DUE_DAY)
 
         assertEquals(AppResult.Success(saved), result)
-        coVerify(exactly = 1) { repository.addItem(1, "Arroz", 2, 1_250, DUE_DAY) }
+        coVerify(exactly = 1) { repository.addItem(1, "Arroz", 2, 1_250, DUE_DAY, null) }
     }
 
     @Test
     fun `negative price is coerced to zero`() = runTest {
-        coEvery { repository.addItem(any(), any(), any(), any(), any()) } returns AppResult.Error(AppError.Database)
+        coEvery { repository.addItem(any(), any(), any(), any(), any(), any()) } returns AppResult.Error(AppError.Database)
 
         useCase(listId = 1, name = "Feijão", quantity = 1, priceInCents = -100)
 
-        coVerify(exactly = 1) { repository.addItem(1, "Feijão", 1, 0, null) }
+        coVerify(exactly = 1) { repository.addItem(1, "Feijão", 1, 0, null, null) }
     }
 
     @Test
@@ -62,7 +63,30 @@ class AddListItemUseCaseTest {
 
         assertTrue(result is AppResult.Error)
         assertTrue((result as AppResult.Error).error is AppError.Validation)
-        coVerify(exactly = 0) { repository.addItem(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { repository.addItem(any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `description is trimmed and a blank one is saved as none`() = runTest {
+        coEvery { repository.addItem(any(), any(), any(), any(), any(), any()) } returns AppResult.Error(AppError.Database)
+
+        useCase(listId = 1, name = "Arroz", quantity = 1, description = "  Integral, 5 kg ")
+        useCase(listId = 1, name = "Feijão", quantity = 1, description = "   ")
+
+        coVerify(exactly = 1) { repository.addItem(1, "Arroz", 1, 0, null, "Integral, 5 kg") }
+        coVerify(exactly = 1) { repository.addItem(1, "Feijão", 1, 0, null, null) }
+    }
+
+    @Test
+    fun `description longer than the limit returns validation error without touching the repository`() = runTest {
+        val accepted = "a".repeat(MAX_DESCRIPTION_LENGTH)
+        coEvery { repository.addItem(any(), any(), any(), any(), any(), any()) } returns AppResult.Error(AppError.Database)
+
+        useCase(listId = 1, name = "Arroz", quantity = 1, description = accepted)
+        val result = useCase(listId = 1, name = "Arroz", quantity = 1, description = accepted + "a")
+
+        assertTrue((result as AppResult.Error).error is AppError.Validation)
+        coVerify(exactly = 1) { repository.addItem(any(), any(), any(), any(), any(), any()) }
     }
 
     private companion object {

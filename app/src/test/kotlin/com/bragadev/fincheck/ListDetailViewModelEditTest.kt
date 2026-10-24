@@ -100,17 +100,17 @@ class ListDetailViewModelEditTest {
         viewModel.onDismissEditItemDialog()
 
         assertNull(viewModel.uiState.value.editingItem)
-        coVerify(exactly = 0) { updateListItemUseCase(any(), any(), any(), any(), any()) }
+        coVerify(exactly = 0) { updateListItemUseCase(any(), any(), any(), any(), any(), any()) }
     }
 
     @Test
     fun `save persists the edited values, keeps the item due day and closes the dialog`() = runTest {
-        coEvery { updateListItemUseCase(any(), any(), any(), any(), any()) } returns AppResult.Success(Unit)
+        coEvery { updateListItemUseCase(any(), any(), any(), any(), any(), any()) } returns AppResult.Success(Unit)
         viewModel.onItemClick(item)
 
-        viewModel.onEditItemConfirm(name = "Arroz integral", quantity = 2, priceInCents = 1_590)
+        viewModel.onEditItemConfirm(name = "Arroz integral", quantity = 2, priceInCents = 1_590, description = "")
 
-        coVerify(exactly = 1) { updateListItemUseCase(7, "Arroz integral", 2, 1_590, 10) }
+        coVerify(exactly = 1) { updateListItemUseCase(7, "Arroz integral", 2, 1_590, 10, "") }
         assertNull(viewModel.uiState.value.editingItem)
     }
 

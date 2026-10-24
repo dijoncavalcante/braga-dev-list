@@ -23,8 +23,8 @@ import com.bragadev.fincheck.core.domain.usecase.GetBillBookUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetExtraIncomesUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetFirstMonthUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetIncomeSettingsUseCase
-import com.bragadev.fincheck.core.domain.usecase.GetListShareTextUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetListItemsUseCase
+import com.bragadev.fincheck.core.domain.usecase.GetListShareTextUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetMonthViewModeUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetShoppingListUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetShoppingListsUseCase
@@ -44,6 +44,7 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
+/** File name of the app-wide SharedPreferences. */
 private const val APP_PREFERENCES_NAME = "app_preferences"
 
 /**

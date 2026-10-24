@@ -96,6 +96,7 @@ fun ListSummaryBar(summary: ListSummary, modifier: Modifier = Modifier, showAmou
     }
 }
 
+/** One column of the bar: a label, the item count and, when shown, the amount. */
 @Composable
 private fun SummaryColumn(
     label: String,
@@ -154,6 +155,7 @@ internal fun ShrinkToFitText(text: String, style: TextStyle, color: Color) {
     )
 }
 
+/** Smallest font size an amount shrinks to when it does not fit its column. */
 private val MIN_AMOUNT_FONT_SIZE = 10.sp
 
 @Preview(showBackground = true)

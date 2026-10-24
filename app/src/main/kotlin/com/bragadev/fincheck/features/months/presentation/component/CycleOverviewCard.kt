@@ -1,12 +1,9 @@
 package com.bragadev.fincheck.features.months.presentation.component
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,20 +13,15 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,21 +30,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bragadev.fincheck.R
-import com.bragadev.fincheck.features.listdetail.presentation.component.ShrinkToFitText
 import com.bragadev.fincheck.core.domain.model.Bill
 import com.bragadev.fincheck.core.domain.model.BillBook
 import com.bragadev.fincheck.core.domain.model.CalendarDate
 import com.bragadev.fincheck.core.domain.model.CycleExpense
 import com.bragadev.fincheck.core.domain.model.CycleInsight
-import com.bragadev.fincheck.core.domain.model.CycleStatus
 import com.bragadev.fincheck.core.domain.model.ExtraIncome
 import com.bragadev.fincheck.core.domain.model.ExtraIncomeRecurrence
 import com.bragadev.fincheck.core.domain.model.FinancialCycle
@@ -65,8 +53,6 @@ import com.bragadev.fincheck.core.domain.model.buildFinancialOverview
 import com.bragadev.fincheck.ui.components.toDisplayAmount
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
 
-/** Percent → progress bar fraction. */
-private const val PERCENT = 100f
 
 /** Which cycle has its breakdown open in [CycleOverviewCard]. */
 private enum class OpenCycle { CURRENT, NEXT }
@@ -210,56 +196,16 @@ private fun CycleTile(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val arrowRotation by animateFloatAsState(targetValue = if (isOpen) 180f else 0f, label = "tileArrow")
-    Surface(
+    OverviewTile(
+        title = title,
+        period = stringResource(R.string.cycle_period, cycle.startDate.toDayMonth(), cycle.endDate.toDayMonth()),
+        balanceInCents = cycle.projectedBalanceInCents,
+        committedPercent = cycle.committedPercent,
+        status = cycle.status,
+        isOpen = isOpen,
         onClick = onClick,
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = if (isOpen) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null,
         modifier = modifier,
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.weight(1f),
-                )
-                Icon(
-                    imageVector = Icons.Filled.KeyboardArrowDown,
-                    contentDescription = stringResource(
-                        if (isOpen) R.string.list_detail_section_collapse else R.string.list_detail_section_expand,
-                    ),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .rotate(arrowRotation),
-                )
-            }
-            Text(
-                text = stringResource(R.string.cycle_period, cycle.startDate.toDayMonth(), cycle.endDate.toDayMonth()),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            ShrinkToFitText(
-                text = cycle.projectedBalanceInCents.toDisplayAmount(),
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = balanceColor(cycle.projectedBalanceInCents),
-            )
-            cycle.committedPercent?.let { percent ->
-                LinearProgressIndicator(
-                    progress = { (percent / PERCENT).coerceIn(0f, 1f) },
-                    color = statusColor(cycle.status),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 6.dp),
-                )
-            }
-        }
-    }
+    )
 }
 
 /**
@@ -301,80 +247,8 @@ private fun CycleBreakdown(cycle: FinancialCycle, today: CalendarDate) {
             color = balanceColor(cycle.projectedBalanceInCents),
             isHighlighted = true,
         )
-        cycle.committedPercent?.let { percent ->
-            Text(
-                text = stringResource(R.string.cycle_committed, percent) + " · " + stringResource(statusLabel(cycle.status)),
-                style = MaterialTheme.typography.bodySmall,
-                color = statusColor(cycle.status),
-            )
-        }
+        cycle.committedPercent?.let { percent -> CommittedText(percent, cycle.status) }
     }
-}
-
-/** The single alert of the card: one short line on a soft error background. */
-@Composable
-private fun AlertBanner(text: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.errorContainer, MaterialTheme.shapes.small)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.ErrorOutline,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onErrorContainer,
-            modifier = Modifier.size(20.dp),
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onErrorContainer,
-        )
-    }
-}
-
-@Composable
-private fun AmountRow(
-    label: String,
-    text: String,
-    color: Color = MaterialTheme.colorScheme.onSurface,
-    isHighlighted: Boolean = false,
-) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (isHighlighted) FontWeight.SemiBold else null,
-            color = if (isHighlighted) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f),
-        )
-        Text(
-            text = text,
-            style = if (isHighlighted) MaterialTheme.typography.titleSmall else MaterialTheme.typography.bodyMedium,
-            fontWeight = if (isHighlighted) FontWeight.SemiBold else null,
-            color = color,
-        )
-    }
-}
-
-@Composable
-private fun balanceColor(amountInCents: Long): Color =
-    if (amountInCents < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-
-private fun statusLabel(status: CycleStatus): Int = when (status) {
-    CycleStatus.HEALTHY -> R.string.cycle_status_healthy
-    CycleStatus.TIGHT -> R.string.cycle_status_tight
-    CycleStatus.OVER_BUDGET -> R.string.cycle_status_over_budget
-}
-
-@Composable
-private fun statusColor(status: CycleStatus): Color = when (status) {
-    CycleStatus.HEALTHY -> MaterialTheme.colorScheme.primary
-    CycleStatus.TIGHT -> MaterialTheme.colorScheme.tertiary
-    CycleStatus.OVER_BUDGET -> MaterialTheme.colorScheme.error
 }
 
 /** Day of the month shown for a bill: the same "dia N" as its item row, never a full date. */
@@ -456,6 +330,7 @@ private fun CycleOverviewCardPreview() {
     }
 }
 
+/** A bill for the previews. */
 private fun previewBill(id: Long, name: String, priceInCents: Long, dueDay: Int?, start: YearMonth) = Bill(
     id = id,
     name = name,

@@ -59,6 +59,7 @@ fun AboutScreen(onBackClick: () -> Unit, onPrivacyPolicyClick: () -> Unit) {
     )
 }
 
+/** Stateless body of "Sobre o app": version, year and links, given as values so it can be previewed. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AboutContent(
@@ -164,6 +165,7 @@ private fun AppIcon() {
     }
 }
 
+/** A label and its value in one row, such as "Versão" and "1.0.0". */
 @Composable
 private fun InfoRow(label: String, value: String) {
     Box(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {

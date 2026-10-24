@@ -8,6 +8,7 @@ import com.bragadev.fincheck.core.domain.repository.BillRepository
 class SetBillPaidUseCase(
     private val repository: BillRepository,
 ) {
+    /** Marks bill [billId] as paid or unpaid in [month]. */
     suspend operator fun invoke(
         billId: Long,
         month: YearMonth,

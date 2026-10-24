@@ -104,6 +104,7 @@ fun EmptyStateIllustration(icon: ImageVector, modifier: Modifier = Modifier) {
     }
 }
 
+/** A small decorative circle of the empty state illustration, offset by [x] and [y]. */
 @Composable
 private fun Dot(size: Dp, color: Color, x: Dp, y: Dp) {
     Box(
