@@ -60,6 +60,39 @@ class ListOptionsUseCasesTest {
     }
 
     @Test
+    fun `copy of a monthly list is named after the next month`() = runTest {
+        val name = slot<String>()
+        coEvery { repository.duplicateList(3, capture(name)) } answers {
+            AppResult.Success(list.copy(id = 4, name = name.captured))
+        }
+        val useCase = DuplicateShoppingListUseCase(repository)
+
+        mapOf(
+            "Contas Outubro" to "Contas Novembro",
+            "outubro" to "novembro",
+            "CONTAS FEVEREIRO" to "CONTAS MARÇO",
+            "Marco 2026" to "Abril 2026",
+            "Contas Dezembro 2026" to "Contas Janeiro 2027",
+            "Dezembro" to "Janeiro",
+        ).forEach { (original, expected) ->
+            useCase(list.copy(name = original))
+            assertEquals(expected, name.captured)
+        }
+    }
+
+    @Test
+    fun `a month inside another word is not a month`() = runTest {
+        val name = slot<String>()
+        coEvery { repository.duplicateList(3, capture(name)) } answers {
+            AppResult.Success(list.copy(id = 4, name = name.captured))
+        }
+        val useCase = DuplicateShoppingListUseCase(repository)
+
+        useCase(list.copy(name = "Maiores gastos"))
+        assertEquals("Cópia de Maiores gastos", name.captured)
+    }
+
+    @Test
     fun `share text lists every item with price, due day and total`() = runTest {
         coEvery { repository.getItems(3) } returns AppResult.Success(
             listOf(

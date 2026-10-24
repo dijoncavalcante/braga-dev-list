@@ -47,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bragadev.fincheck.R
 import com.bragadev.fincheck.core.domain.model.CalendarDate
+import com.bragadev.fincheck.core.domain.model.CycleExpense
 import com.bragadev.fincheck.core.domain.model.CycleInsight
 import com.bragadev.fincheck.core.domain.model.CycleStatus
 import com.bragadev.fincheck.core.domain.model.ExtraIncome
@@ -366,6 +367,9 @@ private fun statusColor(status: CycleStatus): Color = when (status) {
     CycleStatus.OVER_BUDGET -> MaterialTheme.colorScheme.error
 }
 
+/** Day of the month shown for a bill: the same "dia N" as its item row, never a full date. */
+private val CycleExpense.dueDayOfMonth: Int get() = dueDate?.day ?: item.dueDay ?: 0
+
 /** Text of [FinancialOverview.mainAlert]; one bill is named, several are counted and summed. */
 @Composable
 private fun alertText(alert: CycleInsight): String = when (alert) {
@@ -376,7 +380,7 @@ private fun alertText(alert: CycleInsight): String = when (alert) {
                 R.string.cycle_insight_bill_overdue,
                 bill.item.name,
                 bill.amountInCents.toDisplayAmount(),
-                bill.dueDate?.toDayMonth().orEmpty(),
+                bill.dueDayOfMonth,
             )
         } else {
             stringResource(
@@ -394,7 +398,7 @@ private fun alertText(alert: CycleInsight): String = when (alert) {
                 R.string.cycle_insight_bill_before_extra,
                 bill.item.name,
                 bill.amountInCents.toDisplayAmount(),
-                bill.dueDate?.toDayMonth().orEmpty(),
+                bill.dueDayOfMonth,
                 extra.income.name,
                 extra.date.toDayMonth(),
             )

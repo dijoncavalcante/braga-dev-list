@@ -50,7 +50,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bragadev.fincheck.R
-import com.bragadev.fincheck.core.domain.model.CalendarDate
 import com.bragadev.fincheck.core.domain.model.CycleExpense
 import com.bragadev.fincheck.core.domain.model.FinancialOverview
 import com.bragadev.fincheck.core.domain.model.FortnightGroups
@@ -301,10 +300,9 @@ private fun ItemsState(
         // Extra bottom space so the "Adicionar item" button never covers the last item.
         contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 88.dp),
     ) {
-        val itemRow: ItemRow = { item, dueDate, modifier ->
+        val itemRow: ItemRow = { item, modifier ->
             ShoppingListItemRow(
                 item = item,
-                dueDate = dueDate,
                 showPrice = showPrices,
                 onClick = { onItemClick(item) },
                 onCheckedChange = { checked -> onItemCheckedChange(item.id, checked) },
@@ -379,7 +377,7 @@ private fun ItemsState(
                 )
             }
             if (isUncheckedExpanded) {
-                items(items = unchecked, key = { it.id }) { item -> itemRow(item, null, Modifier.animateItem()) }
+                items(items = unchecked, key = { it.id }) { item -> itemRow(item, Modifier.animateItem()) }
             }
         } else {
             // "Ciclos financeiros": what the current payment has to cover until the next one.
@@ -449,7 +447,6 @@ private fun LazyListScope.nextCycleSection(
 @Composable
 private fun ShoppingListItemRow(
     item: ShoppingListItem,
-    dueDate: CalendarDate?,
     showPrice: Boolean,
     onClick: () -> Unit,
     onCheckedChange: (Boolean) -> Unit,
@@ -475,14 +472,11 @@ private fun ShoppingListItemRow(
                     text = if (item.quantity > 1) "${item.name} (${item.quantity})" else item.name,
                     textDecoration = if (item.isChecked) TextDecoration.LineThrough else TextDecoration.None,
                 )
-                val dueText = when {
-                    dueDate != null -> stringResource(R.string.cycle_item_due_date, dueDate.toDayMonth())
-                    item.dueDay != null -> stringResource(R.string.list_detail_item_due_day_format, item.dueDay)
-                    else -> null
-                }
-                dueText?.let { text ->
+                // Only the day, in every view: bills repeat every month, so a date would tie the
+                // item to the cycle of today instead of the month the list is meant for.
+                item.dueDay?.let { day ->
                     Text(
-                        text = text,
+                        text = stringResource(R.string.list_detail_item_due_day_format, day),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -523,11 +517,8 @@ private fun ListDetailEmptyPreview() {
     }
 }
 
-/**
- * Draws one item row; [dueDate] is the date the item falls due in a financial cycle (null = show
- * just its due day) and the modifier carries the list's move/appear animation.
- */
-private typealias ItemRow = @Composable (item: ShoppingListItem, dueDate: CalendarDate?, modifier: Modifier) -> Unit
+/** Draws one item row; the modifier carries the list's move/appear animation. */
+private typealias ItemRow = @Composable (item: ShoppingListItem, modifier: Modifier) -> Unit
 
 /**
  * Open/closed state of the collapsible sections. Lists of items to do start open and lists
@@ -577,14 +568,14 @@ private fun LazyListScope.fortnightSection(
         unchecked.isEmpty() -> item(key = "all_checked_$key") {
             SectionMessage(R.string.list_detail_section_all_checked, Modifier.animateItem())
         }
-        else -> items(items = unchecked, key = { it.id }) { item -> itemRow(item, null, Modifier.animateItem()) }
+        else -> items(items = unchecked, key = { it.id }) { item -> itemRow(item, Modifier.animateItem()) }
     }
 }
 
 /**
  * One section of a cycle in the "Ciclos financeiros" view: a collapsible header (title, period
- * and how many of its items are checked) followed by its unchecked items only, each with its due
- * date in the cycle; the checked ones are shown in the single "Marcados" list at the end.
+ * and how many of its items are checked) followed by its unchecked items only, in the order they
+ * fall due in the cycle; the checked ones are shown in the single "Marcados" list at the end.
  */
 private fun LazyListScope.cycleSection(
     key: String,
@@ -618,7 +609,7 @@ private fun LazyListScope.cycleSection(
         }
         // An item can fall due twice in a long cycle, so the key also has the date.
         else -> items(items = unchecked, key = { "${key}_${it.item.id}_${it.dueDate?.toEpochDay()}" }) { expense ->
-            itemRow(expense.item, expense.dueDate, Modifier.animateItem())
+            itemRow(expense.item, Modifier.animateItem())
         }
     }
 }
@@ -642,7 +633,7 @@ private fun LazyListScope.checkedSection(
         )
     }
     if (isExpanded) {
-        items(items = items, key = { it.id }) { item -> itemRow(item, null, Modifier.animateItem()) }
+        items(items = items, key = { it.id }) { item -> itemRow(item, Modifier.animateItem()) }
     }
 }
 
