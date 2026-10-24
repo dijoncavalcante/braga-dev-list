@@ -19,7 +19,7 @@ class FortnightGroupsTest {
 
     @Test
     fun `days 1 to 15 go to the first fortnight and 16 to 31 to the second`() {
-        val groups = items.groupByFortnight()
+        val groups = items.groupByFortnight { it.dueDay }
 
         assertEquals(listOf("Aluguel", "Luz"), groups.firstFortnight.map { it.name })
         assertEquals(listOf("Internet", "Cartão"), groups.secondFortnight.map { it.name })
@@ -27,7 +27,7 @@ class FortnightGroupsTest {
 
     @Test
     fun `items without due day are kept apart instead of disappearing`() {
-        val groups = items.groupByFortnight()
+        val groups = items.groupByFortnight { it.dueDay }
 
         assertEquals(listOf("Pão"), groups.withoutDueDay.map { it.name })
         assertEquals(
@@ -38,7 +38,7 @@ class FortnightGroupsTest {
 
     @Test
     fun `each group keeps the order it received and the checked state of its items`() {
-        val groups = items.reversed().groupByFortnight()
+        val groups = items.reversed().groupByFortnight { it.dueDay }
 
         assertEquals(listOf("Luz", "Aluguel"), groups.firstFortnight.map { it.name })
         assertTrue(groups.firstFortnight.single { it.name == "Aluguel" }.isChecked)

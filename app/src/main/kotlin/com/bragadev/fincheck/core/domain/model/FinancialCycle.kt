@@ -11,14 +11,19 @@ private const val MONTHS_SEARCHED_BEFORE = 2
 private const val MONTHS_SEARCHED_AFTER = 3
 
 /**
- * An item counted in a financial cycle.
+ * A bill counted in a financial cycle, in the month it falls due.
  *
- * @param dueDate the actual date the bill falls due in the cycle; null for items without a due
- * day ("outras despesas"), which have no date of their own.
+ * [dueDate] is the actual date the bill falls due in the cycle; null for bills without a due day
+ * ("outras despesas"), which have no date of their own.
  */
-data class CycleExpense(val item: ShoppingListItem, val dueDate: CalendarDate?) {
-    /** Unit price × quantity, in cents. */
-    val amountInCents: Long get() = item.priceInCents * item.quantity
+data class CycleExpense(val bill: MonthBill) {
+    val name: String get() = bill.name
+
+    val isPaid: Boolean get() = bill.isPaid
+
+    val dueDate: CalendarDate? get() = bill.dueDate
+
+    val amountInCents: Long get() = bill.amountInCents
 }
 
 /** How much of the cycle's income its expenses take. */
@@ -91,6 +96,11 @@ data class FinancialOverview(
     val today: CalendarDate,
     val current: FinancialCycle,
     val next: FinancialCycle,
+    /**
+     * The cycles are those of the month the user is in. False for another month: [today] is then
+     * that month's first pay day, the cycles are a forecast (or history) and no alert is raised.
+     */
+    val isLive: Boolean = true,
 ) {
     val lastPayment: Payment get() = current.payment
 
@@ -112,25 +122,29 @@ data class FinancialOverview(
      * already shows as numbers (received, balance, next payment) are never repeated as alerts.
      */
     val mainAlert: CycleInsight?
-        get() = insights().firstOrNull { it is CycleInsight.OverdueBills || it is CycleInsight.BillsDueBeforeExtraIncome }
+        get() = if (!isLive) {
+            null
+        } else {
+            insights().firstOrNull { it is CycleInsight.OverdueBills || it is CycleInsight.BillsDueBeforeExtraIncome }
+        }
 
     /** Always at least 1: on a pay day that payment is already the current cycle's. */
     val daysUntilNextPayment: Long get() = today.daysUntil(nextPayment.date)
 
-    /** Bills of the current cycle not yet checked that still fall due before the next payment. */
+    /** Bills of the current cycle not yet paid that still fall due before the next payment. */
     val billsDueBeforeNextPayment: List<CycleExpense>
-        get() = current.bills.filter { !it.item.isChecked && it.dueDate != null && it.dueDate >= today }
+        get() = current.bills.filter { !it.isPaid && it.dueDate?.let { date -> date >= today } == true }
 
-    /** Bills of the current cycle whose due date has passed and are still not checked. */
+    /** Bills of the current cycle whose due date has passed and are still not paid. */
     val overdueBills: List<CycleExpense>
-        get() = current.bills.filter { !it.item.isChecked && it.dueDate != null && it.dueDate < today }
+        get() = current.bills.filter { !it.isPaid && it.dueDate?.let { date -> date < today } == true }
 
     /** Extra incomes of the current cycle that have not arrived yet (dated after today). */
     val upcomingExtraIncomes: List<ExtraIncomeEntry>
         get() = current.extraIncomes.filter { it.date > today }
 
     /**
-     * Bills not yet checked that fall due before the first upcoming extra income, when the money
+     * Bills not yet paid that fall due before the first upcoming extra income, when the money
      * received so far does not cover the cycle's expenses: they depend on money that is not in yet.
      */
     val billsDueBeforeExtraIncome: List<CycleExpense>
@@ -138,7 +152,7 @@ data class FinancialOverview(
             val firstExtra = upcomingExtraIncomes.firstOrNull() ?: return emptyList()
             val receivedSoFar = current.incomeInCents - upcomingExtraIncomes.sumOf { it.amountInCents }
             if (current.expensesInCents <= receivedSoFar) return emptyList()
-            return billsDueBeforeNextPayment.filter { it.dueDate != null && it.dueDate < firstExtra.date }
+            return billsDueBeforeNextPayment.filter { it.dueDate?.let { date -> date < firstExtra.date } == true }
         }
 
     /** Feedbacks about the current moment, most important first. */
@@ -176,7 +190,7 @@ sealed interface CycleInsight {
     /** Bills that still fall due before the next payment. */
     data class BillsDueBeforeNextPayment(val bills: List<CycleExpense>) : CycleInsight
 
-    /** Bills whose due date has passed without being checked. */
+    /** Bills whose due date has passed without being paid. */
     data class OverdueBills(val bills: List<CycleExpense>) : CycleInsight
 
     /** The next cycle already has more expenses than income. */
@@ -184,59 +198,60 @@ sealed interface CycleInsight {
 }
 
 /**
- * Builds the current and next financial cycles of [items] from the user's income, as of [today].
+ * Builds the current and next financial cycles of [month] from the user's income.
  *
- * Bills repeat every month on their due day (a day past the end of a short month falls on its
- * last day), so each cycle holds the occurrences dated inside it. Items without a due day are
- * expenses of the current cycle. [extraIncomes] add to the cycle their dates fall in, without
- * changing where cycles start or end. Returns null when the schedule produces no payments.
+ * In the month the user is in, the cycles are those around [today], with alerts. In any other month
+ * they start on that month's first pay day and are a forecast (or history), with no alert: a bill of
+ * a future month is never "overdue".
+ *
+ * Each cycle holds the bills of [bills] dated inside it, whatever month they belong to (a cycle can
+ * span two months). Bills of [month] without a due day are expenses of the current cycle.
+ * [extraIncomes] add to the cycle their dates fall in, without changing where cycles start or end.
+ * Returns null when the schedule produces no payments.
  */
 fun buildFinancialOverview(
     settings: IncomeSettings,
-    items: List<ShoppingListItem>,
+    bills: BillBook,
+    month: YearMonth,
     today: CalendarDate,
     extraIncomes: List<ExtraIncome> = emptyList(),
 ): FinancialOverview? {
-    // Wide enough for a monthly payment adjusted to a later date on both sides of today.
-    val payments = settings.toSchedule().paymentsBetween(
-        today.firstDayOfMonthPlus(-MONTHS_SEARCHED_BEFORE),
-        today.firstDayOfMonthPlus(MONTHS_SEARCHED_AFTER + 1).plusDays(-1),
+    val schedule = settings.toSchedule()
+    val isLive = month == YearMonth.of(today)
+    val anchor = if (isLive) {
+        today
+    } else {
+        schedule.paymentsBetween(month.firstDay(), month.lastDay()).firstOrNull()?.date ?: month.firstDay()
+    }
+    // Wide enough for a monthly payment adjusted to a later date on both sides of the anchor.
+    val payments = schedule.paymentsBetween(
+        anchor.firstDayOfMonthPlus(-MONTHS_SEARCHED_BEFORE),
+        anchor.firstDayOfMonthPlus(MONTHS_SEARCHED_AFTER + 1).plusDays(-1),
     )
-    val last = payments.lastOrNull { it.date <= today }
-    val next = payments.firstOrNull { it.date > today }
+    val last = payments.lastOrNull { it.date <= anchor }
+    val next = payments.firstOrNull { it.date > anchor }
     val afterNext = next?.let { nextPayment -> payments.firstOrNull { it.date > nextPayment.date } }
     if (last == null || next == null || afterNext == null) return null
 
-    val (withDueDay, withoutDueDay) = items.partition { it.dueDay != null }
     return FinancialOverview(
-        today = today,
+        today = anchor,
+        isLive = isLive,
         current = FinancialCycle(
             payment = last,
             nextPayment = next,
-            bills = withDueDay.billsBetween(last.date, next.date.plusDays(-1)),
-            otherExpenses = withoutDueDay.map { CycleExpense(it, dueDate = null) },
+            bills = bills.billsDueBetween(last.date, next.date.plusDays(-1)).map(::CycleExpense),
+            otherExpenses = bills.billsOf(month).filter { it.bill.dueDay == null }.map(::CycleExpense),
             extraIncomes = extraIncomes.entriesBetween(last.date, next.date.plusDays(-1)),
         ),
         next = FinancialCycle(
             payment = next,
             nextPayment = afterNext,
-            bills = withDueDay.billsBetween(next.date, afterNext.date.plusDays(-1)),
+            bills = bills.billsDueBetween(next.date, afterNext.date.plusDays(-1)).map(::CycleExpense),
             extraIncomes = extraIncomes.entriesBetween(next.date, afterNext.date.plusDays(-1)),
         ),
     )
 }
 
-private fun List<ExtraIncome>.entriesBetween(from: CalendarDate, to: CalendarDate): List<ExtraIncomeEntry> =
+/** Every arrival of these extra incomes between [from] and [to], oldest first. */
+fun List<ExtraIncome>.entriesBetween(from: CalendarDate, to: CalendarDate): List<ExtraIncomeEntry> =
     flatMap { income -> income.datesBetween(from, to).map { ExtraIncomeEntry(income, it) } }.sortedBy { it.date }
-
-/** Every due date of these items between [from] and [to], oldest first (same date keeps the list order). */
-private fun List<ShoppingListItem>.billsBetween(from: CalendarDate, to: CalendarDate): List<CycleExpense> {
-    val months = generateSequence(from.firstDayOfMonthPlus(0)) { it.firstDayOfMonthPlus(1) }.takeWhile { it <= to }
-    return flatMap { item ->
-        val dueDay = item.dueDay ?: return@flatMap emptyList()
-        months.map { CalendarDate.ofDayClamped(it.year, it.month, dueDay) }
-            .filter { it in from..to }
-            .map { CycleExpense(item, it) }
-            .toList()
-    }.sortedBy { it.dueDate }
-}

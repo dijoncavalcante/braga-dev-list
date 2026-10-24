@@ -4,9 +4,9 @@ import com.bragadev.fincheck.core.common.result.AppError
 import com.bragadev.fincheck.core.common.result.AppResult
 import com.bragadev.fincheck.core.domain.model.ShoppingListItem
 import com.bragadev.fincheck.core.domain.usecase.AddListItemUseCase
+import com.bragadev.fincheck.core.domain.usecase.ConvertListToBillsUseCase
 import com.bragadev.fincheck.core.domain.usecase.DeleteListItemUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetAmountsHiddenUseCase
-import com.bragadev.fincheck.core.domain.usecase.GetIncomeSettingsUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetShoppingListUseCase
 import com.bragadev.fincheck.core.domain.usecase.SetAmountsHiddenUseCase
@@ -40,7 +40,7 @@ class ListDetailViewModelEditTest {
         name = "Arroz",
         quantity = 1,
         priceInCents = 1_000,
-        dueDay = null,
+        dueDay = 10,
         isChecked = false,
         createdAt = 0,
     )
@@ -50,13 +50,10 @@ class ListDetailViewModelEditTest {
     private val updateListItemUseCase: UpdateListItemUseCase = mockk()
     private val deleteListItemUseCase: DeleteListItemUseCase = mockk()
 
-    private val getIncomeSettingsUseCase: GetIncomeSettingsUseCase = mockk {
-        every { this@mockk.invoke() } returns flowOf(null)
-    }
-
     private val amountsHidden = MutableStateFlow(false)
     private val getAmountsHiddenUseCase: GetAmountsHiddenUseCase = mockk { every { this@mockk.invoke() } returns amountsHidden }
     private val setAmountsHiddenUseCase: SetAmountsHiddenUseCase = mockk(relaxed = true)
+    private val convertListToBillsUseCase: ConvertListToBillsUseCase = mockk()
 
     private lateinit var viewModel: ListDetailViewModel
 
@@ -78,13 +75,9 @@ class ListDetailViewModelEditTest {
             setListPreferencesUseCase = mockk(),
             setAllItemsCheckedUseCase = mockk(),
             deleteListItemsUseCase = mockk(),
-            getIncomeSettingsUseCase = getIncomeSettingsUseCase,
-            saveIncomeSettingsUseCase = mockk(),
-            getExtraIncomesUseCase = mockk { every { this@mockk.invoke() } returns flowOf(emptyList()) },
-            saveExtraIncomeUseCase = mockk(),
-            deleteExtraIncomeUseCase = mockk(),
             getAmountsHiddenUseCase = getAmountsHiddenUseCase,
             setAmountsHiddenUseCase = setAmountsHiddenUseCase,
+            convertListToBillsUseCase = convertListToBillsUseCase,
         )
     }
 
@@ -111,13 +104,13 @@ class ListDetailViewModelEditTest {
     }
 
     @Test
-    fun `save persists the edited values and closes the dialog`() = runTest {
+    fun `save persists the edited values, keeps the item due day and closes the dialog`() = runTest {
         coEvery { updateListItemUseCase(any(), any(), any(), any(), any()) } returns AppResult.Success(Unit)
         viewModel.onItemClick(item)
 
-        viewModel.onEditItemConfirm(name = "Arroz integral", quantity = 2, priceInCents = 1_590, dueDay = null)
+        viewModel.onEditItemConfirm(name = "Arroz integral", quantity = 2, priceInCents = 1_590)
 
-        coVerify(exactly = 1) { updateListItemUseCase(7, "Arroz integral", 2, 1_590, null) }
+        coVerify(exactly = 1) { updateListItemUseCase(7, "Arroz integral", 2, 1_590, 10) }
         assertNull(viewModel.uiState.value.editingItem)
     }
 

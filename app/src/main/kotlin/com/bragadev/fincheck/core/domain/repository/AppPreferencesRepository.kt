@@ -1,5 +1,7 @@
 package com.bragadev.fincheck.core.domain.repository
 
+import com.bragadev.fincheck.core.domain.model.ItemViewMode
+import com.bragadev.fincheck.core.domain.model.YearMonth
 import kotlinx.coroutines.flow.Flow
 
 /** User preferences that apply to the whole app, not to a single list. */
@@ -8,4 +10,15 @@ interface AppPreferencesRepository {
     fun observeAmountsHidden(): Flow<Boolean>
 
     suspend fun setAmountsHidden(hidden: Boolean)
+
+    /** "Visualizar" of the "Meses" tab; "Todos" until the user picks another view. */
+    fun observeMonthViewMode(): Flow<ItemViewMode>
+
+    suspend fun setMonthViewMode(viewMode: ItemViewMode)
+
+    /**
+     * First month the user had the "Meses" tab: months before it have nothing to show. Saved as
+     * [currentMonth] the first time it is asked for.
+     */
+    suspend fun getOrInitFirstMonth(currentMonth: YearMonth): YearMonth
 }

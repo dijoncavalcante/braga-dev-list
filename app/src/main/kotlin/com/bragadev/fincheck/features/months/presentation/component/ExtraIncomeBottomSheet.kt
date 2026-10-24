@@ -1,4 +1,4 @@
-package com.bragadev.fincheck.features.listdetail.presentation.component
+package com.bragadev.fincheck.features.months.presentation.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

@@ -1,5 +1,8 @@
 package com.bragadev.fincheck
 
+import com.bragadev.fincheck.core.domain.model.Bill
+import com.bragadev.fincheck.core.domain.model.BillBook
+import com.bragadev.fincheck.core.domain.model.BillMonthStatus
 import com.bragadev.fincheck.core.domain.model.CalendarDate
 import com.bragadev.fincheck.core.domain.model.CycleInsight
 import com.bragadev.fincheck.core.domain.model.CycleStatus
@@ -7,10 +10,12 @@ import com.bragadev.fincheck.core.domain.model.FinancialOverview
 import com.bragadev.fincheck.core.domain.model.IncomeFrequency
 import com.bragadev.fincheck.core.domain.model.IncomeSettings
 import com.bragadev.fincheck.core.domain.model.PayDay
-import com.bragadev.fincheck.core.domain.model.ShoppingListItem
+import com.bragadev.fincheck.core.domain.model.YearMonth
+import com.bragadev.fincheck.core.domain.model.monthsTo
 import com.bragadev.fincheck.core.domain.model.buildFinancialOverview
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -50,9 +55,9 @@ class FinancialCycleTest {
         val overview = overview(twiceAMonth, items, today = date(2026, 10, 1))
         val current = overview.current
 
-        assertEquals(listOf("Aluguel", "Internet", "Energia"), current.bills.map { it.item.name })
+        assertEquals(listOf("Aluguel", "Internet", "Energia"), current.bills.map { it.name })
         assertEquals(listOf(date(2026, 9, 25), date(2026, 9, 28), date(2026, 10, 5)), current.bills.map { it.dueDate })
-        assertEquals(listOf("Mercado"), current.otherExpenses.map { it.item.name })
+        assertEquals(listOf("Mercado"), current.otherExpenses.map { it.name })
         assertEquals(130_000, current.billsInCents)
         assertEquals(40_000, current.otherExpensesInCents)
         assertEquals(170_000, current.expensesInCents)
@@ -60,7 +65,7 @@ class FinancialCycleTest {
         assertEquals(68, current.committedPercent)
         assertEquals(CycleStatus.HEALTHY, current.status)
 
-        assertEquals(listOf("Cartão"), overview.next.bills.map { it.item.name })
+        assertEquals(listOf("Cartão"), overview.next.bills.map { it.name })
         assertTrue(overview.next.otherExpenses.isEmpty())
     }
 
@@ -72,7 +77,7 @@ class FinancialCycleTest {
         assertEquals(date(2026, 10, 24), overview.current.endDate)
         assertEquals(date(2026, 10, 25), overview.next.startDate)
         assertEquals(date(2026, 11, 9), overview.next.endDate)
-        assertEquals(listOf("Aluguel", "Internet", "Energia"), overview.next.bills.map { it.item.name })
+        assertEquals(listOf("Aluguel", "Internet", "Energia"), overview.next.bills.map { it.name })
     }
 
     @Test
@@ -97,7 +102,7 @@ class FinancialCycleTest {
         assertEquals(date(2026, 11, 4), overview.current.endDate)
         assertEquals(31, overview.daysUntilNextPayment)
         // Every bill falls once in a month-long cycle; Energia (day 5) falls on the pay day itself.
-        assertEquals(listOf("Energia", "Cartão", "Aluguel", "Internet"), overview.current.bills.map { it.item.name })
+        assertEquals(listOf("Energia", "Cartão", "Aluguel", "Internet"), overview.current.bills.map { it.name })
         assertEquals(date(2026, 10, 5), overview.current.bills.first().dueDate)
     }
 
@@ -124,9 +129,7 @@ class FinancialCycleTest {
 
     @Test
     fun `insights tell what was received, what comes next and what is still to pay`() {
-        val withChecked = items.map { if (it.name == "Aluguel") it.copy(isChecked = true) else it }
-
-        val insights = overview(twiceAMonth, withChecked, today = date(2026, 10, 1)).insights()
+        val insights = overview(twiceAMonth, items, today = date(2026, 10, 1), paid = setOf("Aluguel")).insights()
 
         val received = assertIs<CycleInsight.Received>(insights[0])
         assertEquals(date(2026, 9, 25), received.payment.date)
@@ -136,9 +139,9 @@ class FinancialCycleTest {
         assertIs<CycleInsight.Balance>(insights[2])
         // Internet (28/09) passed unchecked; Energia (05/10) still comes before the next payment.
         val overdue = assertIs<CycleInsight.OverdueBills>(insights[3])
-        assertEquals(listOf("Internet"), overdue.bills.map { it.item.name })
+        assertEquals(listOf("Internet"), overdue.bills.map { it.name })
         val dueSoon = assertIs<CycleInsight.BillsDueBeforeNextPayment>(insights[4])
-        assertEquals(listOf("Energia"), dueSoon.bills.map { it.item.name })
+        assertEquals(listOf("Energia"), dueSoon.bills.map { it.name })
         assertEquals(5, insights.size)
     }
 
@@ -155,19 +158,17 @@ class FinancialCycleTest {
 
     @Test
     fun `main alert is the overdue bills, never the facts already shown as numbers`() {
-        val withChecked = items.map { if (it.name == "Aluguel") it.copy(isChecked = true) else it }
-
-        val alert = overview(twiceAMonth, withChecked, today = date(2026, 10, 1)).mainAlert
+        val alert = overview(twiceAMonth, items, today = date(2026, 10, 1), paid = setOf("Aluguel")).mainAlert
 
         val overdue = assertIs<CycleInsight.OverdueBills>(alert)
-        assertEquals(listOf("Internet"), overdue.bills.map { it.item.name })
+        assertEquals(listOf("Internet"), overdue.bills.map { it.name })
     }
 
     @Test
     fun `no main alert when nothing is overdue or waiting for an extra income`() {
-        val allChecked = items.map { it.copy(isChecked = true) }
+        val allPaid = items.map { it.name }.toSet()
 
-        assertNull(overview(twiceAMonth, allChecked, today = date(2026, 10, 1)).mainAlert)
+        assertNull(overview(twiceAMonth, items, today = date(2026, 10, 1), paid = allPaid).mainAlert)
     }
 
     @Test
@@ -179,17 +180,67 @@ class FinancialCycleTest {
         assertTrue(insights.any { it is CycleInsight.NextCycleOverBudget })
     }
 
-    private fun overview(settings: IncomeSettings, items: List<ShoppingListItem>, today: CalendarDate): FinancialOverview =
-        assertNotNull(buildFinancialOverview(settings, items, today))
+    @Test
+    fun `another month starts on its first pay day and raises no alert`() {
+        val overview = overview(twiceAMonth, items, today = date(2026, 10, 1), month = YearMonth(2026, 11))
 
-    private fun item(id: Long, name: String, priceInCents: Long, dueDay: Int?) = ShoppingListItem(
+        assertFalse(overview.isLive)
+        assertEquals(date(2026, 11, 10), overview.current.startDate)
+        assertEquals(date(2026, 11, 24), overview.current.endDate)
+        assertEquals(listOf("Cartão"), overview.current.bills.map { it.name })
+        assertEquals(listOf("Mercado"), overview.current.otherExpenses.map { it.name })
+        assertTrue(overview.overdueBills.isEmpty())
+        assertNull(overview.mainAlert)
+    }
+
+    @Test
+    fun `a cycle holds the bills of each month it spans, with their own paid state`() {
+        // Both paid in October: the cycle 25/10 → 09/11 still has the November energy bill to pay.
+        val bills = listOf(item(1, "Internet", 10_000, dueDay = 28), item(2, "Energia", 20_000, dueDay = 5))
+        val statuses = listOf(1L, 2L).map { BillMonthStatus(billId = it, month = YearMonth(2026, 10), isPaid = true) }
+
+        val overview = assertNotNull(
+            buildFinancialOverview(twiceAMonth, BillBook(bills, statuses), YearMonth(2026, 10), date(2026, 10, 30)),
+        )
+
+        assertEquals(listOf(date(2026, 10, 28), date(2026, 11, 5)), overview.current.bills.map { it.dueDate })
+        assertEquals(listOf(true, false), overview.current.bills.map { it.isPaid })
+    }
+
+    @Test
+    fun `a bill that ends or starts later is only in the months it lasts`() {
+        val installment = item(1, "Notebook", 50_000, dueDay = 5).copy(startMonth = YearMonth(2026, 11), endMonth = YearMonth(2026, 11))
+
+        val october = overview(twiceAMonth, listOf(installment), today = date(2026, 10, 1))
+        val november = overview(twiceAMonth, listOf(installment), today = date(2026, 11, 1))
+
+        assertTrue(october.current.bills.isEmpty())
+        assertEquals(listOf(date(2026, 11, 5)), november.current.bills.map { it.dueDate })
+    }
+
+    /** [paid] bills are paid in every month around [today]. */
+    private fun overview(
+        settings: IncomeSettings,
+        bills: List<Bill>,
+        today: CalendarDate,
+        paid: Set<String> = emptySet(),
+        month: YearMonth = YearMonth.of(today),
+    ): FinancialOverview {
+        val months = YearMonth.of(today).plusMonths(-2).monthsTo(YearMonth.of(today).plusMonths(3))
+        val statuses = bills.filter { it.name in paid }.flatMap { bill ->
+            months.map { BillMonthStatus(billId = bill.id, month = it, isPaid = true) }
+        }
+        return assertNotNull(buildFinancialOverview(settings, BillBook(bills, statuses), month, today))
+    }
+
+    /** A bill of every month since January 2026. */
+    private fun item(id: Long, name: String, priceInCents: Long, dueDay: Int?) = Bill(
         id = id,
-        listId = 1,
         name = name,
-        quantity = 1,
         priceInCents = priceInCents,
         dueDay = dueDay,
-        isChecked = false,
+        startMonth = YearMonth(2026, 1),
+        endMonth = null,
         createdAt = id,
     )
 

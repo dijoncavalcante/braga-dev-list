@@ -37,11 +37,13 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -50,7 +52,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bragadev.fincheck.R
 import com.bragadev.fincheck.core.domain.model.ItemSortOrder
-import com.bragadev.fincheck.core.domain.model.ItemViewMode
 import com.bragadev.fincheck.core.domain.model.ShoppingList
 import com.bragadev.fincheck.features.listdetail.presentation.state.ListDetailUiState
 import com.bragadev.fincheck.features.listdetail.presentation.viewmodel.ListDetailViewModel
@@ -85,8 +86,6 @@ fun ListSettingsScreen(
             onBackClick = onBackClick,
             onSortOrderSelected = viewModel::onSortOrderSelected,
             onShowPricesToggle = viewModel::onShowPricesToggle,
-            onViewModeSelected = viewModel::onViewModeSelected,
-            onIncomeSettingsClick = viewModel::onIncomeSettingsClick,
             onCheckAllClick = {
                 viewModel.onCheckAllClick()
                 scope.launch { snackbarHostState.showSnackbar(checkedAllMessage) }
@@ -98,10 +97,19 @@ fun ListSettingsScreen(
             onDeleteItemsClick = viewModel::onDeleteItemsClick,
             onRenameListClick = viewModel::onRenameListClick,
             onShareClick = viewModel::onShareClick,
+            onConvertToBillsClick = viewModel::onConvertToBillsClick,
             onAboutClick = onAboutClick,
             onPrivacyPolicyClick = onPrivacyPolicyClick,
         ),
     )
+
+    // "Transformar em contas do mês" done: say how many bills were created and where they are.
+    val resources = LocalResources.current
+    LaunchedEffect(uiState.convertedBillsCount) {
+        val count = uiState.convertedBillsCount ?: return@LaunchedEffect
+        viewModel.onConvertedHandled()
+        snackbarHostState.showSnackbar(resources.getQuantityString(R.plurals.convert_to_bills_done, count, count))
+    }
 
     ListDetailDialogs(uiState = uiState, viewModel = viewModel)
 }
@@ -111,13 +119,12 @@ private data class ListSettingsActions(
     val onBackClick: () -> Unit = {},
     val onSortOrderSelected: (ItemSortOrder) -> Unit = {},
     val onShowPricesToggle: () -> Unit = {},
-    val onViewModeSelected: (ItemViewMode) -> Unit = {},
-    val onIncomeSettingsClick: () -> Unit = {},
     val onCheckAllClick: () -> Unit = {},
     val onUncheckAllClick: () -> Unit = {},
     val onDeleteItemsClick: () -> Unit = {},
     val onRenameListClick: () -> Unit = {},
     val onShareClick: () -> Unit = {},
+    val onConvertToBillsClick: () -> Unit = {},
     val onAboutClick: () -> Unit = {},
     val onPrivacyPolicyClick: () -> Unit = {},
 )
@@ -162,11 +169,9 @@ private fun ListSettingsContent(
             )
             DisplaySection(uiState = uiState, actions = actions)
             SectionDivider()
-            IncomeSection(actions = actions)
-            SectionDivider()
             ItemsSection(uiState = uiState, actions = actions)
             SectionDivider()
-            ListSection(actions = actions)
+            ListSection(hasItems = uiState.items.isNotEmpty(), actions = actions)
             SectionDivider()
             SectionTitle(R.string.list_settings_section_app)
             ActionRow(
@@ -187,7 +192,7 @@ private fun ListSettingsContent(
     }
 }
 
-/** "Exibição": order, prices and how the items are grouped. */
+/** "Exibição": order and prices of the items. */
 @Composable
 private fun DisplaySection(uiState: ListDetailUiState, actions: ListSettingsActions) {
     SectionTitle(R.string.list_settings_section_display)
@@ -204,33 +209,6 @@ private fun DisplaySection(uiState: ListDetailUiState, actions: ListSettingsActi
             selected = uiState.sortOrder == ItemSortOrder.ALPHABETICAL,
             onClick = { actions.onSortOrderSelected(ItemSortOrder.ALPHABETICAL) },
         )
-        ChoiceRow(
-            title = stringResource(R.string.list_detail_menu_sort_due_day),
-            selected = uiState.sortOrder == ItemSortOrder.DUE_DAY,
-            onClick = { actions.onSortOrderSelected(ItemSortOrder.DUE_DAY) },
-        )
-    }
-
-    SubsectionTitle(R.string.list_detail_menu_view)
-    Column(modifier = Modifier.selectableGroup()) {
-        ChoiceRow(
-            title = stringResource(R.string.list_detail_menu_view_all),
-            description = stringResource(R.string.list_settings_view_all_description),
-            selected = uiState.viewMode == ItemViewMode.ALL,
-            onClick = { actions.onViewModeSelected(ItemViewMode.ALL) },
-        )
-        ChoiceRow(
-            title = stringResource(R.string.list_detail_menu_view_fortnights),
-            description = stringResource(R.string.list_settings_view_fortnights_description),
-            selected = uiState.viewMode == ItemViewMode.FORTNIGHTS,
-            onClick = { actions.onViewModeSelected(ItemViewMode.FORTNIGHTS) },
-        )
-        ChoiceRow(
-            title = stringResource(R.string.list_detail_menu_view_cycles),
-            description = stringResource(R.string.list_settings_view_cycles_description),
-            selected = uiState.viewMode == ItemViewMode.CYCLES,
-            onClick = { actions.onViewModeSelected(ItemViewMode.CYCLES) },
-        )
     }
 
     ToggleRow(
@@ -239,19 +217,6 @@ private fun DisplaySection(uiState: ListDetailUiState, actions: ListSettingsActi
         description = stringResource(R.string.list_settings_show_prices_description),
         checked = uiState.showPrices,
         onToggle = actions.onShowPricesToggle,
-    )
-}
-
-/** "Recebimento": the income behind the financial cycles view. */
-@Composable
-private fun IncomeSection(actions: ListSettingsActions) {
-    SectionTitle(R.string.list_settings_section_income)
-    ActionRow(
-        icon = Icons.Outlined.CalendarMonth,
-        title = stringResource(R.string.list_detail_menu_income_settings),
-        description = stringResource(R.string.list_settings_income_description),
-        onClick = actions.onIncomeSettingsClick,
-        showChevron = true,
     )
 }
 
@@ -298,9 +263,9 @@ private fun ItemsSection(uiState: ListDetailUiState, actions: ListSettingsAction
     )
 }
 
-/** "Lista": the list itself. */
+/** "Lista": the list itself, and turning its items into bills of the "Meses" tab. */
 @Composable
-private fun ListSection(actions: ListSettingsActions) {
+private fun ListSection(hasItems: Boolean, actions: ListSettingsActions) {
     SectionTitle(R.string.list_settings_section_list)
     ActionRow(
         icon = Icons.Outlined.Edit,
@@ -312,6 +277,13 @@ private fun ListSection(actions: ListSettingsActions) {
         title = stringResource(R.string.home_option_share),
         description = stringResource(R.string.list_settings_share_description),
         onClick = actions.onShareClick,
+    )
+    ActionRow(
+        icon = Icons.Outlined.CalendarMonth,
+        title = stringResource(R.string.convert_to_bills_title),
+        description = stringResource(R.string.convert_to_bills_description),
+        enabled = hasItems,
+        onClick = actions.onConvertToBillsClick,
     )
 }
 

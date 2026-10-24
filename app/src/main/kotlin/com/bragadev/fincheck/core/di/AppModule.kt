@@ -2,32 +2,42 @@ package com.bragadev.fincheck.core.di
 
 import android.content.Context
 import com.bragadev.fincheck.core.data.repository.AppPreferencesRepositoryImpl
+import com.bragadev.fincheck.core.data.repository.BillRepositoryImpl
 import com.bragadev.fincheck.core.data.repository.IncomeRepositoryImpl
 import com.bragadev.fincheck.core.data.repository.ShoppingListRepositoryImpl
 import com.bragadev.fincheck.core.domain.repository.AppPreferencesRepository
+import com.bragadev.fincheck.core.domain.repository.BillRepository
 import com.bragadev.fincheck.core.domain.repository.IncomeRepository
 import com.bragadev.fincheck.core.domain.repository.ShoppingListRepository
 import com.bragadev.fincheck.core.domain.usecase.AddListItemUseCase
+import com.bragadev.fincheck.core.domain.usecase.ConvertListToBillsUseCase
 import com.bragadev.fincheck.core.domain.usecase.CreateShoppingListUseCase
+import com.bragadev.fincheck.core.domain.usecase.DeleteBillUseCase
 import com.bragadev.fincheck.core.domain.usecase.DeleteExtraIncomeUseCase
 import com.bragadev.fincheck.core.domain.usecase.DeleteListItemUseCase
 import com.bragadev.fincheck.core.domain.usecase.DeleteListItemsUseCase
 import com.bragadev.fincheck.core.domain.usecase.DeleteShoppingListUseCase
 import com.bragadev.fincheck.core.domain.usecase.DuplicateShoppingListUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetAmountsHiddenUseCase
+import com.bragadev.fincheck.core.domain.usecase.GetBillBookUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetExtraIncomesUseCase
+import com.bragadev.fincheck.core.domain.usecase.GetFirstMonthUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetIncomeSettingsUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetListShareTextUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetListItemsUseCase
+import com.bragadev.fincheck.core.domain.usecase.GetMonthViewModeUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetShoppingListUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetShoppingListsUseCase
 import com.bragadev.fincheck.core.domain.usecase.RenameShoppingListUseCase
+import com.bragadev.fincheck.core.domain.usecase.SaveBillUseCase
 import com.bragadev.fincheck.core.domain.usecase.SaveExtraIncomeUseCase
 import com.bragadev.fincheck.core.domain.usecase.SaveIncomeSettingsUseCase
 import com.bragadev.fincheck.core.domain.usecase.SetAllItemsCheckedUseCase
 import com.bragadev.fincheck.core.domain.usecase.SetAmountsHiddenUseCase
+import com.bragadev.fincheck.core.domain.usecase.SetBillPaidUseCase
 import com.bragadev.fincheck.core.domain.usecase.SetItemCheckedUseCase
 import com.bragadev.fincheck.core.domain.usecase.SetListPreferencesUseCase
+import com.bragadev.fincheck.core.domain.usecase.SetMonthViewModeUseCase
 import com.bragadev.fincheck.core.domain.usecase.UpdateListItemUseCase
 import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidContext
@@ -84,4 +94,14 @@ val appModule = module {
     }
     factory { GetAmountsHiddenUseCase(repository = get()) }
     factory { SetAmountsHiddenUseCase(repository = get()) }
+    factory { GetMonthViewModeUseCase(repository = get()) }
+    factory { SetMonthViewModeUseCase(repository = get()) }
+    factory { GetFirstMonthUseCase(repository = get()) }
+
+    single<BillRepository> { BillRepositoryImpl(dao = get(), ioDispatcher = get(named("io"))) }
+    factory { GetBillBookUseCase(repository = get()) }
+    factory { SaveBillUseCase(repository = get()) }
+    factory { DeleteBillUseCase(repository = get()) }
+    factory { SetBillPaidUseCase(repository = get()) }
+    factory { ConvertListToBillsUseCase(listRepository = get(), billRepository = get()) }
 }

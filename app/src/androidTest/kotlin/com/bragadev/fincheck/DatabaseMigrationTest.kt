@@ -58,6 +58,17 @@ class DatabaseMigrationTest {
                 assertEquals(15000, cursor.getLong(1))
                 assertEquals(10, cursor.getInt(2))
             }
+            // 9 → 10: the bills of the "Meses" tab start empty and accept a bill with its month status.
+            val writable = database.openHelper.writableDatabase
+            writable.execSQL(
+                "INSERT INTO bills (id, name, priceInCents, dueDay, startMonth, endMonth, createdAt) " +
+                    "VALUES (1, 'Internet', 10000, 10, 24321, NULL, 0)",
+            )
+            writable.execSQL("INSERT INTO bill_month_status (billId, month, isPaid, isSkipped) VALUES (1, 24321, 1, 0)")
+            writable.query("SELECT COUNT(*) FROM bill_month_status").use { cursor ->
+                cursor.moveToFirst()
+                assertEquals(1, cursor.getInt(0))
+            }
         } finally {
             database.close()
         }

@@ -1,4 +1,4 @@
-package com.bragadev.fincheck.features.listdetail.presentation.component
+package com.bragadev.fincheck.ui.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Visibility

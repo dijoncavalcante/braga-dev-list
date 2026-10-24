@@ -39,15 +39,12 @@
     <string name="list_detail_item_due_day_placeholder">Selecione o dia</string>
     <string name="list_detail_item_due_day_option">Dia %1$d</string>
     <string name="list_detail_item_due_date_clear">Remover dia de vencimento</string>
-    <string name="list_detail_item_due_day_format">Vence dia %1$d</string>
     <string name="list_detail_dialog_save">Adicionar</string>
     <string name="list_detail_dialog_cancel">Cancelar</string>
     <string name="list_detail_menu_sort_by">Ordenar por</string>
     <string name="list_detail_menu_sort_added">Ordem de adição</string>
     <string name="list_detail_menu_sort_alphabetically">Ordem alfabética</string>
-    <string name="list_detail_menu_sort_due_day">Vencimento</string>
     <string name="list_detail_menu_show_prices">Mostrar valor</string>
-    <string name="list_detail_menu_view">Visualizar</string>
     <string name="list_detail_menu_view_all">Todos</string>
     <string name="list_detail_menu_view_fortnights">Quinzenas</string>
     <string name="list_detail_first_fortnight">1ª quinzena</string>
@@ -55,13 +52,9 @@
     <string name="list_detail_second_fortnight">2ª quinzena</string>
     <string name="list_detail_second_fortnight_days">Vencimento do dia 16 ao 31</string>
     <string name="list_detail_without_due_day">Sem vencimento</string>
-    <string name="list_detail_fortnight_empty">Nenhum item nesta quinzena</string>
-    <string name="list_detail_menu_view_cycles">Ciclos financeiros</string>
     <string name="list_detail_menu_income_settings">Configurar recebimento</string>
-    <string name="list_detail_section_checked_progress">%1$d de %2$d marcados</string>
     <string name="list_detail_section_unchecked">Não marcados (%1$d)</string>
     <string name="list_detail_section_checked">Marcados (%1$d)</string>
-    <string name="list_detail_section_all_checked">Todos os itens foram marcados</string>
     <string name="list_detail_all_checked_title">Tudo certo por aqui! 🎉</string>
     <string name="list_detail_all_checked_message">Você marcou todos os itens da lista. Bom trabalho, pode respirar tranquilo!</string>
     <string name="list_detail_section_expand">Expandir</string>
@@ -155,6 +148,120 @@
     <string name="cycle_insight_bill_overdue">%1$s (%2$s) venceu dia %3$d e ainda não foi marcada.</string>
     <string name="cycle_insight_bills_overdue">%1$d contas, somando %2$s, já venceram e ainda não foram marcadas.</string>
 
+    <string name="cycle_forecast">projeção do mês</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_months">Meses</string>
+    <string name="nav_lists">Listas</string>
+
+    <!-- Months tab -->
+    <string-array name="month_names">
+        <item>Janeiro</item>
+        <item>Fevereiro</item>
+        <item>Março</item>
+        <item>Abril</item>
+        <item>Maio</item>
+        <item>Junho</item>
+        <item>Julho</item>
+        <item>Agosto</item>
+        <item>Setembro</item>
+        <item>Outubro</item>
+        <item>Novembro</item>
+        <item>Dezembro</item>
+    </string-array>
+    <string-array name="month_short_names">
+        <item>jan</item>
+        <item>fev</item>
+        <item>mar</item>
+        <item>abr</item>
+        <item>mai</item>
+        <item>jun</item>
+        <item>jul</item>
+        <item>ago</item>
+        <item>set</item>
+        <item>out</item>
+        <item>nov</item>
+        <item>dez</item>
+    </string-array>
+    <string name="month_label">%1$s %2$d</string>
+    <string name="month_short_label">%1$s/%2$d</string>
+    <string name="months_title">Meus meses</string>
+    <string name="months_previous">Mês anterior</string>
+    <string name="months_next">Próximo mês</string>
+    <string name="months_back_to_current">Voltar para o mês atual</string>
+    <string name="months_more_options">Mais opções</string>
+    <string name="months_add_bill">Adicionar conta</string>
+    <string name="months_view_cycles">Ciclos</string>
+    <string name="months_error_message">Não foi possível carregar suas contas.</string>
+    <string name="months_empty_title">Nenhuma conta em %1$s</string>
+    <string name="months_empty_description">Adicione suas contas e diga se elas se repetem: o app monta os próximos meses sozinho.</string>
+    <string name="months_section_to_pay">A pagar (%1$d)</string>
+    <string name="months_section_paid">Pagas (%1$d)</string>
+    <string name="months_section_all_paid">Todas as contas desta seção foram pagas</string>
+    <string name="months_fortnight_empty">Nenhuma conta nesta quinzena</string>
+    <plurals name="months_section_paid_progress">
+        <item quantity="one">%1$d de %2$d paga</item>
+        <item quantity="other">%1$d de %2$d pagas</item>
+    </plurals>
+    <string name="month_summary_title">Saldo previsto do mês</string>
+    <string name="month_summary_title_no_income">Contas do mês</string>
+    <string name="month_summary_income">Entradas do mês</string>
+    <string name="month_summary_bills">Contas</string>
+    <string name="month_summary_paid">Pagas</string>
+    <string name="month_summary_to_pay">A pagar</string>
+    <string name="month_summary_setup_income">Informe como você recebe para ver o saldo previsto do mês.</string>
+    <plurals name="month_summary_overdue">
+        <item quantity="one">%1$d conta venceu e ainda não foi paga (%2$s).</item>
+        <item quantity="other">%1$d contas venceram e ainda não foram pagas (%2$s).</item>
+    </plurals>
+    <string name="month_summary_future">Previsão: as contas deste mês ainda não venceram.</string>
+    <string name="bill_due_day">Vence dia %1$d</string>
+    <string name="bill_overdue_day">Venceu dia %1$d</string>
+    <string name="bill_no_due_day">Sem vencimento</string>
+    <string name="bill_every_month">todo mês</string>
+    <string name="bill_installment">%1$d de %2$d</string>
+    <string name="bill_add_title">Nova conta</string>
+    <string name="bill_edit_title">Editar conta</string>
+    <string name="bill_name_label">Nome da conta</string>
+    <string name="bill_name_placeholder">Ex: Internet</string>
+    <string name="bill_error_empty_name">Informe um nome para a conta</string>
+    <string name="bill_repeat_question">Repete?</string>
+    <string name="bill_repeat_once">Só este mês</string>
+    <string name="bill_repeat_monthly">Todo mês</string>
+    <string name="bill_repeat_for_months">Por alguns meses</string>
+    <plurals name="bill_repeat_months_count">
+        <item quantity="one">%1$d mês</item>
+        <item quantity="other">%1$d meses</item>
+    </plurals>
+    <string name="bill_repeat_fewer">Menos meses</string>
+    <string name="bill_repeat_more">Mais meses</string>
+    <string name="bill_period_once">Só em %1$s</string>
+    <string name="bill_period_from">A partir de %1$s, sem data para acabar</string>
+    <string name="bill_period_range">%1$s → %2$s</string>
+    <string name="bill_due_day_hint">Sem dia de vencimento, a conta entra em \"Outras despesas\".</string>
+    <string name="bill_delete">Excluir conta</string>
+    <string name="bill_delete_title">Excluir conta?</string>
+    <string name="bill_delete_message">\"%1$s\" será excluída de %2$s.</string>
+    <string name="bill_scope_edit_title">Alterar conta que se repete</string>
+    <string name="bill_scope_delete_title">Excluir conta que se repete</string>
+    <string name="bill_scope_message">\"%1$s\" aparece em outros meses. A mudança vale para:</string>
+    <string name="bill_scope_only_this_month">Só %1$s</string>
+    <string name="bill_scope_this_and_next">%1$s e os próximos</string>
+
+    <!-- "Transformar em contas do mês" (list settings) -->
+    <string name="convert_to_bills_title">Transformar em contas do mês</string>
+    <string name="convert_to_bills_description">Os itens viram contas na aba Meses; a lista continua aqui</string>
+    <plurals name="convert_to_bills_message">
+        <item quantity="one">O item desta lista vira uma conta na aba Meses, com o mesmo nome, valor e dia de vencimento.</item>
+        <item quantity="other">Os %1$d itens desta lista viram contas na aba Meses, com o mesmo nome, valor e dia de vencimento.</item>
+    </plurals>
+    <string name="convert_to_bills_start_month">A partir de</string>
+    <string name="convert_to_bills_confirm">Transformar</string>
+    <plurals name="convert_to_bills_done">
+        <item quantity="one">%1$d conta criada na aba Meses</item>
+        <item quantity="other">%1$d contas criadas na aba Meses</item>
+    </plurals>
+
     <string name="amounts_hide">Ocultar valores</string>
     <string name="amounts_show">Mostrar valores</string>
 
@@ -165,15 +272,10 @@
     <string name="list_settings_title">Configurações</string>
     <string name="list_settings_subtitle">Ajustes da lista “%1$s”</string>
     <string name="list_settings_section_display">Exibição</string>
-    <string name="list_settings_section_income">Recebimento</string>
     <string name="list_settings_section_items">Itens</string>
     <string name="list_settings_section_list">Lista</string>
     <string name="list_settings_section_app">Aplicativo</string>
-    <string name="list_settings_view_all_description">Todos os itens juntos, os marcados no final</string>
-    <string name="list_settings_view_fortnights_description">Itens separados por vencimento: dias 1 a 15 e 16 a 31</string>
-    <string name="list_settings_view_cycles_description">Contas organizadas pelos seus dias de recebimento, com saldo projetado</string>
     <string name="list_settings_show_prices_description">Mostra o valor de cada item e os totais</string>
-    <string name="list_settings_income_description">Quando e quanto você recebe, e outras entradas</string>
     <string name="list_settings_delete_items_description">Excluir os marcados ou todos os itens</string>
     <string name="list_settings_share_description">Enviar a lista como texto</string>
     <string name="list_settings_about_description">Versão e desenvolvedora</string>

@@ -4,29 +4,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bragadev.fincheck.core.common.result.AppError
 import com.bragadev.fincheck.core.common.result.AppResult
+import com.bragadev.fincheck.core.domain.model.BillRepetition
 import com.bragadev.fincheck.core.domain.model.CalendarDate
-import com.bragadev.fincheck.core.domain.model.ExtraIncome
-import com.bragadev.fincheck.core.domain.model.FinancialOverview
-import com.bragadev.fincheck.core.domain.model.IncomeSettings
 import com.bragadev.fincheck.core.domain.model.ItemSortOrder
-import com.bragadev.fincheck.core.domain.model.ItemViewMode
-import com.bragadev.fincheck.core.domain.model.ShoppingList
 import com.bragadev.fincheck.core.domain.model.ShoppingListItem
-import com.bragadev.fincheck.core.domain.model.buildFinancialOverview
+import com.bragadev.fincheck.core.domain.model.YearMonth
+import com.bragadev.fincheck.core.domain.model.nextMonths
 import com.bragadev.fincheck.core.domain.model.sortedForDisplay
 import com.bragadev.fincheck.core.domain.usecase.AddListItemUseCase
-import com.bragadev.fincheck.core.domain.usecase.DeleteExtraIncomeUseCase
+import com.bragadev.fincheck.core.domain.usecase.ConvertListToBillsUseCase
 import com.bragadev.fincheck.core.domain.usecase.DeleteListItemUseCase
 import com.bragadev.fincheck.core.domain.usecase.DeleteListItemsUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetAmountsHiddenUseCase
-import com.bragadev.fincheck.core.domain.usecase.GetExtraIncomesUseCase
-import com.bragadev.fincheck.core.domain.usecase.GetIncomeSettingsUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetListShareTextUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetShoppingListUseCase
 import com.bragadev.fincheck.core.domain.usecase.RenameShoppingListUseCase
-import com.bragadev.fincheck.core.domain.usecase.SaveExtraIncomeUseCase
-import com.bragadev.fincheck.core.domain.usecase.SaveIncomeSettingsUseCase
 import com.bragadev.fincheck.core.domain.usecase.SetAllItemsCheckedUseCase
 import com.bragadev.fincheck.core.domain.usecase.SetAmountsHiddenUseCase
 import com.bragadev.fincheck.core.domain.usecase.SetItemCheckedUseCase
@@ -57,14 +50,10 @@ class ListDetailViewModel(
     private val setListPreferencesUseCase: SetListPreferencesUseCase,
     private val setAllItemsCheckedUseCase: SetAllItemsCheckedUseCase,
     private val deleteListItemsUseCase: DeleteListItemsUseCase,
-    private val getIncomeSettingsUseCase: GetIncomeSettingsUseCase,
-    private val saveIncomeSettingsUseCase: SaveIncomeSettingsUseCase,
-    private val getExtraIncomesUseCase: GetExtraIncomesUseCase,
-    private val saveExtraIncomeUseCase: SaveExtraIncomeUseCase,
-    private val deleteExtraIncomeUseCase: DeleteExtraIncomeUseCase,
     private val getAmountsHiddenUseCase: GetAmountsHiddenUseCase,
     private val setAmountsHiddenUseCase: SetAmountsHiddenUseCase,
-    /** "Today" for the financial cycles; replaceable in tests. */
+    private val convertListToBillsUseCase: ConvertListToBillsUseCase,
+    /** "Today", for the months a list can be turned into bills from; replaceable in tests. */
     private val currentDate: () -> CalendarDate = CalendarDate::today,
 ) : ViewModel() {
 
@@ -75,7 +64,7 @@ class ListDetailViewModel(
 
     init {
         observeListDetail()
-        // Kept apart from the list data: toggling the eye must not recalculate the cycles.
+        // Kept apart from the list data: toggling the eye must not reload the list.
         getAmountsHiddenUseCase()
             .onEach { hidden -> _uiState.update { it.copy(amountsHidden = hidden) } }
             .launchIn(viewModelScope)
@@ -100,9 +89,9 @@ class ListDetailViewModel(
         _uiState.update { it.copy(isAddItemDialogVisible = false) }
     }
 
-    fun onAddItemConfirm(name: String, quantity: Int, priceInCents: Long, dueDay: Int?) {
+    fun onAddItemConfirm(name: String, quantity: Int, priceInCents: Long) {
         viewModelScope.launch {
-            when (addListItemUseCase(listId, name, quantity, priceInCents, dueDay)) {
+            when (addListItemUseCase(listId, name, quantity, priceInCents)) {
                 is AppResult.Success -> _uiState.update { it.copy(isAddItemDialogVisible = false) }
                 is AppResult.Error -> Unit // dialog stays open; inline field validation is a follow-up iteration
             }
@@ -118,11 +107,14 @@ class ListDetailViewModel(
         _uiState.update { it.copy(editingItem = null) }
     }
 
-    /** Save: only now are the edited values written to the database. */
-    fun onEditItemConfirm(name: String, quantity: Int, priceInCents: Long, dueDay: Int?) {
+    /**
+     * Save: only now are the edited values written to the database. The due day is no longer edited
+     * in a list (bills live in the "Meses" tab), so an older item keeps the one it had.
+     */
+    fun onEditItemConfirm(name: String, quantity: Int, priceInCents: Long) {
         val item = _uiState.value.editingItem ?: return
         viewModelScope.launch {
-            when (updateListItemUseCase(item.id, name, quantity, priceInCents, dueDay)) {
+            when (updateListItemUseCase(item.id, name, quantity, priceInCents, item.dueDay)) {
                 is AppResult.Success -> _uiState.update { it.copy(editingItem = null) }
                 is AppResult.Error -> Unit // dialog stays open with the user's edits
             }
@@ -161,15 +153,6 @@ class ListDetailViewModel(
         val list = _uiState.value.list ?: return
         viewModelScope.launch {
             setListPreferencesUseCase.setShowPrices(list.id, !list.showPrices)
-        }
-    }
-
-    /** "Visualizar": only one view is active at a time. */
-    fun onViewModeSelected(viewMode: ItemViewMode) {
-        val list = _uiState.value.list ?: return
-        if (list.viewMode == viewMode) return
-        viewModelScope.launch {
-            setListPreferencesUseCase.setViewMode(list.id, viewMode)
         }
     }
 
@@ -239,61 +222,33 @@ class ListDetailViewModel(
 
     // endregion
 
-    // region Income ("Como você recebe?")
+    // region "Transformar em contas do mês"
 
-    fun onIncomeSettingsClick() {
-        _uiState.update { it.copy(isIncomeSettingsVisible = true) }
+    /** Months the list can start from: the current one and the next ones. */
+    fun onConvertToBillsClick() {
+        _uiState.update {
+            it.copy(convertMonthOptions = YearMonth.of(currentDate()).nextMonths(), isConvertDialogVisible = true)
+        }
     }
 
-    fun onDismissIncomeSettings() {
-        _uiState.update { it.copy(isIncomeSettingsVisible = false) }
+    fun onDismissConvertToBills() {
+        _uiState.update { it.copy(isConvertDialogVisible = false) }
     }
 
-    /** The sheet stays open if saving fails, keeping what the user typed. */
-    fun onIncomeSettingsConfirm(settings: IncomeSettings) {
+    fun onConvertToBillsConfirm(startMonth: YearMonth, repetition: BillRepetition) {
         viewModelScope.launch {
-            when (saveIncomeSettingsUseCase(settings)) {
-                is AppResult.Success -> _uiState.update { it.copy(isIncomeSettingsVisible = false) }
-                is AppResult.Error -> Unit
+            when (val result = convertListToBillsUseCase(listId, startMonth, repetition)) {
+                is AppResult.Success -> _uiState.update {
+                    it.copy(isConvertDialogVisible = false, convertedBillsCount = result.data)
+                }
+                is AppResult.Error -> Unit // dialog stays open; nothing was created
             }
         }
     }
 
-    // endregion
-
-    // region Extra incomes ("Outras entradas")
-
-    fun onAddExtraIncomeClick() {
-        _uiState.update { it.copy(isExtraIncomeSheetVisible = true, editingExtraIncome = null) }
-    }
-
-    fun onExtraIncomeClick(income: ExtraIncome) {
-        _uiState.update { it.copy(isExtraIncomeSheetVisible = true, editingExtraIncome = income) }
-    }
-
-    fun onDismissExtraIncome() {
-        _uiState.update { it.copy(isExtraIncomeSheetVisible = false, editingExtraIncome = null) }
-    }
-
-    /** Adds a new extra income or updates the one being edited; the sheet stays open on failure. */
-    fun onExtraIncomeConfirm(income: ExtraIncome) {
-        val id = _uiState.value.editingExtraIncome?.id ?: 0
-        viewModelScope.launch {
-            when (saveExtraIncomeUseCase(income.copy(id = id))) {
-                is AppResult.Success -> onDismissExtraIncome()
-                is AppResult.Error -> Unit
-            }
-        }
-    }
-
-    fun onDeleteExtraIncomeConfirm() {
-        val income = _uiState.value.editingExtraIncome ?: return
-        viewModelScope.launch {
-            when (deleteExtraIncomeUseCase(income.id)) {
-                is AppResult.Success -> onDismissExtraIncome()
-                is AppResult.Error -> Unit
-            }
-        }
+    /** The screen showed how many bills were created; clear the one-off event. */
+    fun onConvertedHandled() {
+        _uiState.update { it.copy(convertedBillsCount = null) }
     }
 
     // endregion
@@ -303,47 +258,11 @@ class ListDetailViewModel(
         observeJob = combine(
             getShoppingListUseCase(listId),
             getListItemsUseCase(listId),
-            getIncomeSettingsUseCase(),
-            getExtraIncomesUseCase(),
-        ) { list, items, incomeSettings, extraIncomes ->
-            val sortedItems = items.sortedForDisplay(list?.sortOrder ?: ItemSortOrder.ADDED)
-            val today = currentDate()
-            LoadedData(
-                list = list,
-                items = sortedItems,
-                incomeSettings = incomeSettings,
-                extraIncomes = extraIncomes,
-                today = today,
-                financialOverview = incomeSettings?.let {
-                    buildFinancialOverview(it, sortedItems, today, extraIncomes)
-                },
-            )
-        }
-            .onEach { data ->
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        list = data.list,
-                        items = data.items,
-                        incomeSettings = data.incomeSettings,
-                        extraIncomes = data.extraIncomes,
-                        today = data.today,
-                        financialOverview = data.financialOverview,
-                        error = null,
-                    )
-                }
+        ) { list, items -> list to items.sortedForDisplay(list?.sortOrder ?: ItemSortOrder.ADDED) }
+            .onEach { (list, items) ->
+                _uiState.update { it.copy(isLoading = false, list = list, items = items, error = null) }
             }
             .catch { _uiState.update { it.copy(isLoading = false, error = "list_detail_load_failed") } }
             .launchIn(viewModelScope)
     }
 }
-
-/** Everything read from the database in one emission, before it is merged into the UI state. */
-private data class LoadedData(
-    val list: ShoppingList?,
-    val items: List<ShoppingListItem>,
-    val incomeSettings: IncomeSettings?,
-    val extraIncomes: List<ExtraIncome>,
-    val today: CalendarDate,
-    val financialOverview: FinancialOverview?,
-)

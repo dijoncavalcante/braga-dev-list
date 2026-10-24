@@ -58,6 +58,7 @@ import org.koin.androidx.compose.koinViewModel
 fun HomeScreen(
     onCreateListClick: () -> Unit,
     onListClick: (Long) -> Unit,
+    bottomBar: @Composable () -> Unit = {},
     viewModel: HomeViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -77,6 +78,7 @@ fun HomeScreen(
         onListClick = onListClick,
         onRetryClick = viewModel::retry,
         onListMenuClick = viewModel::onListMenuClick,
+        bottomBar = bottomBar,
     )
 
     uiState.menuList?.let { list ->
@@ -117,9 +119,11 @@ private fun HomeContent(
     onListClick: (Long) -> Unit,
     onRetryClick: () -> Unit,
     onListMenuClick: (ShoppingList) -> Unit,
+    bottomBar: @Composable () -> Unit = {},
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.home_title)) }) },
+        bottomBar = bottomBar,
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onCreateListClick,

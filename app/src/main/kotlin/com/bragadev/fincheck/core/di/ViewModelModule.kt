@@ -3,6 +3,7 @@ package com.bragadev.fincheck.core.di
 import com.bragadev.fincheck.features.create.presentation.viewmodel.CreateNewListViewModel
 import com.bragadev.fincheck.features.home.presentation.viewmodel.HomeViewModel
 import com.bragadev.fincheck.features.listdetail.presentation.viewmodel.ListDetailViewModel
+import com.bragadev.fincheck.features.months.presentation.viewmodel.MonthViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -31,11 +32,25 @@ val viewModelModule = module {
             setListPreferencesUseCase = get(),
             setAllItemsCheckedUseCase = get(),
             deleteListItemsUseCase = get(),
+            getAmountsHiddenUseCase = get(),
+            setAmountsHiddenUseCase = get(),
+            convertListToBillsUseCase = get(),
+        )
+    }
+    viewModel {
+        MonthViewModel(
+            getBillBookUseCase = get(),
+            saveBillUseCase = get(),
+            deleteBillUseCase = get(),
+            setBillPaidUseCase = get(),
             getIncomeSettingsUseCase = get(),
             saveIncomeSettingsUseCase = get(),
             getExtraIncomesUseCase = get(),
             saveExtraIncomeUseCase = get(),
             deleteExtraIncomeUseCase = get(),
+            getMonthViewModeUseCase = get(),
+            setMonthViewModeUseCase = get(),
+            getFirstMonthUseCase = get(),
             getAmountsHiddenUseCase = get(),
             setAmountsHiddenUseCase = get(),
         )

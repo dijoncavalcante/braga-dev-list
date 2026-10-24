@@ -1,13 +1,15 @@
 package com.bragadev.fincheck
 
 import com.bragadev.fincheck.core.common.result.AppResult
+import com.bragadev.fincheck.core.domain.model.BillRepetition
+import com.bragadev.fincheck.core.domain.model.CalendarDate
 import com.bragadev.fincheck.core.domain.model.ItemSortOrder
-import com.bragadev.fincheck.core.domain.model.ItemViewMode
 import com.bragadev.fincheck.core.domain.model.ShoppingList
 import com.bragadev.fincheck.core.domain.model.ShoppingListItem
+import com.bragadev.fincheck.core.domain.model.YearMonth
+import com.bragadev.fincheck.core.domain.usecase.ConvertListToBillsUseCase
 import com.bragadev.fincheck.core.domain.usecase.DeleteListItemsUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetAmountsHiddenUseCase
-import com.bragadev.fincheck.core.domain.usecase.GetIncomeSettingsUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetListItemsUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetListShareTextUseCase
 import com.bragadev.fincheck.core.domain.usecase.GetShoppingListUseCase
@@ -49,13 +51,10 @@ class ListDetailViewModelMenuTest {
     private val setAllItemsCheckedUseCase: SetAllItemsCheckedUseCase = mockk()
     private val deleteListItemsUseCase: DeleteListItemsUseCase = mockk()
 
-    private val getIncomeSettingsUseCase: GetIncomeSettingsUseCase = mockk {
-        every { this@mockk.invoke() } returns flowOf(null)
-    }
-
     private val amountsHidden = MutableStateFlow(false)
     private val getAmountsHiddenUseCase: GetAmountsHiddenUseCase = mockk { every { this@mockk.invoke() } returns amountsHidden }
     private val setAmountsHiddenUseCase: SetAmountsHiddenUseCase = mockk(relaxed = true)
+    private val convertListToBillsUseCase: ConvertListToBillsUseCase = mockk()
 
     private lateinit var viewModel: ListDetailViewModel
 
@@ -77,13 +76,9 @@ class ListDetailViewModelMenuTest {
             setListPreferencesUseCase = setListPreferencesUseCase,
             setAllItemsCheckedUseCase = setAllItemsCheckedUseCase,
             deleteListItemsUseCase = deleteListItemsUseCase,
-            getIncomeSettingsUseCase = getIncomeSettingsUseCase,
-            saveIncomeSettingsUseCase = mockk(),
-            getExtraIncomesUseCase = mockk { every { this@mockk.invoke() } returns flowOf(emptyList()) },
-            saveExtraIncomeUseCase = mockk(),
-            deleteExtraIncomeUseCase = mockk(),
             getAmountsHiddenUseCase = getAmountsHiddenUseCase,
             setAmountsHiddenUseCase = setAmountsHiddenUseCase,
+            convertListToBillsUseCase = convertListToBillsUseCase,
         )
     }
 
@@ -105,15 +100,12 @@ class ListDetailViewModelMenuTest {
     fun `sort choice and toggles are saved`() {
         coEvery { setListPreferencesUseCase.setSortOrder(any(), any()) } returns AppResult.Success(Unit)
         coEvery { setListPreferencesUseCase.setShowPrices(any(), any()) } returns AppResult.Success(Unit)
-        coEvery { setListPreferencesUseCase.setViewMode(any(), any()) } returns AppResult.Success(Unit)
 
         viewModel.onSortOrderSelected(ItemSortOrder.DUE_DAY)
         viewModel.onShowPricesToggle()
-        viewModel.onViewModeSelected(ItemViewMode.FORTNIGHTS)
 
         coVerify(exactly = 1) { setListPreferencesUseCase.setSortOrder(1, ItemSortOrder.DUE_DAY) }
         coVerify(exactly = 1) { setListPreferencesUseCase.setShowPrices(1, false) }
-        coVerify(exactly = 1) { setListPreferencesUseCase.setViewMode(1, ItemViewMode.FORTNIGHTS) }
     }
 
     @Test
@@ -204,4 +196,23 @@ class ListDetailViewModelMenuTest {
         isChecked = false,
         createdAt = id,
     )
+
+    @Test
+    fun `turning the list into bills offers the months from the current one and reports how many were created`() {
+        coEvery { convertListToBillsUseCase(1, any(), any()) } returns AppResult.Success(3)
+
+        viewModel.onConvertToBillsClick()
+        val options = viewModel.uiState.value.convertMonthOptions
+        assertTrue(viewModel.uiState.value.isConvertDialogVisible)
+        assertEquals(YearMonth.of(CalendarDate.today()), options.first())
+        assertEquals(12, options.size)
+
+        viewModel.onConvertToBillsConfirm(options[1], BillRepetition.Monthly)
+
+        coVerify(exactly = 1) { convertListToBillsUseCase(1, options[1], BillRepetition.Monthly) }
+        assertFalse(viewModel.uiState.value.isConvertDialogVisible)
+        assertEquals(3, viewModel.uiState.value.convertedBillsCount)
+        viewModel.onConvertedHandled()
+        assertNull(viewModel.uiState.value.convertedBillsCount)
+    }
 }

@@ -5,6 +5,10 @@ package com.bragadev.fincheck.navigation
  * arguments (an id) rather than passing complex objects across destinations.
  */
 sealed class Screen(val route: String) {
+    /** "Meses": where the app opens. */
+    data object Months : Screen(route = "months")
+
+    /** "Listas": the standalone lists. */
     data object Home : Screen(route = "home")
 
     data object CreateNewList : Screen(route = "create_new_list")

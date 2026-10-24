@@ -4,6 +4,8 @@ import com.bragadev.fincheck.core.common.result.AppError
 import com.bragadev.fincheck.core.common.result.AppResult
 import com.bragadev.fincheck.core.data.mapper.toDomain
 import com.bragadev.fincheck.core.data.mapper.toEntity
+import com.bragadev.fincheck.core.domain.model.Bill
+import com.bragadev.fincheck.core.domain.model.BillBook
 import com.bragadev.fincheck.core.domain.model.CalendarDate
 import com.bragadev.fincheck.core.domain.model.CycleInsight
 import com.bragadev.fincheck.core.domain.model.CycleStatus
@@ -12,7 +14,7 @@ import com.bragadev.fincheck.core.domain.model.ExtraIncomeRecurrence
 import com.bragadev.fincheck.core.domain.model.IncomeFrequency
 import com.bragadev.fincheck.core.domain.model.IncomeSettings
 import com.bragadev.fincheck.core.domain.model.PayDay
-import com.bragadev.fincheck.core.domain.model.ShoppingListItem
+import com.bragadev.fincheck.core.domain.model.YearMonth
 import com.bragadev.fincheck.core.domain.model.buildFinancialOverview
 import com.bragadev.fincheck.core.domain.repository.IncomeRepository
 import com.bragadev.fincheck.core.domain.usecase.SaveExtraIncomeUseCase
@@ -83,7 +85,7 @@ class ExtraIncomeTest {
         val expected = assertIs<CycleInsight.ExtraIncomeExpected>(insights.single { it is CycleInsight.ExtraIncomeExpected })
         assertEquals(date(2026, 10, 5), expected.entries.single().date)
         val beforeExtra = insights.filterIsInstance<CycleInsight.BillsDueBeforeExtraIncome>().single()
-        assertEquals(listOf("Internet"), beforeExtra.bills.map { it.item.name })
+        assertEquals(listOf("Internet"), beforeExtra.bills.map { it.name })
         assertEquals("Aluguel", beforeExtra.extraIncome.income.name)
     }
 
@@ -132,18 +134,16 @@ class ExtraIncomeTest {
         assertEquals(freela, freela.toEntity().toDomain())
     }
 
-    private fun overview(items: List<ShoppingListItem>, extras: List<ExtraIncome>) =
-        assertNotNull(buildFinancialOverview(salary, items, today, extras))
+    private fun overview(bills: List<Bill>, extras: List<ExtraIncome>) =
+        assertNotNull(buildFinancialOverview(salary, BillBook(bills), YearMonth.of(today), today, extras))
 
-    private fun bill(name: String, priceInCents: Long, dueDay: Int) = ShoppingListItem(
+    private fun bill(name: String, priceInCents: Long, dueDay: Int) = Bill(
         id = name.hashCode().toLong(),
-        listId = 1,
         name = name,
-        quantity = 1,
         priceInCents = priceInCents,
         dueDay = dueDay,
-        isChecked = false,
-        createdAt = 0,
+        startMonth = YearMonth(2026, 1),
+        endMonth = null,
     )
 
     private fun date(year: Int, month: Int, day: Int) = CalendarDate(year, month, day)

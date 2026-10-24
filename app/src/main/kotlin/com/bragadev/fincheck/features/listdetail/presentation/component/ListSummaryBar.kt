@@ -34,6 +34,7 @@ import com.bragadev.fincheck.R
 import com.bragadev.fincheck.core.domain.model.ItemsTotal
 import com.bragadev.fincheck.core.domain.model.ListSummary
 import com.bragadev.fincheck.ui.components.adaptiveContentWidth
+import com.bragadev.fincheck.ui.components.toDisplayAmount
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
 
 /**

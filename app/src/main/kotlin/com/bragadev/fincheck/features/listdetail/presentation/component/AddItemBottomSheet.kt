@@ -9,19 +9,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SheetState
@@ -32,7 +27,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -46,8 +40,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bragadev.fincheck.R
 import com.bragadev.fincheck.core.domain.model.ShoppingListItem
-import com.bragadev.fincheck.core.util.extensions.MAX_DUE_DAY
-import com.bragadev.fincheck.core.util.extensions.MIN_DUE_DAY
 import com.bragadev.fincheck.core.util.extensions.currencyInputToCents
 import com.bragadev.fincheck.core.util.extensions.toBrlCurrency
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
@@ -70,7 +62,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AddItemBottomSheet(
     initialItem: ShoppingListItem? = null,
-    onConfirm: (name: String, quantity: Int, priceInCents: Long, dueDay: Int?) -> Unit,
+    onConfirm: (name: String, quantity: Int, priceInCents: Long) -> Unit,
     onDismiss: () -> Unit,
     onDelete: (() -> Unit)? = null,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -82,8 +74,6 @@ fun AddItemBottomSheet(
     var showNameError by rememberSaveable(initialItem) { mutableStateOf(false) }
     var priceInCents by rememberSaveable(initialItem) { mutableLongStateOf(initialItem?.priceInCents ?: 0L) }
     val priceText = priceInCents.toBrlCurrency()
-    var dueDay by rememberSaveable(initialItem) { mutableStateOf(initialItem?.dueDay) }
-    var isDueDayMenuExpanded by remember { mutableStateOf(false) }
     var showDeleteConfirmation by rememberSaveable { mutableStateOf(false) }
 
     // Cancel button: animate the sheet away before telling the caller, like a swipe down does.
@@ -155,50 +145,6 @@ fun AddItemBottomSheet(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth(),
             )
-            // Bills repeat every month, so only the due day (1..31) is picked, not a full date.
-            ExposedDropdownMenuBox(
-                expanded = isDueDayMenuExpanded,
-                onExpandedChange = { isDueDayMenuExpanded = it },
-            ) {
-                OutlinedTextField(
-                    value = dueDay?.let { stringResource(R.string.list_detail_item_due_day_option, it) }.orEmpty(),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(stringResource(R.string.list_detail_item_due_date_label)) },
-                    placeholder = { Text(stringResource(R.string.list_detail_item_due_day_placeholder)) },
-                    trailingIcon = {
-                        if (dueDay == null) {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDueDayMenuExpanded)
-                        } else {
-                            IconButton(onClick = { dueDay = null }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Clear,
-                                    contentDescription = stringResource(R.string.list_detail_item_due_date_clear),
-                                )
-                            }
-                        }
-                    },
-                    singleLine = true,
-                    modifier = Modifier
-                        .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                        .fillMaxWidth(),
-                )
-                ExposedDropdownMenu(
-                    expanded = isDueDayMenuExpanded,
-                    onDismissRequest = { isDueDayMenuExpanded = false },
-                ) {
-                    (MIN_DUE_DAY..MAX_DUE_DAY).forEach { day ->
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.list_detail_item_due_day_option, day)) },
-                            onClick = {
-                                dueDay = day
-                                isDueDayMenuExpanded = false
-                            },
-                            contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
-                        )
-                    }
-                }
-            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -217,7 +163,6 @@ fun AddItemBottomSheet(
                         name.trim(),
                         quantityText.toIntOrNull()?.coerceAtLeast(1) ?: 1,
                         priceInCents,
-                        dueDay,
                     )
                 }) {
                     Text(
@@ -262,7 +207,7 @@ fun AddItemBottomSheet(
 @Composable
 private fun AddItemBottomSheetPreview() {
     FinCheckTheme {
-        AddItemBottomSheet(onConfirm = { _, _, _, _ -> }, onDismiss = {})
+        AddItemBottomSheet(onConfirm = { _, _, _ -> }, onDismiss = {})
     }
 }
 
@@ -282,7 +227,7 @@ private fun EditItemBottomSheetPreview() {
                 isChecked = false,
                 createdAt = 0,
             ),
-            onConfirm = { _, _, _, _ -> },
+            onConfirm = { _, _, _ -> },
             onDismiss = {},
             onDelete = {},
         )

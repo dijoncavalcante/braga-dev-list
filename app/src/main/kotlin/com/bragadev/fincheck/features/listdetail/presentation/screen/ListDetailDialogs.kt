@@ -8,14 +8,13 @@ import androidx.compose.ui.res.stringResource
 import com.bragadev.fincheck.R
 import com.bragadev.fincheck.core.util.extensions.shareText
 import com.bragadev.fincheck.features.home.presentation.component.RenameListDialog
+import com.bragadev.fincheck.features.listdetail.presentation.component.ConvertToBillsDialog
 import com.bragadev.fincheck.features.listdetail.presentation.component.DeleteItemsDialog
-import com.bragadev.fincheck.features.listdetail.presentation.component.ExtraIncomeBottomSheet
-import com.bragadev.fincheck.features.listdetail.presentation.component.IncomeSettingsBottomSheet
 import com.bragadev.fincheck.features.listdetail.presentation.state.ListDetailUiState
 import com.bragadev.fincheck.features.listdetail.presentation.viewmodel.ListDetailViewModel
 
 /**
- * Dialogs and sheets of a list (rename, delete items, income and extra income) plus the share
+ * Dialogs of a list (rename, delete items, turn into bills of the month) plus the share
  * sheet. Both the list screen and its settings screen show them: they share one
  * [ListDetailViewModel], so whichever screen is on top opens what the user asked for.
  */
@@ -53,26 +52,12 @@ internal fun ListDetailDialogs(uiState: ListDetailUiState, viewModel: ListDetail
         )
     }
 
-    if (uiState.isIncomeSettingsVisible) {
-        IncomeSettingsBottomSheet(
-            initialSettings = uiState.incomeSettings,
-            today = uiState.today,
-            extraIncomes = uiState.extraIncomes,
-            onConfirm = viewModel::onIncomeSettingsConfirm,
-            onDismiss = viewModel::onDismissIncomeSettings,
-            onAddExtraIncomeClick = viewModel::onAddExtraIncomeClick,
-            onExtraIncomeClick = viewModel::onExtraIncomeClick,
-        )
-    }
-
-    // After the income sheet, so it opens on top of it.
-    if (uiState.isExtraIncomeSheetVisible) {
-        ExtraIncomeBottomSheet(
-            initialIncome = uiState.editingExtraIncome,
-            today = uiState.today,
-            onConfirm = viewModel::onExtraIncomeConfirm,
-            onDismiss = viewModel::onDismissExtraIncome,
-            onDelete = viewModel::onDeleteExtraIncomeConfirm,
+    if (uiState.isConvertDialogVisible) {
+        ConvertToBillsDialog(
+            itemCount = uiState.items.size,
+            monthOptions = uiState.convertMonthOptions,
+            onConfirm = viewModel::onConvertToBillsConfirm,
+            onDismiss = viewModel::onDismissConvertToBills,
         )
     }
 }

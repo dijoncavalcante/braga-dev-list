@@ -1,4 +1,4 @@
-package com.bragadev.fincheck.features.listdetail.presentation.component
+package com.bragadev.fincheck.features.months.presentation.component
 
 import androidx.compose.runtime.saveable.Saver
 import com.bragadev.fincheck.core.domain.model.CalendarDate

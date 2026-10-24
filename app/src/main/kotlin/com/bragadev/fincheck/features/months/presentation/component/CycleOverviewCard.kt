@@ -1,4 +1,4 @@
-package com.bragadev.fincheck.features.listdetail.presentation.component
+package com.bragadev.fincheck.features.months.presentation.component
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
@@ -46,6 +46,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bragadev.fincheck.R
+import com.bragadev.fincheck.features.listdetail.presentation.component.ShrinkToFitText
+import com.bragadev.fincheck.core.domain.model.Bill
+import com.bragadev.fincheck.core.domain.model.BillBook
 import com.bragadev.fincheck.core.domain.model.CalendarDate
 import com.bragadev.fincheck.core.domain.model.CycleExpense
 import com.bragadev.fincheck.core.domain.model.CycleInsight
@@ -57,8 +60,9 @@ import com.bragadev.fincheck.core.domain.model.FinancialOverview
 import com.bragadev.fincheck.core.domain.model.IncomeFrequency
 import com.bragadev.fincheck.core.domain.model.IncomeSettings
 import com.bragadev.fincheck.core.domain.model.PayDay
-import com.bragadev.fincheck.core.domain.model.ShoppingListItem
+import com.bragadev.fincheck.core.domain.model.YearMonth
 import com.bragadev.fincheck.core.domain.model.buildFinancialOverview
+import com.bragadev.fincheck.ui.components.toDisplayAmount
 import com.bragadev.fincheck.ui.theme.FinCheckTheme
 
 /** Percent → progress bar fraction. */
@@ -172,12 +176,18 @@ private fun TotalBalanceHeader(overview: FinancialOverview, onEditIncomeClick: (
                 color = balanceColor(overview.projectedBalanceInCents),
             )
             val days = overview.daysUntilNextPayment.toInt()
+            val period = stringResource(
+                R.string.cycle_period,
+                overview.current.startDate.toDayMonth(),
+                overview.periodEndDate.toDayMonth(),
+            )
             Text(
-                text = stringResource(
-                    R.string.cycle_period,
-                    overview.current.startDate.toDayMonth(),
-                    overview.periodEndDate.toDayMonth(),
-                ) + " · " + pluralStringResource(R.plurals.cycle_next_payment_in, days, days),
+                // "Days until the next payment" only makes sense from today, in the current month.
+                text = if (overview.isLive) {
+                    period + " · " + pluralStringResource(R.plurals.cycle_next_payment_in, days, days)
+                } else {
+                    period + " · " + stringResource(R.string.cycle_forecast)
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -368,7 +378,7 @@ private fun statusColor(status: CycleStatus): Color = when (status) {
 }
 
 /** Day of the month shown for a bill: the same "dia N" as its item row, never a full date. */
-private val CycleExpense.dueDayOfMonth: Int get() = dueDate?.day ?: item.dueDay ?: 0
+private val CycleExpense.dueDayOfMonth: Int get() = dueDate?.day ?: bill.bill.dueDay ?: 0
 
 /** Text of [FinancialOverview.mainAlert]; one bill is named, several are counted and summed. */
 @Composable
@@ -378,7 +388,7 @@ private fun alertText(alert: CycleInsight): String = when (alert) {
         if (bill != null) {
             stringResource(
                 R.string.cycle_insight_bill_overdue,
-                bill.item.name,
+                bill.name,
                 bill.amountInCents.toDisplayAmount(),
                 bill.dueDayOfMonth,
             )
@@ -396,7 +406,7 @@ private fun alertText(alert: CycleInsight): String = when (alert) {
         if (bill != null) {
             stringResource(
                 R.string.cycle_insight_bill_before_extra,
-                bill.item.name,
+                bill.name,
                 bill.amountInCents.toDisplayAmount(),
                 bill.dueDayOfMonth,
                 extra.income.name,
@@ -419,11 +429,12 @@ private fun alertText(alert: CycleInsight): String = when (alert) {
 @Preview(showBackground = true)
 @Composable
 private fun CycleOverviewCardPreview() {
-    val items = listOf(
-        previewItem(1, "Aluguel", 100_000, dueDay = 25),
-        previewItem(2, "Internet", 10_000, dueDay = 28),
-        previewItem(3, "Energia", 20_000, dueDay = 5),
-        previewItem(4, "Mercado", 40_000, dueDay = null),
+    val october = YearMonth(2026, 10)
+    val bills = listOf(
+        previewBill(1, "Aluguel", 100_000, dueDay = 25, october),
+        previewBill(2, "Internet", 10_000, dueDay = 28, october),
+        previewBill(3, "Energia", 20_000, dueDay = 5, october),
+        previewBill(4, "Mercado", 40_000, dueDay = null, october),
     )
     val overview = buildFinancialOverview(
         settings = IncomeSettings(
@@ -431,7 +442,8 @@ private fun CycleOverviewCardPreview() {
             payDays = listOf(PayDay(10, 200_000), PayDay(25, 250_000)),
             nextPaymentDate = CalendarDate(2026, 10, 10),
         ),
-        items = items,
+        bills = BillBook(bills = bills),
+        month = october,
         today = CalendarDate(2026, 10, 1),
         extraIncomes = listOf(ExtraIncome(1, "Aluguel", 120_000, ExtraIncomeRecurrence.Monthly(5))),
     ) ?: return
@@ -444,13 +456,12 @@ private fun CycleOverviewCardPreview() {
     }
 }
 
-private fun previewItem(id: Long, name: String, priceInCents: Long, dueDay: Int?) = ShoppingListItem(
+private fun previewBill(id: Long, name: String, priceInCents: Long, dueDay: Int?, start: YearMonth) = Bill(
     id = id,
-    listId = 1,
     name = name,
-    quantity = 1,
     priceInCents = priceInCents,
     dueDay = dueDay,
-    isChecked = false,
+    startMonth = start,
+    endMonth = null,
     createdAt = id,
 )

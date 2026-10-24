@@ -3,6 +3,7 @@ package com.bragadev.fincheck.core.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 /**
  * Version FinCheck is first published with. Every install of fincheck.db starts here: the
@@ -12,8 +13,15 @@ import androidx.room.migration.Migration
 const val BASELINE_DATABASE_VERSION = 9
 
 @Database(
-    entities = [ShoppingListEntity::class, ShoppingListItemEntity::class, IncomeSettingsEntity::class, ExtraIncomeEntity::class],
-    version = 9,
+    entities = [
+        ShoppingListEntity::class,
+        ShoppingListItemEntity::class,
+        IncomeSettingsEntity::class,
+        ExtraIncomeEntity::class,
+        BillEntity::class,
+        BillMonthStatusEntity::class,
+    ],
+    version = 10,
     // Schemas are exported to app/schemas and committed: they are what DatabaseMigrationTest
     // checks every migration against.
     exportSchema = true,
@@ -26,7 +34,30 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun incomeSettingsDao(): IncomeSettingsDao
 
     abstract fun extraIncomeDao(): ExtraIncomeDao
+
+    abstract fun billDao(): BillDao
 }
+
+/**
+ * 9 → 10: bills of the "Meses" tab, stored as rules, and what each one did in each month. Lists and
+ * their items are left untouched: they keep working as standalone lists.
+ */
+val MIGRATION_9_10 =
+    object : Migration(9, 10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `bills` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "`name` TEXT NOT NULL, `priceInCents` INTEGER NOT NULL, `dueDay` INTEGER, " +
+                    "`startMonth` INTEGER NOT NULL, `endMonth` INTEGER, `createdAt` INTEGER NOT NULL)",
+            )
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `bill_month_status` (`billId` INTEGER NOT NULL, `month` INTEGER NOT NULL, " +
+                    "`isPaid` INTEGER NOT NULL, `isSkipped` INTEGER NOT NULL, PRIMARY KEY(`billId`, `month`), " +
+                    "FOREIGN KEY(`billId`) REFERENCES `bills`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+            )
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_bill_month_status_billId` ON `bill_month_status` (`billId`)")
+        }
+    }
 
 /**
  * Every migration since [BASELINE_DATABASE_VERSION], in order. Used both by the app and by
@@ -37,4 +68,4 @@ abstract class AppDatabase : RoomDatabase() {
  * instrumented tests. Users' data must survive every update: a broken migration makes the app
  * crash on launch.
  */
-val ALL_MIGRATIONS: Array<Migration> = emptyArray()
+val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_9_10)
